@@ -10,7 +10,7 @@ export function useGeminiChat() {
     {
       id: 'welcome-msg',
       sender: 'rewaa',
-      text: 'أهلاً بك! أنا "رِواء AI"، صوت الجيل السعودي الرقمي في اليوم الوطني 96 🇸🇦. يسعدني أحاورك عن تاريخ وطننا الغالي، تراث مناطقه، وإنجازاتنا نحو المستقبل. تفضل، وش حاب نتحدث عنه؟',
+      text: 'أهلاً بك! أنا "رِواء AI"، صوت الجيل السعودي الرقمي في اليوم الوطني 96. تفضل بالحديث معي مباشرة عبر الميكروفون عن تاريخ وطننا، تراث مناطقه، ومستقبلنا الواعد.',
       timestamp: new Date(),
     },
   ]);
@@ -18,30 +18,50 @@ export function useGeminiChat() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [audioNotice, setAudioNotice] = useState<string | null>(null);
   const [isAutoVoiceEnabled, setIsAutoVoiceEnabled] = useState<boolean>(true);
+  const [isVoiceSessionActive, setIsVoiceSessionActive] = useState<boolean>(false);
 
   const messagesRef = useRef(messages);
   messagesRef.current = messages;
+
+  const isVoiceSessionActiveRef = useRef(isVoiceSessionActive);
+  isVoiceSessionActiveRef.current = isVoiceSessionActive;
+
+  // Forward ref for startListening
+  const startListeningRef = useRef<() => void>(() => {});
 
   // Function to play audio response with proper state and fallback
   const playAudio = useCallback(
     (replyText: string, audioBase64?: string | null, mimeType?: string) => {
       setAudioNotice(null);
 
+      const onAudioEnd = () => {
+        setCharacterState('IDLE');
+        // If the user is in continuous voice mode, automatically resume listening!
+        if (isVoiceSessionActiveRef.current) {
+          setTimeout(() => {
+            if (isVoiceSessionActiveRef.current) {
+              setCharacterState('LISTENING');
+              startListeningRef.current();
+            }
+          }, 350);
+        }
+      };
+
       if (audioBase64) {
-        console.log('Gemini audio received');
+        console.log('AUDIO_RECEIVED');
         audioPlayer
           .playBase64Audio(
             audioBase64,
             mimeType || 'audio/mpeg',
             () => setCharacterState('SPEAKING'),
-            () => setCharacterState('IDLE'),
+            onAudioEnd,
             (err) => {
-              console.warn('Base64 playback failed, falling back to Web Speech Synthesis:', err);
+              console.warn('Base64 playback error, using SpeechSynthesis fallback:', err);
               // Fallback to browser SpeechSynthesis
               audioPlayer.playSpeechSynthesis(
                 replyText,
                 () => setCharacterState('SPEAKING'),
-                () => setCharacterState('IDLE'),
+                onAudioEnd,
                 () => {
                   setCharacterState('IDLE');
                   setAudioNotice('تعذر تشغيل الصوت، يمكنك قراءة الرد.');
@@ -58,9 +78,9 @@ export function useGeminiChat() {
         audioPlayer.playSpeechSynthesis(
           replyText,
           () => setCharacterState('SPEAKING'),
-          () => setCharacterState('IDLE'),
+          onAudioEnd,
           (err) => {
-            console.error('Voice error:', err);
+            console.error('AUDIO_PLAYBACK_ERROR', err);
             setCharacterState('IDLE');
             setAudioNotice('تعذر تشغيل الصوت، يمكنك قراءة الرد.');
           }
@@ -80,7 +100,7 @@ export function useGeminiChat() {
       setAudioNotice(null);
       audioPlayer.stop();
 
-      console.log('User audio sent', { text: userText, isVoice });
+      console.log('GEMINI_REQUEST_SENT', { userText, isVoice });
 
       // Append user message
       const userMessage: ChatMessage = {
@@ -96,7 +116,7 @@ export function useGeminiChat() {
 
       try {
         const response = await sendChatMessage(userText, messagesRef.current);
-        console.log('Gemini response received');
+        console.log('GEMINI_RESPONSE_RECEIVED');
 
         const replyText = response.reply;
 
@@ -116,7 +136,7 @@ export function useGeminiChat() {
           setCharacterState('IDLE');
         }
       } catch (err: any) {
-        console.error('Voice error:', err);
+        console.error('AUDIO_PLAYBACK_ERROR', err);
         setCharacterState('ERROR');
         const errorText =
           err.message ||
@@ -154,31 +174,41 @@ export function useGeminiChat() {
       }
     },
     onError: (errMsg) => {
-      console.error('Voice error:', errMsg);
+      console.error('AUDIO_PLAYBACK_ERROR', errMsg);
       setErrorMessage(errMsg);
+      setIsVoiceSessionActive(false);
       setCharacterState('ERROR');
       setTimeout(() => {
         setCharacterState((curr) => (curr === 'ERROR' ? 'IDLE' : curr));
       }, 4000);
     },
     onEnd: () => {
-      setCharacterState((curr) => (curr === 'LISTENING' ? 'IDLE' : curr));
+      if (characterState === 'LISTENING') {
+        setCharacterState('IDLE');
+      }
     },
   });
 
+  startListeningRef.current = startListening;
+
   const handleToggleListening = useCallback(() => {
-    if (isListening) {
+    // Unlock AudioContext immediately upon user click
+    audioPlayer.initAudioContext();
+
+    if (isListening || isVoiceSessionActive) {
+      setIsVoiceSessionActive(false);
       stopListening();
+      audioPlayer.stop();
       setCharacterState('IDLE');
     } else {
-      console.log('Voice session started');
+      setIsVoiceSessionActive(true);
       audioPlayer.stop();
       setErrorMessage(null);
       setAudioNotice(null);
       setCharacterState('LISTENING');
       startListening();
     }
-  }, [isListening, startListening, stopListening]);
+  }, [isListening, isVoiceSessionActive, startListening, stopListening]);
 
   const replayMessageVoice = useCallback(
     async (text: string) => {
@@ -210,6 +240,7 @@ export function useGeminiChat() {
     errorMessage,
     audioNotice,
     isListening,
+    isVoiceSessionActive,
     transcript,
     isMicSupported,
     isAutoVoiceEnabled,

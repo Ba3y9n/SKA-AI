@@ -75,13 +75,13 @@ export const AmbitionModal: React.FC<AmbitionModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fadeIn">
-      <div className="relative w-full max-w-lg rounded-3xl bg-gradient-to-b from-[#0e2217] to-[#06110a] border border-emerald-600/40 p-6 sm:p-8 shadow-2xl shadow-emerald-950/80">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/40 backdrop-blur-sm animate-fadeIn">
+      <div className="relative w-full max-w-lg rounded-3xl bg-white border border-emerald-100 p-6 sm:p-8 shadow-xl">
         
         {/* Close Button */}
         <button
           onClick={handleResetAndClose}
-          className="absolute top-4 left-4 p-2 rounded-full text-gray-400 hover:text-white hover:bg-emerald-900/40 transition"
+          className="absolute top-4 left-4 p-2 rounded-full text-gray-400 hover:text-gray-800 hover:bg-emerald-50 transition"
           aria-label="إغلاق النافذة"
         >
           <X className="w-5 h-5" />
@@ -91,13 +91,13 @@ export const AmbitionModal: React.FC<AmbitionModalProps> = ({
           <div>
             {/* Modal Header */}
             <div className="text-center mb-6">
-              <div className="inline-flex p-3 rounded-2xl bg-emerald-900/50 border border-emerald-500/30 text-emerald-400 mb-3 shadow-inner">
+              <div className="inline-flex p-3 rounded-2xl bg-emerald-50 border border-emerald-100 text-emerald-600 mb-3 shadow-inner">
                 <Sparkles className="w-7 h-7 animate-pulse" />
               </div>
-              <h3 className="text-xl sm:text-2xl font-bold text-white flex items-center justify-center gap-2">
-                صوتنا يصنع المستقبل 🇸🇦
+              <h3 className="text-xl sm:text-2xl font-bold text-gray-900 flex items-center justify-center gap-2">
+                صوتنا يصنع المستقبل
               </h3>
-              <p className="text-sm text-emerald-300/80 mt-2 font-light leading-relaxed">
+              <p className="text-sm text-gray-600 mt-2 font-medium leading-relaxed">
                 "لو كان بإمكانك صناعة تغيير واحد لمستقبل السعودية، وش بيكون؟"
               </p>
             </div>
@@ -105,7 +105,7 @@ export const AmbitionModal: React.FC<AmbitionModalProps> = ({
             {/* Ambition Input Form */}
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-gray-300 mb-1.5">
+                <label className="block text-xs font-semibold text-gray-700 mb-1.5">
                   شارك فكرتك أو طموحك (دون مشاركة أي بيانات شخصية):
                 </label>
                 <textarea
@@ -114,7 +114,7 @@ export const AmbitionModal: React.FC<AmbitionModalProps> = ({
                   onChange={(e) => setIdeaText(e.target.value)}
                   placeholder="مثال: أتمنى أشوف تقنيات ذكاء اصطناعي سعودية تساعد في تطوير التعليم والمدارس..."
                   disabled={isLoading}
-                  className="w-full rounded-2xl bg-emerald-950/40 border border-emerald-700/60 p-3.5 text-sm text-gray-100 placeholder-gray-400 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/30 outline-none resize-none transition"
+                  className="w-full rounded-2xl bg-slate-50 border border-emerald-100 p-3.5 text-sm text-gray-900 placeholder-gray-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 outline-none resize-none transition"
                   aria-label="اكتب طموحك لمستقبل السعودية"
                   required
                 />
@@ -147,26 +147,26 @@ export const AmbitionModal: React.FC<AmbitionModalProps> = ({
         ) : (
           /* Success Screen */
           <div className="text-center py-4 space-y-4">
-            <div className="inline-flex p-3 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-400/40">
+            <div className="inline-flex p-3 rounded-full bg-emerald-50 text-emerald-600 border border-emerald-100">
               <CheckCircle2 className="w-10 h-10" />
             </div>
 
-            <h4 className="text-xl font-bold text-white">طموحك يضيء سماء الوطن! 🇸🇦</h4>
+            <h4 className="text-xl font-bold text-gray-900">طموحك يضيء سماء الوطن!</h4>
             
             {/* Generated Ambition Card Preview */}
-            <div className="p-5 rounded-2xl bg-gradient-to-br from-emerald-900/50 to-green-950/80 border border-emerald-500/40 shadow-xl text-right">
-              <span className="text-[11px] font-semibold px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+            <div className="p-5 rounded-2xl bg-white border border-emerald-200 shadow-lg text-right">
+              <span className="text-[11px] font-semibold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100">
                 {successCard.category}
               </span>
-              <h5 className="text-lg font-bold text-emerald-200 mt-2.5">
+              <h5 className="text-lg font-bold text-gray-900 mt-2.5">
                 {successCard.highlightPhrase}
               </h5>
-              <p className="text-xs text-gray-300 mt-1.5 leading-relaxed">
+              <p className="text-xs text-gray-600 mt-1.5 leading-relaxed">
                 "{successCard.fullIdea}"
               </p>
             </div>
 
-            <p className="text-xs text-emerald-300/70">
+            <p className="text-xs text-gray-500">
               تمت إضافة طموحك بنجاح إلى لوحة "صوتنا يصنع المستقبل".
             </p>
 

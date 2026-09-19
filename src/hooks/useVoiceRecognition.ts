@@ -10,8 +10,40 @@ export function useVoiceRecognition({ onResult, onError, onEnd }: VoiceRecogniti
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState('');
   const [isSupported, setIsSupported] = useState(true);
-  
+
   const recognitionRef = useRef<any>(null);
+  const silenceTimerRef = useRef<any>(null);
+  const latestTranscriptRef = useRef<string>('');
+  const hasTriggeredResultRef = useRef<boolean>(false);
+
+  // Keep references fresh
+  const onResultRef = useRef(onResult);
+  onResultRef.current = onResult;
+  const onErrorRef = useRef(onError);
+  onErrorRef.current = onError;
+  const onEndRef = useRef(onEnd);
+  onEndRef.current = onEnd;
+
+  const triggerFinalResult = useCallback(() => {
+    if (silenceTimerRef.current) {
+      clearTimeout(silenceTimerRef.current);
+      silenceTimerRef.current = null;
+    }
+
+    const text = latestTranscriptRef.current.trim();
+    if (text && !hasTriggeredResultRef.current) {
+      hasTriggeredResultRef.current = true;
+      console.log('USER_TRANSCRIPT', text);
+      if (recognitionRef.current) {
+        try {
+          recognitionRef.current.stop();
+        } catch {
+          // ignore
+        }
+      }
+      onResultRef.current(text);
+    }
+  }, []);
 
   useEffect(() => {
     const SpeechRecognition =
@@ -24,49 +56,85 @@ export function useVoiceRecognition({ onResult, onError, onEnd }: VoiceRecogniti
 
     const recognition = new SpeechRecognition();
     recognition.lang = 'ar-SA';
-    recognition.continuous = false;
+    recognition.continuous = true;
     recognition.interimResults = true;
     recognition.maxAlternatives = 1;
 
     recognition.onstart = () => {
       setIsListening(true);
       setTranscript('');
+      latestTranscriptRef.current = '';
+      hasTriggeredResultRef.current = false;
+      console.log('MIC_STARTED');
     };
 
     recognition.onresult = (event: any) => {
-      let currentTranscript = '';
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        currentTranscript += event.results[i][0].transcript;
-      }
-      setTranscript(currentTranscript);
+      console.log('USER_AUDIO_RECEIVED');
+      let fullText = '';
+      let isFinalResult = false;
 
-      if (event.results[0].isFinal) {
-        onResult(currentTranscript);
+      for (let i = 0; i < event.results.length; i++) {
+        const item = event.results[i];
+        fullText += item[0].transcript + ' ';
+        if (item.isFinal) {
+          isFinalResult = true;
+        }
+      }
+
+      fullText = fullText.trim();
+      latestTranscriptRef.current = fullText;
+      setTranscript(fullText);
+
+      // Reset silence timer on every new speech token
+      if (silenceTimerRef.current) {
+        clearTimeout(silenceTimerRef.current);
+      }
+
+      // If marked final or silence pause of 1.3s detected, trigger automatic send!
+      if (fullText.length > 0) {
+        silenceTimerRef.current = setTimeout(() => {
+          triggerFinalResult();
+        }, isFinalResult ? 600 : 1300);
       }
     };
 
     recognition.onerror = (event: any) => {
-      console.warn('Speech recognition error:', event.error);
-      setIsListening(false);
+      console.error('Speech recognition error:', event.error);
+      if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
 
       if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
-        onError('ما قدرت أوصل للميكروفون. تقدر تستخدم الكتابة بدل الصوت.');
+        setIsListening(false);
+        onErrorRef.current('ما قدرت أوصل للميكروفون. يرجى إعطاء الصلاحية في المتصفح.');
       } else if (event.error === 'no-speech') {
-        // user didn't speak, no harsh error needed
-        if (onEnd) onEnd();
-      } else {
-        onError('تعذر التقاط الصوت بوضوح، يرجى إعادة المحاولة أو الكتابة.');
+        // If user didn't speak, check if we have text
+        if (latestTranscriptRef.current.trim()) {
+          triggerFinalResult();
+        } else {
+          setIsListening(false);
+          if (onEndRef.current) onEndRef.current();
+        }
+      } else if (event.error !== 'aborted') {
+        setIsListening(false);
+        onErrorRef.current('تعذر التقاط الصوت بوضوح، يرجى إعادة المحاولة.');
       }
     };
 
     recognition.onend = () => {
       setIsListening(false);
-      if (onEnd) onEnd();
+      if (silenceTimerRef.current) {
+        clearTimeout(silenceTimerRef.current);
+      }
+      if (latestTranscriptRef.current.trim() && !hasTriggeredResultRef.current) {
+        triggerFinalResult();
+      } else {
+        if (onEndRef.current) onEndRef.current();
+      }
     };
 
     recognitionRef.current = recognition;
 
     return () => {
+      if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
       if (recognitionRef.current) {
         try {
           recognitionRef.current.abort();
@@ -75,33 +143,48 @@ export function useVoiceRecognition({ onResult, onError, onEnd }: VoiceRecogniti
         }
       }
     };
-  }, [onResult, onError, onEnd]);
+  }, [triggerFinalResult]);
 
   const startListening = useCallback(() => {
     if (!isSupported) {
-      onError('المتصفح الحالي لا يدعم التعرف الصوتي المباشر. يمكنك استخدام لوحة المفاتيح للكتابة.');
+      onErrorRef.current('المتصفح لا يدعم التعرف الصوتي المباشر.');
       return;
     }
 
     if (recognitionRef.current) {
       try {
+        hasTriggeredResultRef.current = false;
+        latestTranscriptRef.current = '';
         setTranscript('');
         recognitionRef.current.start();
       } catch (e: any) {
-        console.warn('Error starting speech recognition:', e);
+        // If already started, ignore or restart
+        try {
+          recognitionRef.current.stop();
+          setTimeout(() => {
+            recognitionRef.current?.start();
+          }, 100);
+        } catch {
+          // ignore
+        }
       }
     }
-  }, [isSupported, onError]);
+  }, [isSupported]);
 
   const stopListening = useCallback(() => {
-    if (recognitionRef.current && isListening) {
+    if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
+    if (latestTranscriptRef.current.trim()) {
+      triggerFinalResult();
+    }
+    if (recognitionRef.current) {
       try {
         recognitionRef.current.stop();
-      } catch (e) {
+      } catch {
         // ignore
       }
     }
-  }, [isListening]);
+    setIsListening(false);
+  }, [triggerFinalResult]);
 
   return {
     isListening,

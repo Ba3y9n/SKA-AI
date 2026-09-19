@@ -12,7 +12,6 @@ export const Visualizer: React.FC<VisualizerProps> = ({ state }) => {
   return (
     <div className="flex items-center justify-center gap-1.5 h-8 px-4" aria-hidden="true">
       {[...Array(16)].map((_, i) => {
-        // Compute pseudo-random organic height factors
         const delay = (i * 0.08).toFixed(2);
         const heights = [
           'h-1.5',
@@ -43,12 +42,12 @@ export const Visualizer: React.FC<VisualizerProps> = ({ state }) => {
             }}
             className={`w-1 rounded-full transition-all duration-300 ${
               isActive
-                ? `bg-emerald-400 animate-pulse ${barHeight}`
+                ? `bg-emerald-600 animate-pulse ${barHeight}`
                 : isThinking
                 ? 'bg-teal-500/70 animate-bounce h-2'
                 : state === 'ERROR'
                 ? 'bg-red-500/60 h-1.5'
-                : 'bg-emerald-800/40 h-1'
+                : 'bg-emerald-200 h-1'
             }`}
           />
         );

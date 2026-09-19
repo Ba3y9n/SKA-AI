@@ -4,7 +4,7 @@ class AudioPlayerService {
   private currentAudioElement: HTMLAudioElement | null = null;
   private isPlayingAudio: boolean = false;
 
-  private initAudioContext() {
+  public initAudioContext() {
     if (!this.audioCtx && typeof window !== 'undefined') {
       const AudioCtxClass = window.AudioContext || (window as any).webkitAudioContext;
       if (AudioCtxClass) {
@@ -89,7 +89,7 @@ class AudioPlayerService {
           this.currentSource = source;
           this.isPlayingAudio = true;
 
-          console.log('Audio playback started');
+          console.log('AUDIO_PLAYBACK_STARTED');
           if (onStart) onStart();
 
           source.onended = () => {
@@ -113,7 +113,7 @@ class AudioPlayerService {
 
       audio.onplay = () => {
         this.isPlayingAudio = true;
-        console.log('Audio playback started');
+        console.log('AUDIO_PLAYBACK_STARTED');
         if (onStart) onStart();
       };
 
@@ -128,7 +128,7 @@ class AudioPlayerService {
         this.isPlayingAudio = false;
         this.currentAudioElement = null;
         URL.revokeObjectURL(blobUrl);
-        console.error('Voice error:', e);
+        console.error('AUDIO_PLAYBACK_ERROR', e);
         if (onError) onError(e);
       };
 
@@ -136,7 +136,7 @@ class AudioPlayerService {
       return true;
     } catch (error: any) {
       this.isPlayingAudio = false;
-      console.error('Voice error:', error);
+      console.error('AUDIO_PLAYBACK_ERROR', error);
       if (onError) onError(error);
       return false;
     }
@@ -182,7 +182,7 @@ class AudioPlayerService {
 
       utterance.onstart = () => {
         this.isPlayingAudio = true;
-        console.log('Audio playback started');
+        console.log('AUDIO_PLAYBACK_STARTED');
         if (onStart) onStart();
       };
 
@@ -193,7 +193,7 @@ class AudioPlayerService {
 
       utterance.onerror = (e) => {
         this.isPlayingAudio = false;
-        console.error('Voice error:', e);
+        console.error('AUDIO_PLAYBACK_ERROR', e);
         if (onError) onError(e);
       };
 
@@ -202,7 +202,7 @@ class AudioPlayerService {
       window.speechSynthesis.speak(utterance);
     } catch (err: any) {
       this.isPlayingAudio = false;
-      console.error('Voice error:', err);
+      console.error('AUDIO_PLAYBACK_ERROR', err);
       if (onError) onError(err);
     }
   }
