@@ -2,7 +2,7 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 import { REWAA_SYSTEM_PROMPT, AMBITION_ANALYZER_PROMPT } from '../prompts.js';
 
 export function getGeminiModel() {
-  return process.env.GEMINI_MODEL || 'gemini-2.5-flash';
+  return process.env.GEMINI_MODEL || 'gemini-3.7-flash';
 }
 
 export function isApiKeyConfigured(): boolean {
@@ -27,14 +27,32 @@ export async function generateChatResponse(
     systemInstruction: REWAA_SYSTEM_PROMPT,
   });
 
-  // Prepare formatted history for Gemini API
-  const formattedHistory = history
-    .filter((h) => h.sender === 'user' || h.sender === 'rewaa')
-    .slice(-8) // keep recent context
-    .map((h) => ({
-      role: h.sender === 'user' ? 'user' : 'model',
-      parts: [{ text: h.text }],
-    }));
+  // Prepare formatted history for Gemini API (must start with 'user')
+  const validHistory = history.filter((h) => h.sender === 'user' || h.sender === 'rewaa');
+  
+  // Find index of first user message
+  const firstUserIndex = validHistory.findIndex((h) => h.sender === 'user');
+  const sanitizedHistory = firstUserIndex !== -1 ? validHistory.slice(firstUserIndex) : [];
+
+  const formattedHistory: Array<{ role: 'user' | 'model'; parts: Array<{ text: string }> }> = [];
+  
+  for (const item of sanitizedHistory.slice(-8)) {
+    const role = item.sender === 'user' ? 'user' : 'model';
+    // Ensure strict turn alternation for Gemini
+    if (formattedHistory.length === 0) {
+      if (role === 'user') {
+        formattedHistory.push({ role: 'user', parts: [{ text: item.text }] });
+      }
+    } else {
+      const lastRole = formattedHistory[formattedHistory.length - 1].role;
+      if (lastRole !== role) {
+        formattedHistory.push({ role, parts: [{ text: item.text }] });
+      } else {
+        // Merge adjacent messages of the same role
+        formattedHistory[formattedHistory.length - 1].parts[0].text += `\n${item.text}`;
+      }
+    }
+  }
 
   try {
     const chat = model.startChat({
