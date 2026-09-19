@@ -18,8 +18,8 @@ export const Header: React.FC<HeaderProps> = ({
         
         {/* Brand & Project Identity */}
         <div className="flex items-center gap-3">
-          <div className="relative flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-emerald-50 p-2 border border-emerald-200">
-            <img src="/logo.svg" alt="رِواء AI" className="w-full h-full object-contain" />
+          <div className="relative flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-emerald-50 p-1 border border-emerald-200 overflow-hidden">
+            <img src="/rewaa_logo.png" alt="رِواء AI" className="w-full h-full object-cover" />
           </div>
 
           <div>

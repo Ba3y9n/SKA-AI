@@ -137,10 +137,10 @@ export function useGeminiChat() {
         }
       } catch (err: any) {
         console.error('AUDIO_PLAYBACK_ERROR', err);
-        setCharacterState('ERROR');
-        const errorText =
-          err.message ||
-          'عذراً، حدث خطأ أثناء معالجة السؤال. تأكد من إعداد مفتاح GEMINI_API_KEY بالخادم.';
+        let errorText = err.message || 'عذراً، حدث خطأ أثناء معالجة السؤال.';
+        if (errorText.includes('429') || errorText.includes('quota') || errorText.includes('Too Many Requests')) {
+          errorText = 'هناك ضغط مؤقت على الخدمة، يرجى إعادة المحاولة بعد ثوانٍ بسيطة.';
+        }
         setErrorMessage(errorText);
 
         const errorChatMessage: ChatMessage = {

@@ -1,8 +1,17 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { REWAA_SYSTEM_PROMPT, AMBITION_ANALYZER_PROMPT } from '../prompts.js';
 
-export function getGeminiModel() {
-  return process.env.GEMINI_MODEL || 'gemini-3.7-flash';
+const DEFAULT_MODELS = [
+  'gemini-2.5-flash',
+  'gemini-2.0-flash',
+  'gemini-1.5-flash',
+  'gemini-2.5-pro',
+  'gemini-1.5-pro',
+  'gemini-3.7-flash'
+];
+
+export function getGeminiModel(): string {
+  return process.env.GEMINI_MODEL || 'gemini-2.5-flash';
 }
 
 export function isApiKeyConfigured(): boolean {
@@ -16,29 +25,19 @@ export async function generateChatResponse(
 ): Promise<string> {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey || !isApiKeyConfigured()) {
-    throw new Error('الخدمة الذكية غير مفعلة حاليًا. أضف GEMINI_API_KEY في ملف .env بالخادم للبدء.');
+    throw new Error('الخدمة الذكية غير مفعلة حاليًا. أضف GEMINI_API_KEY في ملف .env أو إعدادات Vercel للبدء.');
   }
 
-  const modelName = getGeminiModel();
   const genAI = new GoogleGenerativeAI(apiKey);
-
-  const model = genAI.getGenerativeModel({
-    model: modelName,
-    systemInstruction: REWAA_SYSTEM_PROMPT,
-  });
 
   // Prepare formatted history for Gemini API (must start with 'user')
   const validHistory = history.filter((h) => h.sender === 'user' || h.sender === 'rewaa');
-  
-  // Find index of first user message
   const firstUserIndex = validHistory.findIndex((h) => h.sender === 'user');
   const sanitizedHistory = firstUserIndex !== -1 ? validHistory.slice(firstUserIndex) : [];
 
   const formattedHistory: Array<{ role: 'user' | 'model'; parts: Array<{ text: string }> }> = [];
-  
   for (const item of sanitizedHistory.slice(-8)) {
     const role = item.sender === 'user' ? 'user' : 'model';
-    // Ensure strict turn alternation for Gemini
     if (formattedHistory.length === 0) {
       if (role === 'user') {
         formattedHistory.push({ role: 'user', parts: [{ text: item.text }] });
@@ -48,40 +47,50 @@ export async function generateChatResponse(
       if (lastRole !== role) {
         formattedHistory.push({ role, parts: [{ text: item.text }] });
       } else {
-        // Merge adjacent messages of the same role
         formattedHistory[formattedHistory.length - 1].parts[0].text += `\n${item.text}`;
       }
     }
   }
 
-  let attempts = 0;
-  const maxAttempts = 3;
+  // Model list to try in order
+  const primaryModel = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
+  const modelsToTry = [primaryModel, ...DEFAULT_MODELS.filter(m => m !== primaryModel)];
 
-  while (attempts < maxAttempts) {
+  let lastError: any = null;
+
+  for (const modelName of modelsToTry) {
     try {
-      attempts++;
+      console.log(`[Gemini] Attempting with model: ${modelName}`);
+      const model = genAI.getGenerativeModel({
+        model: modelName,
+        systemInstruction: REWAA_SYSTEM_PROMPT,
+      });
+
       const chat = model.startChat({
         history: formattedHistory,
       });
 
       const result = await chat.sendMessage(message);
       const response = await result.response;
-      return response.text();
+      const replyText = response.text();
+      if (replyText && replyText.trim().length > 0) {
+        return replyText;
+      }
     } catch (error: any) {
-      console.warn(`Gemini attempt ${attempts} failed:`, error.message);
-      if (attempts < maxAttempts && (error.status === 503 || error.status === 429 || (error.message && error.message.includes('503')))) {
-        await new Promise((res) => setTimeout(res, 800 * attempts));
-        continue;
-      }
-      console.error('Gemini API Final Error:', error);
-      if (error.message && error.message.includes('not found')) {
-        throw new Error(`النموذج المحدد (${modelName}) غير متوفر حالياً في مفتاح API. يُرجى مراجعة GEMINI_MODEL في .env`);
-      }
-      throw new Error(error.message || 'حدث خطأ أثناء التواصل مع نموذج الذكاء الاصطناعي.');
+      lastError = error;
+      console.warn(`[Gemini] Model ${modelName} failed:`, error.message || error);
+      // Continue to next fallback model
+      continue;
     }
   }
 
-  throw new Error('تعذر الحصول على رد من النموذج بعد عدة محاولات.');
+  // If all models failed, provide a graceful, polite Arabic message instead of raw JSON dump
+  console.error('[Gemini] All models failed. Last error:', lastError);
+  if (lastError?.message && (lastError.message.includes('429') || lastError.message.includes('quota') || lastError.status === 429)) {
+    return 'هلا بك! يبدو أن هناك ضغطاً مؤقتاً على الخدمة بسبب تجاوز الحد المجاني للطلبات. جرب تتحدث معي بعد ثوانٍ بسيطة.';
+  }
+  
+  return 'هلا بك! يسعدني الحديث معك، ولكن حدث ضغط بسيط في الاتصال. تفضل بالسؤال مرة ثانية.';
 }
 
 export async function analyzeAmbition(idea: string): Promise<{
