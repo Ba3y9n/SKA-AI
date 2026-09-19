@@ -9,13 +9,14 @@ import { Footer } from './components/Footer';
 import { useGeminiChat } from './hooks/useGeminiChat';
 import { INITIAL_DEMO_AMBITIONS } from './config/saudiKnowledge';
 import { AmbitionCard } from './types/ambition';
-import { Mic, MessageSquare, Sparkles, Flag, ArrowDown } from 'lucide-react';
+import { Mic, Sparkles, Flag } from 'lucide-react';
 
 export const App: React.FC = () => {
   const {
     messages,
     characterState,
     errorMessage,
+    audioNotice,
     isListening,
     transcript,
     isMicSupported,
@@ -47,17 +48,17 @@ export const App: React.FC = () => {
       />
 
       {/* Main Content Area */}
-      <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-10 space-y-12">
+      <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-10">
         
         {/* Hero & Interactive Character Section */}
-        <section className="relative rounded-3xl bg-gradient-to-b from-[#091b11]/80 via-[#06120b]/90 to-[#040a06] border border-emerald-800/40 p-6 sm:p-10 shadow-2xl backdrop-blur-md overflow-hidden">
+        <section className="relative rounded-3xl bg-gradient-to-b from-[#091b11]/80 via-[#06120b]/90 to-[#040a06] border border-emerald-800/40 p-6 sm:p-8 shadow-2xl backdrop-blur-md overflow-hidden">
           
           {/* Subtle Ambient Radial Glow */}
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-emerald-600/10 rounded-full blur-[100px] pointer-events-none" />
 
           <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
             
-            {/* Left/Center on mobile: Interactive Character Avatar */}
+            {/* Character Avatar */}
             <div className="lg:col-span-5 flex flex-col items-center justify-center">
               <CharacterAvatar
                 state={characterState}
@@ -66,7 +67,7 @@ export const App: React.FC = () => {
               />
             </div>
 
-            {/* Right: Intro, Concept, and Quick Actions */}
+            {/* Intro, Concept, and Quick Actions */}
             <div className="lg:col-span-7 flex flex-col items-center lg:items-start text-center lg:text-right space-y-5">
               
               {/* Event Badge */}
@@ -87,8 +88,7 @@ export const App: React.FC = () => {
 
               {/* Description */}
               <p className="text-sm sm:text-base text-gray-300 leading-relaxed max-w-xl font-light">
-                تحدث معي صوتياً أو كتابياً عن المملكة، تنوع مناطقها الـ 13، تراثنا العريق،
-                منجزات الحاضر، وطموحات جيلنا الواعد تحت مظلة رؤية السعودية 2030.
+                تحدث معي صوتياً أو كتابياً في حوار مستمر عن المملكة، تراث مناطقها الـ 13، منجزات الحاضر، ومستقبل الذكاء الاصطناعي ورؤية 2030.
               </p>
 
               {/* Primary Call-to-Action Buttons */}
@@ -109,13 +109,13 @@ export const App: React.FC = () => {
                   <span>{isListening ? 'جارٍ الاستماع... (اضغط للإيقاف)' : 'تحدث صوتياً مع رِواء'}</span>
                 </button>
 
-                {/* Ambition Button */}
+                {/* Optional Ambition Button */}
                 <button
                   onClick={() => setIsAmbitionModalOpen(true)}
                   className="flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl font-semibold text-sm bg-emerald-950/60 hover:bg-emerald-900/60 text-emerald-200 border border-emerald-700/50 transition transform hover:scale-105 active:scale-95"
                 >
                   <Sparkles className="w-4 h-4 text-emerald-400" />
-                  <span>شارك طموحك لمستقبل الوطن</span>
+                  <span>أضف طموحك 🇸🇦</span>
                 </button>
 
               </div>
@@ -126,7 +126,7 @@ export const App: React.FC = () => {
 
         </section>
 
-        {/* Conversation & Exploration Section */}
+        {/* Continuous Multi-turn Conversation Section */}
         <section className="space-y-6">
           
           {/* Suggested Questions */}
@@ -139,6 +139,7 @@ export const App: React.FC = () => {
           <ChatInterface
             messages={messages}
             characterState={characterState}
+            audioNotice={audioNotice}
             onSendMessage={sendMessage}
             onToggleMic={handleToggleListening}
             isListening={isListening}
@@ -149,7 +150,7 @@ export const App: React.FC = () => {
 
         </section>
 
-        {/* Feature Experience: صوتنا يصنع المستقبل */}
+        {/* Future Vision Board (Optional section displayed smoothly below) */}
         <FutureVisionBoard
           ambitions={ambitions}
           onOpenAddModal={() => setIsAmbitionModalOpen(true)}
@@ -157,7 +158,7 @@ export const App: React.FC = () => {
 
       </main>
 
-      {/* Modal: Share Ambition for Saudi Future */}
+      {/* Modal: Share Ambition for Saudi Future (ONLY opens when user clicks button) */}
       <AmbitionModal
         isOpen={isAmbitionModalOpen}
         onClose={() => setIsAmbitionModalOpen(false)}

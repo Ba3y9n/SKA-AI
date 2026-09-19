@@ -27,7 +27,7 @@ export async function checkServerStatus(): Promise<ServerStatus> {
 export async function sendChatMessage(
   message: string,
   history: ChatMessage[]
-): Promise<{ reply: string; model: string }> {
+): Promise<{ reply: string; model: string; audioBase64?: string | null; mimeType?: string }> {
   const formattedHistory = history.map((m) => ({
     sender: m.sender,
     text: m.text,

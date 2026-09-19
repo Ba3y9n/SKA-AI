@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { generateChatResponse, analyzeAmbition, isApiKeyConfigured, getGeminiModel } from './services/geminiService.js';
+import { synthesizeArabicAudio } from './services/ttsService.js';
 
 // Load .env file
 dotenv.config();
@@ -30,7 +31,7 @@ app.get('/api/status', (req: Request, res: Response) => {
   });
 });
 
-// Chat API Route (Proxies to Gemini securely)
+// Chat API Route (Proxies to Gemini securely + attaches Audio)
 app.post('/api/chat', async (req: Request, res: Response) => {
   try {
     const { message, history } = req.body;
@@ -40,8 +41,22 @@ app.post('/api/chat', async (req: Request, res: Response) => {
     }
 
     const reply = await generateChatResponse(message.trim(), history || []);
+    
+    // Attempt audio generation in parallel
+    let audioBase64: string | null = null;
+    try {
+      const audioBuffer = await synthesizeArabicAudio(reply);
+      if (audioBuffer) {
+        audioBase64 = audioBuffer.toString('base64');
+      }
+    } catch (audioErr) {
+      console.warn('Audio generation warning:', audioErr);
+    }
+
     res.json({
       reply,
+      audioBase64,
+      mimeType: 'audio/mpeg',
       model: getGeminiModel(),
       timestamp: new Date().toISOString(),
     });
@@ -50,6 +65,28 @@ app.post('/api/chat', async (req: Request, res: Response) => {
     res.status(500).json({
       error: error.message || 'حدث خطأ أثناء معالجة الطلب الذكي.',
     });
+  }
+});
+
+// Dedicated TTS Endpoint
+app.get('/api/tts', async (req: Request, res: Response) => {
+  try {
+    const text = req.query.text as string;
+    if (!text || text.trim().length === 0) {
+      return res.status(400).send('Text parameter required');
+    }
+
+    const audioBuffer = await synthesizeArabicAudio(text);
+    if (!audioBuffer) {
+      return res.status(500).send('TTS synthesis failed');
+    }
+
+    res.setHeader('Content-Type', 'audio/mpeg');
+    res.setHeader('Cache-Control', 'public, max-age=86400');
+    res.send(audioBuffer);
+  } catch (err: any) {
+    console.error('TTS error:', err);
+    res.status(500).send('Audio generation failed');
   }
 });
 

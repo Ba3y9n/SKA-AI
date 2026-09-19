@@ -54,22 +54,34 @@ export async function generateChatResponse(
     }
   }
 
-  try {
-    const chat = model.startChat({
-      history: formattedHistory,
-    });
+  let attempts = 0;
+  const maxAttempts = 3;
 
-    const result = await chat.sendMessage(message);
-    const response = await result.response;
-    return response.text();
-  } catch (error: any) {
-    console.error('Gemini API Error:', error);
-    // If specific model wasn't available, provide helpful message
-    if (error.message && error.message.includes('not found')) {
-      throw new Error(`النموذج المحدد (${modelName}) غير متوفر حالياً في مفتاح API. يُرجى مراجعة GEMINI_MODEL في .env`);
+  while (attempts < maxAttempts) {
+    try {
+      attempts++;
+      const chat = model.startChat({
+        history: formattedHistory,
+      });
+
+      const result = await chat.sendMessage(message);
+      const response = await result.response;
+      return response.text();
+    } catch (error: any) {
+      console.warn(`Gemini attempt ${attempts} failed:`, error.message);
+      if (attempts < maxAttempts && (error.status === 503 || error.status === 429 || (error.message && error.message.includes('503')))) {
+        await new Promise((res) => setTimeout(res, 800 * attempts));
+        continue;
+      }
+      console.error('Gemini API Final Error:', error);
+      if (error.message && error.message.includes('not found')) {
+        throw new Error(`النموذج المحدد (${modelName}) غير متوفر حالياً في مفتاح API. يُرجى مراجعة GEMINI_MODEL في .env`);
+      }
+      throw new Error(error.message || 'حدث خطأ أثناء التواصل مع نموذج الذكاء الاصطناعي.');
     }
-    throw new Error(error.message || 'حدث خطأ أثناء التواصل مع نموذج الذكاء الاصطناعي.');
   }
+
+  throw new Error('تعذر الحصول على رد من النموذج بعد عدة محاولات.');
 }
 
 export async function analyzeAmbition(idea: string): Promise<{
