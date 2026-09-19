@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
+  <defs>
+    <linearGradient id="saudiGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#10B981" />
+      <stop offset="100%" stop-color="#006C35" />
+    </linearGradient>
+    <linearGradient id="glowGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#34D399" stop-opacity="0.8"/>
+      <stop offset="100%" stop-color="#059669" stop-opacity="0.1"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- Outer Modern Hexagon Emblem -->
+  <polygon points="50,6 90,28 90,72 50,94 10,72 10,28" stroke="url(#saudiGrad)" stroke-width="3" fill="#08140D" />
+  
+  <!-- Inner Circuit / Geometric Palm & Sword inspiration -->
+  <path d="M50 20 L50 80" stroke="#34D399" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M50 35 L70 48" stroke="#10B981" stroke-width="2" stroke-linecap="round"/>
+  <path d="M50 35 L30 48" stroke="#10B981" stroke-width="2" stroke-linecap="round"/>
+  <path d="M50 50 L65 62" stroke="#10B981" stroke-width="2" stroke-linecap="round"/>
+  <path d="M50 50 L35 62" stroke="#10B981" stroke-width="2" stroke-linecap="round"/>
+  
+  <!-- AI Digital Nodes -->
+  <circle cx="50" cy="20" r="4" fill="#34D399" />
+  <circle cx="70" cy="48" r="3.5" fill="#6EE7B7" />
+  <circle cx="30" cy="48" r="3.5" fill="#6EE7B7" />
+  <circle cx="65" cy="62" r="3" fill="#A7F3D0" />
+  <circle cx="35" cy="62" r="3" fill="#A7F3D0" />
+  <circle cx="50" cy="80" r="4.5" fill="#34D399" />
+</svg>
