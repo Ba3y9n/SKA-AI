@@ -29,136 +29,135 @@ export const App: React.FC = () => {
 
   const [ambitions, setAmbitions] = useState<AmbitionCard[]>(INITIAL_DEMO_AMBITIONS);
   const [isAmbitionModalOpen, setIsAmbitionModalOpen] = useState(false);
+  const [inputText, setInputText] = useState('');
 
   const handleAmbitionAdded = (newAmbition: AmbitionCard) => {
     setAmbitions((prev) => [newAmbition, ...prev]);
   };
 
-  const handleQuestionSelect = (questionText: string) => {
-    sendMessage(questionText);
+  const handleTextSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (inputText.trim() && characterState !== 'THINKING') {
+      sendMessage(inputText.trim());
+      setInputText('');
+    }
   };
 
+  // Get only the last message from Rewaa to display as subtitles
+  const lastRewaaMessage = messages.slice().reverse().find(m => m.sender === 'rewaa');
+  const displaySubtitle = transcript ? transcript : (characterState === 'SPEAKING' || characterState === 'IDLE' ? lastRewaaMessage?.text : '');
+
   return (
-    <div className="min-h-screen bg-white text-gray-900 flex flex-col selection:bg-emerald-700 selection:text-white font-arabic">
-      {/* Top Navigation Bar */}
+    <div className="min-h-screen bg-white text-gray-900 flex flex-col selection:bg-emerald-700 selection:text-white font-arabic overflow-x-hidden">
       <Header
         isAutoVoiceEnabled={isAutoVoiceEnabled}
         onToggleVoice={() => setIsAutoVoiceEnabled(!isAutoVoiceEnabled)}
         onOpenAmbitionModal={() => setIsAmbitionModalOpen(true)}
       />
 
-      {/* Main Content Area */}
-      <main className="flex-1 max-w-5xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-12">
+      {/* Main Character Experience Area */}
+      <main className="flex-1 w-full max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-10 flex flex-col items-center justify-center min-h-[75vh]">
         
-        {/* Hero: 3D Character Front and Center */}
-        <section className="relative rounded-3xl bg-white border border-emerald-50 p-6 sm:p-10 shadow-sm text-center flex flex-col items-center">
+        {/* Character Title - Minimal */}
+        <div className="text-center mb-8">
+          <h2 className="text-3xl font-extrabold text-gray-900 tracking-tight">رِواء</h2>
+          <p className="text-sm font-medium text-emerald-700 mt-1">صوت الجيل السعودي الرقمي</p>
+        </div>
 
-
-          {/* Event Badge */}
-          <div className="relative z-10 inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 mb-6">
-            <Flag className="w-3.5 h-3.5 text-emerald-600" />
-            <span>اليوم الوطني السعودي 96 | كلية الأعمال والاقتصاد</span>
-          </div>
-
-          {/* 3D Realistic Character Component */}
-          <div className="relative z-10 mb-4">
-            <CharacterAvatar
-              state={characterState}
-              onMicClick={handleToggleListening}
-              isListening={isListening}
-            />
-          </div>
-
-          {/* Character Title & Bio */}
-          <div className="relative z-10 max-w-xl space-y-2 mt-2">
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900 tracking-tight">
-              رِواء <span className="text-emerald-700 font-mono text-2xl sm:text-3xl">AI</span>
-            </h2>
-            <p className="text-base sm:text-lg font-bold text-emerald-800">
-              صوت سعودي من جيل المستقبل
-            </p>
-            <p className="text-sm text-gray-600 leading-relaxed font-normal">
-              تحدث معي مباشرة بالصوت عن تاريخ المملكة، تنوع مناطقها الـ 13، تراثنا العريق، وطموحات جيلنا نحو رؤية السعودية 2030.
-            </p>
-          </div>
-
-          {/* Primary Voice Action Button right beneath the character */}
-          <div className="relative z-10 mt-6 flex flex-wrap items-center justify-center gap-3">
-            <button
-              onClick={handleToggleListening}
-              disabled={characterState === 'THINKING'}
-              className={`flex items-center justify-center gap-3 px-8 py-4 rounded-2xl font-bold text-base shadow-md transition-all transform hover:scale-105 active:scale-95 disabled:opacity-50 ${
-                isListening
-                  ? 'bg-red-600 hover:bg-red-700 text-white ring-4 ring-red-100'
-                  : 'bg-emerald-700 hover:bg-emerald-800 text-white shadow-emerald-100 border border-emerald-600'
-              }`}
-              aria-label={isListening ? 'إيقاف التحدث' : 'تحدث صوتياً مع رِواء'}
-            >
-              {isListening ? (
-                <>
-                  <MicOff className="w-5 h-5 animate-pulse" />
-                  <span>أستمع إليك الآن... (اضغط للإيقاف)</span>
-                </>
-              ) : (
-                <>
-                  <Mic className="w-5 h-5" />
-                  <span>تحدث صوتياً مع رِواء</span>
-                </>
-              )}
-            </button>
-
-            {/* Optional Ambition Button */}
-            <button
-              onClick={() => setIsAmbitionModalOpen(true)}
-              className="flex items-center justify-center gap-2 px-5 py-4 rounded-2xl font-bold text-sm bg-white hover:bg-emerald-50 text-emerald-800 border border-emerald-200 transition shadow-sm"
-            >
-              <Sparkles className="w-4 h-4 text-emerald-600" />
-              <span>أضف طموحك</span>
-            </button>
-          </div>
-
-        </section>
-
-        {/* Conversation Stream Section */}
-        <section className="space-y-6">
-          
-          {/* Suggested Questions */}
-          <SuggestedQuestions
-            onSelectQuestion={handleQuestionSelect}
-            disabled={characterState === 'THINKING'}
-          />
-
-          {/* Interactive Chat Window */}
-          <ChatInterface
-            messages={messages}
-            characterState={characterState}
-            audioNotice={audioNotice}
-            onSendMessage={sendMessage}
-            onToggleMic={handleToggleListening}
+        {/* 3D Character Avatar */}
+        <div className="relative z-10 mb-8 transform transition-transform duration-700">
+          <CharacterAvatar
+            state={characterState}
+            onMicClick={handleToggleListening}
             isListening={isListening}
-            transcript={transcript}
-            onReplayVoice={replayMessageVoice}
-            isMicSupported={isMicSupported}
           />
+        </div>
 
-        </section>
+        {/* Interactive Status & Subtitles */}
+        <div className="w-full max-w-2xl text-center min-h-[80px] mb-8 flex flex-col items-center justify-center">
+          {characterState === 'THINKING' ? (
+            <div className="flex items-center gap-3 text-emerald-600 font-medium animate-pulse">
+              <Sparkles className="w-5 h-5" />
+              <span>لحظة، أفكر...</span>
+            </div>
+          ) : (
+            <p className={`text-base sm:text-lg md:text-xl font-medium leading-relaxed transition-all duration-500 ${
+              isListening ? 'text-emerald-700' : 'text-gray-800'
+            }`}>
+              {displaySubtitle}
+            </p>
+          )}
+          
+          {errorMessage && (
+            <p className="text-red-500 text-sm mt-3 font-medium bg-red-50 px-4 py-2 rounded-full">
+              {errorMessage}
+            </p>
+          )}
+        </div>
 
-        {/* Optional Future Vision Board below */}
+        {/* Primary Voice Action Button */}
+        <div className="relative z-10 flex flex-col items-center gap-6 w-full max-w-md">
+          <button
+            onClick={handleToggleListening}
+            disabled={characterState === 'THINKING'}
+            className={`group relative flex items-center justify-center w-20 h-20 sm:w-24 sm:h-24 rounded-full transition-all duration-300 shadow-xl disabled:opacity-50 ${
+              isListening
+                ? 'bg-red-500 hover:bg-red-600 shadow-red-200/50 scale-105'
+                : 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-200/50 hover:scale-105'
+            }`}
+            aria-label={isListening ? 'إيقاف التحدث' : 'تحدث مع رواء'}
+          >
+            {isListening ? (
+              <>
+                <div className="absolute inset-0 rounded-full border-4 border-red-400 animate-ping opacity-20"></div>
+                <MicOff className="w-8 h-8 sm:w-10 sm:h-10 text-white animate-pulse" />
+              </>
+            ) : (
+              <Mic className="w-8 h-8 sm:w-10 sm:h-10 text-white group-hover:scale-110 transition-transform" />
+            )}
+          </button>
+          <span className={`text-sm font-bold ${isListening ? 'text-red-600 animate-pulse' : 'text-emerald-700'}`}>
+            {isListening ? 'أستمع لك...' : 'تحدث مع رواء'}
+          </span>
+
+          {/* Text Fallback Input */}
+          <form onSubmit={handleTextSubmit} className="w-full mt-4 flex items-center gap-2 bg-gray-50/80 p-2 rounded-2xl border border-gray-200 focus-within:border-emerald-400 focus-within:ring-2 focus-within:ring-emerald-50 transition-all">
+            <input
+              type="text"
+              value={inputText}
+              onChange={(e) => setInputText(e.target.value)}
+              disabled={characterState === 'THINKING' || isListening}
+              placeholder="أو اكتب رسالتك هنا..."
+              className="flex-1 bg-transparent px-4 py-2 text-sm text-gray-800 placeholder-gray-400 outline-none disabled:opacity-50"
+            />
+            <button
+              type="submit"
+              disabled={!inputText.trim() || characterState === 'THINKING' || isListening}
+              className="p-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white disabled:bg-gray-200 disabled:text-gray-400 transition-colors"
+            >
+              <svg className="w-4 h-4 rtl:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+              </svg>
+            </button>
+          </form>
+        </div>
+
+      </main>
+
+      {/* Future Vision Board (Independent Section) */}
+      <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 mb-16">
         <FutureVisionBoard
           ambitions={ambitions}
           onOpenAddModal={() => setIsAmbitionModalOpen(true)}
         />
+      </div>
 
-      </main>
-
-      {/* Ambition Modal (ONLY opens when user clicks button) */}
       <AmbitionModal
         isOpen={isAmbitionModalOpen}
         onClose={() => setIsAmbitionModalOpen(false)}
         onAmbitionAdded={handleAmbitionAdded}
       />
 
-      {/* Footer */}
       <Footer />
     </div>
   );

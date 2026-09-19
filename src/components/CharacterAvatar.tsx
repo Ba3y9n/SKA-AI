@@ -1,7 +1,6 @@
 import React from 'react';
-import { CharacterState, CHARACTER_STATES } from '../types/character';
+import { CharacterState } from '../types/character';
 import { Visualizer } from './Visualizer';
-import { Sparkles, Mic, BrainCircuit, Volume2, AlertCircle } from 'lucide-react';
 
 interface CharacterAvatarProps {
   state: CharacterState;
@@ -9,69 +8,56 @@ interface CharacterAvatarProps {
   isListening?: boolean;
 }
 
-export const CharacterAvatar: React.FC<CharacterAvatarProps> = ({
-  state,
-  onMicClick,
-  isListening = false,
-}) => {
-  const stateConfig = CHARACTER_STATES[state];
-
-  const renderStateIcon = () => {
-    switch (state) {
-      case 'LISTENING':
-        return <Mic className="w-4 h-4 text-emerald-600 animate-pulse" />;
-      case 'THINKING':
-        return <BrainCircuit className="w-4 h-4 text-emerald-600 animate-spin" />;
-      case 'SPEAKING':
-        return <Volume2 className="w-4 h-4 text-emerald-700 animate-bounce" />;
-      case 'ERROR':
-        return <AlertCircle className="w-4 h-4 text-red-600" />;
-      case 'IDLE':
-      default:
-        return <Sparkles className="w-4 h-4 text-emerald-600" />;
-    }
-  };
-
+export const CharacterAvatar: React.FC<CharacterAvatarProps> = ({ state }) => {
   return (
-    <div className="relative flex flex-col items-center justify-center select-none">
+    <div className="relative flex flex-col items-center justify-center select-none w-64 h-64 sm:w-72 sm:h-72 md:w-80 md:h-80 mx-auto">
       
-      {/* Outer Halo */}
+      {/* Outer Glow / Aura */}
       <div
-        className={`absolute -inset-4 sm:-inset-6 rounded-full transition-all duration-700 pointer-events-none ${
+        className={`absolute -inset-4 rounded-full transition-all duration-1000 pointer-events-none ${
           state === 'SPEAKING'
-            ? 'bg-emerald-100/50 scale-110 blur-xl'
+            ? 'bg-emerald-100/60 scale-110 blur-xl'
             : state === 'LISTENING'
-            ? 'bg-emerald-100/50 scale-105 animate-pulse blur-xl'
+            ? 'bg-emerald-200/50 scale-110 animate-pulse blur-2xl'
             : state === 'THINKING'
-            ? 'bg-emerald-50/50 animate-pulse blur-lg'
+            ? 'bg-emerald-50/60 animate-pulse blur-lg'
             : state === 'ERROR'
             ? 'bg-red-50/50 blur-lg'
-            : 'bg-transparent'
+            : 'bg-transparent scale-100'
         }`}
       />
 
       {/* Main Avatar Frame */}
       <div
-        className={`relative w-56 h-56 sm:w-64 sm:h-64 md:w-80 md:h-80 rounded-full p-1.5 transition-all duration-500 bg-white ${
+        className={`relative w-full h-full rounded-full p-2 transition-all duration-500 bg-white ${
           state === 'LISTENING'
-            ? 'border-4 border-emerald-500 shadow-lg'
+            ? 'border-4 border-emerald-400 shadow-xl shadow-emerald-100'
             : state === 'SPEAKING'
-            ? 'border-4 border-emerald-600 shadow-xl'
+            ? 'border-4 border-emerald-500 shadow-2xl shadow-emerald-100'
             : state === 'THINKING'
-            ? 'border-4 border-emerald-300 animate-pulse'
+            ? 'border-4 border-emerald-200 border-dashed animate-pulse'
             : state === 'ERROR'
-            ? 'border-4 border-red-500'
-            : 'border-2 border-emerald-100 shadow-sm'
-        } flex items-center justify-center overflow-hidden`}
+            ? 'border-4 border-red-400'
+            : 'border border-gray-100 shadow-md'
+        } flex items-center justify-center overflow-hidden z-10`}
         style={{
-          // Simple breathing animation for IDLE state
-          animation: state === 'IDLE' ? 'breathe 4s infinite ease-in-out' : 'none'
+          // Character states animations via CSS
+          animation: 
+            state === 'IDLE' ? 'breathe 4s infinite ease-in-out' : 
+            state === 'LISTENING' ? 'breathe 2s infinite ease-in-out' :
+            state === 'SPEAKING' ? 'talkBounce 1.5s infinite alternate ease-in-out' : 'none'
         }}
       >
         <style>{`
           @keyframes breathe {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.02); }
+            0%, 100% { transform: scale(1) translateY(0); }
+            50% { transform: scale(1.02) translateY(-2px); }
+          }
+          @keyframes talkBounce {
+            0% { transform: scale(1) translateY(0) rotate(0deg); }
+            25% { transform: scale(1.01) translateY(-1px) rotate(0.5deg); }
+            75% { transform: scale(1.01) translateY(-2px) rotate(-0.5deg); }
+            100% { transform: scale(1.02) translateY(0) rotate(0deg); }
           }
         `}</style>
         
@@ -91,27 +77,9 @@ export const CharacterAvatar: React.FC<CharacterAvatarProps> = ({
         </div>
       </div>
 
-      {/* Character State Badge */}
-      <div className="mt-5 flex flex-col items-center">
-        <div
-          className={`inline-flex items-center gap-2 px-5 py-2 rounded-full text-xs sm:text-sm font-bold border bg-white transition-all duration-300 ${
-            state === 'LISTENING'
-              ? 'border-emerald-400 text-emerald-800 shadow-sm'
-              : state === 'SPEAKING'
-              ? 'border-emerald-500 text-emerald-900 shadow-sm'
-              : state === 'THINKING'
-              ? 'border-emerald-300 text-emerald-700'
-              : state === 'ERROR'
-              ? 'border-red-300 text-red-800'
-              : 'border-emerald-100 text-emerald-900'
-          }`}
-        >
-          {renderStateIcon()}
-          <span>{stateConfig.statusTextArabic}</span>
-        </div>
-
-        {/* Real-time Frequency Wave Visualizer */}
-        <div className="mt-2.5">
+      {/* Embedded Visualizer when speaking or listening */}
+      <div className={`absolute bottom-6 z-20 transition-opacity duration-300 ${state === 'SPEAKING' || state === 'LISTENING' ? 'opacity-100' : 'opacity-0'}`}>
+        <div className="bg-white/80 backdrop-blur-sm px-4 py-2 rounded-full border border-emerald-100/50 shadow-sm">
           <Visualizer state={state} />
         </div>
       </div>

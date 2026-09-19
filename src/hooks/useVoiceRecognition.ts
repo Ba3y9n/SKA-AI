@@ -90,11 +90,11 @@ export function useVoiceRecognition({ onResult, onError, onEnd }: VoiceRecogniti
         clearTimeout(silenceTimerRef.current);
       }
 
-      // If marked final or silence pause of 1.3s detected, trigger automatic send!
+      // If marked final or silence pause detected, trigger automatic send!
       if (fullText.length > 0) {
         silenceTimerRef.current = setTimeout(() => {
           triggerFinalResult();
-        }, isFinalResult ? 600 : 1300);
+        }, isFinalResult ? 400 : 1000);
       }
     };
 
