@@ -129,8 +129,12 @@ app.get('*', (req: Request, res: Response) => {
   });
 });
 
-app.listen(PORT, () => {
-  console.log(`🇸🇦 خادم رِواء AI يعمل بنجاح على المنفذ: http://localhost:${PORT}`);
-  console.log(`⚙️ النموذج المستخدم: ${getGeminiModel()}`);
-  console.log(`🔑 حالة مفتاح API: ${isApiKeyConfigured() ? 'مفعل ✅' : 'غير معين ⚠️ (يرجى إضافته في .env)'}`);
-});
+if (process.env.NODE_ENV !== 'production' || process.env.VERCEL !== '1') {
+  app.listen(PORT, () => {
+    console.log(`🇸🇦 خادم رِواء AI يعمل بنجاح على المنفذ: http://localhost:${PORT}`);
+    console.log(`⚙️ النموذج المستخدم: ${getGeminiModel()}`);
+    console.log(`🔑 حالة مفتاح API: ${isApiKeyConfigured() ? 'مفعل ✅' : 'غير معين ⚠️ (يرجى إضافته في .env)'}`);
+  });
+}
+
+export default app;
