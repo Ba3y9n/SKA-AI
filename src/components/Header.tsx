@@ -43,7 +43,7 @@ export const Header: React.FC<HeaderProps> = ({
         <div className="flex items-center gap-2 sm:gap-3 shrink-0">
           <button
             onClick={onToggleVoice}
-            className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-bold transition-all ${
+            className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 min-h-[44px] rounded-full text-xs sm:text-sm font-bold transition-all ${
               isAutoVoiceEnabled
                 ? 'bg-saudi-50 text-saudi-700 hover:bg-saudi-100 border border-saudi-200'
                 : 'bg-gray-50 text-gray-400 hover:bg-gray-100 border border-gray-200'
@@ -55,7 +55,7 @@ export const Header: React.FC<HeaderProps> = ({
 
           <button
             onClick={onOpenAmbitionModal}
-            className="flex items-center gap-1.5 px-3 sm:px-5 py-1.5 sm:py-2.5 rounded-full text-xs sm:text-sm font-bold bg-saudi-600 border border-gold hover:bg-saudi-700 hover:border-gold-light text-white shadow-md transition-all transform hover:-translate-y-0.5"
+            className="flex items-center gap-1.5 px-4 sm:px-5 py-2 sm:py-2.5 min-h-[44px] rounded-full text-xs sm:text-sm font-bold bg-saudi-600 border border-gold hover:bg-saudi-700 hover:border-gold-light text-white shadow-md transition-all transform hover:-translate-y-0.5"
           >
             <span className="hidden sm:inline">أضف طموحك</span>
             <span className="sm:hidden">طموحك</span>

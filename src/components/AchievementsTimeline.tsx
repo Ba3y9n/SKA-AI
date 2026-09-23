@@ -365,7 +365,7 @@ export const AchievementsTimeline: React.FC = () => {
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className="block text-xs font-bold text-gray-700 mb-1.5">التخصص / القسم</label>
                     <input 
@@ -401,7 +401,7 @@ export const AchievementsTimeline: React.FC = () => {
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className="block text-xs font-bold text-gray-700 mb-1.5">رابط حساب لينكد إن (اختياري)</label>
                     <input 

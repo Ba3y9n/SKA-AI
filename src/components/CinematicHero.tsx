@@ -69,7 +69,7 @@ export const CinematicHero: React.FC = () => {
             window.scrollTo({ top: window.innerHeight, behavior: 'smooth' });
           }}
         >
-          <h1 className="text-6xl md:text-8xl lg:text-9xl font-black text-saudi-700 mb-2 tracking-tight drop-shadow-sm transition-transform duration-500 group-hover:-translate-y-2">
+          <h1 className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-black text-saudi-700 mb-2 tracking-tight drop-shadow-sm transition-transform duration-500 group-hover:-translate-y-2 text-center px-4">
             اكتشف الحكاية
           </h1>
           <div className="w-12 h-12 rounded-full bg-gold text-saudi-700 text-white flex items-center justify-center animate-bounce shadow-lg mt-4 group-hover:bg-gold-light transition-colors">
