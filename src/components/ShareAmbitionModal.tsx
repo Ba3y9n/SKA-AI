@@ -106,7 +106,7 @@ export const ShareAmbitionModal: React.FC<ShareAmbitionModalProps> = ({ isOpen, 
 
                 <div className="text-left">
                   <span className="px-3 py-1 bg-white/10 rounded-full text-[11px] font-bold text-emerald-200 border border-white/10">
-                    اليوم الوطني 96 🇸🇦
+                    اليوم الوطني 96
                   </span>
                 </div>
               </div>

@@ -10,11 +10,13 @@ import { Footer } from './components/Footer';
 import { AmbitionModal } from './components/AmbitionModal';
 import { Header } from './components/Header';
 import { FloatingVoiceWidget } from './components/FloatingVoiceWidget';
+import { AdminGalleryReview } from './components/AdminGalleryReview';
 import { useGeminiChat } from './hooks/useGeminiChat';
 import { fetchAmbitions, subscribeToAmbitions } from './services/apiService';
 import { Ambition } from './types/ambition';
 
 const App: React.FC = () => {
+  const [isAdminView, setIsAdminView] = useState(false);
   const [isAmbitionModalOpen, setIsAmbitionModalOpen] = useState(false);
   const [ambitions, setAmbitions] = useState<Ambition[]>([]);
 
@@ -35,6 +37,39 @@ const App: React.FC = () => {
     return () => { stopSpeaking(); };
   }, [stopSpeaking]);
 
+  // Check URL pathname or hash for admin route
+  useEffect(() => {
+    const checkRoute = () => {
+      const path = window.location.pathname;
+      const hash = window.location.hash;
+      if (path === '/admin/gallery' || hash === '#admin/gallery' || hash === '#/admin/gallery') {
+        setIsAdminView(true);
+      } else {
+        setIsAdminView(false);
+      }
+    };
+
+    checkRoute();
+    window.addEventListener('popstate', checkRoute);
+    window.addEventListener('hashchange', checkRoute);
+    return () => {
+      window.removeEventListener('popstate', checkRoute);
+      window.removeEventListener('hashchange', checkRoute);
+    };
+  }, []);
+
+  const navigateToAdmin = () => {
+    window.history.pushState(null, '', '/admin/gallery');
+    setIsAdminView(true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const navigateToHome = () => {
+    window.history.pushState(null, '', '/');
+    setIsAdminView(false);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   useEffect(() => {
     let unsubscribe: (() => void) | undefined;
     const initAmbitions = async () => {
@@ -54,6 +89,11 @@ const App: React.FC = () => {
     initAmbitions();
     return () => { if (unsubscribe) unsubscribe(); };
   }, []);
+
+  // If in Admin view, render AdminGalleryReview directly
+  if (isAdminView) {
+    return <AdminGalleryReview onBackToSite={navigateToHome} />;
+  }
 
   return (
     <div className="relative w-full bg-[#F8FBF8] text-[#064C3B] font-arabic selection:bg-[#008F68] selection:text-white overflow-hidden">
@@ -80,8 +120,8 @@ const App: React.FC = () => {
       {/* 5. National Identity Section (Clean & Big) */}
       <NationalCardSection />
 
-      {/* 6. CBE National Day Photos ("عدسة كلية الأعمال والاقتصاد") */}
-      <UserGallery />
+      {/* 6. CBE National Day Photos ("شاركنا لحظات اليوم الوطني في كلية الأعمال والاقتصاد") */}
+      <UserGallery onOpenAdmin={navigateToAdmin} />
 
       {/* 7. Future Ambitions Wall ("صوتنا يصنع المستقبل") */}
       <FutureVisionBoard 

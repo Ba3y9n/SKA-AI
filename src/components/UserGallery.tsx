@@ -1,83 +1,60 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ImagePlus, Trash2, X, ChevronRight, ChevronLeft, ShieldAlert, Sparkles, Filter, RefreshCw, UploadCloud } from 'lucide-react';
+import { 
+  ImagePlus, 
+  Trash2, 
+  X, 
+  ChevronRight, 
+  ChevronLeft, 
+  ShieldAlert, 
+  RefreshCw, 
+  UploadCloud, 
+  Clock, 
+  CheckCircle2, 
+  Eye, 
+  FolderHeart,
+  Lock
+} from 'lucide-react';
+import { GallerySubmission } from '../types/gallery';
+import { 
+  fetchPublicApprovedPhotos, 
+  fetchMySubmissions, 
+  submitPhotoForReview, 
+  deletePhotoSubmission, 
+  getUserToken 
+} from '../services/galleryService';
 
-interface GalleryPhoto {
-  id: string;
-  url: string;
-  title?: string;
-  category: 'فعاليات' | 'أجواء الكلية' | 'لحظات وطنية';
-  createdAt: string;
-  isUserAdded?: boolean;
-  userToken?: string;
+interface UserGalleryProps {
+  onOpenAdmin?: () => void;
 }
 
-// Initial curated showcase photos
-const INITIAL_COLLEGE_PHOTOS: GalleryPhoto[] = [
-  {
-    id: 'c-1',
-    url: '/national_hero.jpg',
-    title: 'بهو كلية الأعمال والاقتصاد — احتفالات 96',
-    category: 'أجواء الكلية',
-    createdAt: '2026-09-23',
-    isUserAdded: false,
-  },
-  {
-    id: 'c-2',
-    url: '/media_1790129786646.jpg',
-    title: 'الركن الوطني التراثي',
-    category: 'فعاليات',
-    createdAt: '2026-09-23',
-    isUserAdded: false,
-  }
-];
-
-export const UserGallery: React.FC = () => {
-  const [photos, setPhotos] = useState<GalleryPhoto[]>(INITIAL_COLLEGE_PHOTOS);
+export const UserGallery: React.FC<UserGalleryProps> = ({ onOpenAdmin }) => {
+  const [approvedPhotos, setApprovedPhotos] = useState<GallerySubmission[]>([]);
+  const [myPhotos, setMyPhotos] = useState<GallerySubmission[]>([]);
   const [activeFilter, setActiveFilter] = useState<string>('الكل');
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
-  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
-
+  
   // Upload modal state
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [photoTitle, setPhotoTitle] = useState('');
+  const [photoDescription, setPhotoDescription] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<'فعاليات' | 'أجواء الكلية' | 'لحظات وطنية'>('أجواء الكلية');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submissionSuccess, setSubmissionSuccess] = useState(false);
+  const [submissionSuccessMsg, setSubmissionSuccessMsg] = useState<string | null>(null);
 
-  // User persistent identifier for deletion ownership
-  const [myUserToken, setMyUserToken] = useState<string>('');
+  // My Submissions Modal
+  const [isMySubmissionsOpen, setIsMySubmissionsOpen] = useState(false);
+
+  const loadPhotos = async () => {
+    const approved = await fetchPublicApprovedPhotos();
+    setApprovedPhotos(approved);
+    const mine = await fetchMySubmissions();
+    setMyPhotos(mine);
+  };
 
   useEffect(() => {
-    let token = localStorage.getItem('rewaa_user_token');
-    if (!token) {
-      token = 'usr_' + Math.random().toString(36).substr(2, 9) + Date.now();
-      localStorage.setItem('rewaa_user_token', token);
-    }
-    setMyUserToken(token);
-
-    const savedPhotos = localStorage.getItem('cbe_gallery_photos');
-    if (savedPhotos) {
-      try {
-        const parsed = JSON.parse(savedPhotos);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          setPhotos([...parsed, ...INITIAL_COLLEGE_PHOTOS.filter(init => !parsed.some((p: any) => p.id === init.id))]);
-        }
-      } catch (e) {
-        console.error('Failed to load gallery photos', e);
-      }
-    }
+    loadPhotos();
   }, []);
-
-  const savePhotos = (updated: GalleryPhoto[]) => {
-    setPhotos(updated);
-    const userOnly = updated.filter(p => p.isUserAdded);
-    try {
-      localStorage.setItem('cbe_gallery_photos', JSON.stringify(userOnly));
-    } catch (e) {
-      console.warn('Storage full for images');
-    }
-  };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -90,85 +67,105 @@ export const UserGallery: React.FC = () => {
     }
   };
 
-  const handleSubmitPhoto = (e: React.FormEvent) => {
+  // Cancel Preview & reset upload
+  const handleCancelPreview = () => {
+    setPreviewUrl(null);
+    setPhotoDescription('');
+  };
+
+  // Submit for Review
+  const handleSubmitForReview = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!previewUrl) return;
 
     setIsSubmitting(true);
-    setTimeout(() => {
-      const newPhoto: GalleryPhoto = {
-        id: 'user_img_' + Date.now(),
-        url: previewUrl,
-        title: photoTitle.trim() || 'لحظة وطنية من بهو الكلية',
+    try {
+      await submitPhotoForReview({
+        imageUrl: previewUrl,
+        description: photoDescription.trim() || undefined,
         category: selectedCategory,
-        createdAt: new Date().toISOString().split('T')[0],
-        isUserAdded: true,
-        userToken: myUserToken
-      };
+      });
 
-      const updated = [newPhoto, ...photos];
-      savePhotos(updated);
       setIsSubmitting(false);
-      setSubmissionSuccess(true);
+      setSubmissionSuccessMsg('تم استلام الصورة وستتم مراجعتها قبل نشرها.');
+      await loadPhotos();
 
       setTimeout(() => {
-        setSubmissionSuccess(false);
+        setSubmissionSuccessMsg(null);
         setPreviewUrl(null);
-        setPhotoTitle('');
+        setPhotoDescription('');
         setIsUploadModalOpen(false);
-      }, 2000);
-    }, 600);
-  };
-
-  const handleDeletePhoto = (id: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (window.confirm('هل أنت متأكد من حذف هذه الصورة؟')) {
-      const updated = photos.filter(p => p.id !== id);
-      savePhotos(updated);
-      if (lightboxIndex !== null) setLightboxIndex(null);
+      }, 2500);
+    } catch (err) {
+      console.error(err);
+      setIsSubmitting(false);
     }
   };
 
-  const filteredPhotos = photos.filter(p => activeFilter === 'الكل' || p.category === activeFilter);
+  // User deletes their own pending submission
+  const handleDeleteMySubmission = async (id: string) => {
+    if (window.confirm('هل أنت متأكد من حذف هذه المشاركة؟')) {
+      const res = await deletePhotoSubmission(id);
+      if (res.success) {
+        await loadPhotos();
+      } else {
+        alert(res.message);
+      }
+    }
+  };
+
+  const filteredApprovedPhotos = approvedPhotos.filter(p => activeFilter === 'الكل' || p.category === activeFilter);
+  const pendingCount = myPhotos.filter(p => p.status === 'pending').length;
 
   return (
-    <section className="relative w-full py-32 bg-white overflow-hidden z-20 border-t border-gray-100" id="gallery">
+    <section className="relative w-full py-28 bg-[#F8FBF8] overflow-hidden z-20 border-t border-gray-100" id="gallery">
       
-      {/* Background Ambience */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-emerald-50/70 rounded-full blur-[120px] pointer-events-none" />
+      {/* Background Decor */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[350px] bg-emerald-100/30 rounded-full blur-[120px] pointer-events-none" />
 
       <div className="max-w-7xl mx-auto px-6 relative z-10">
         
-        {/* Main Section Header */}
-        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8 mb-16 text-right">
+        {/* Section Header */}
+        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8 mb-14 text-right">
           <div>
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#008F68]/10 text-[#006C4F] text-sm font-bold mb-4">
-              <Sparkles className="w-4 h-4 text-[#008F68]" />
-              عدسة كلية الأعمال والاقتصاد
-            </div>
-            <h2 className="text-3xl sm:text-5xl font-black text-[#064C3B] leading-tight mb-4">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-[#064C3B] leading-tight mb-4 tracking-tight">
               شاركنا لحظات اليوم الوطني في كلية الأعمال والاقتصاد
             </h2>
-            <p className="text-lg md:text-xl text-gray-600 font-medium max-w-2xl leading-relaxed">
+            <p className="text-base sm:text-lg text-gray-600 font-medium max-w-2xl leading-relaxed">
               التقط لحظتك في البهو وشاركنا أجواء اليوم الوطني داخل الكلية.
             </p>
           </div>
 
-          <button
-            onClick={() => setIsUploadModalOpen(true)}
-            className="self-start lg:self-auto inline-flex items-center gap-3 px-8 py-4 rounded-full bg-[#008F68] hover:bg-[#064C3B] text-white font-bold text-lg shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300"
-          >
-            <ImagePlus className="w-5 h-5" />
-            <span>+ أضف صورتك</span>
-          </button>
+          <div className="flex flex-wrap items-center gap-3 self-start lg:self-auto">
+            {/* My Submissions button */}
+            {myPhotos.length > 0 && (
+              <button
+                onClick={() => setIsMySubmissionsOpen(true)}
+                className="inline-flex items-center gap-2 px-5 py-3.5 rounded-full bg-white hover:bg-emerald-50 border border-emerald-200 text-[#006C4F] font-bold text-sm shadow-sm transition-all"
+              >
+                <FolderHeart className="w-4 h-4 text-[#008F68]" />
+                <span>مشاركاتي ({myPhotos.length})</span>
+                {pendingCount > 0 && (
+                  <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 text-xs font-bold">
+                    {pendingCount} قيد المراجعة
+                  </span>
+                )}
+              </button>
+            )}
+
+            {/* Primary Add Photo Button */}
+            <button
+              onClick={() => setIsUploadModalOpen(true)}
+              className="inline-flex items-center gap-2.5 px-8 py-4 rounded-full bg-[#008F68] hover:bg-[#064C3B] text-white font-black text-base sm:text-lg shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300"
+            >
+              <ImagePlus className="w-5 h-5" />
+              <span>أضف صورتك</span>
+            </button>
+          </div>
         </div>
 
-        {/* Gallery Title & Filter Tabs */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 pb-8 mb-10 border-b border-gray-100">
-          <h3 className="text-2xl font-black text-[#064C3B] flex items-center gap-2">
-            من عدسة كلية الأعمال والاقتصاد 🇸🇦
-          </h3>
-
+        {/* Filter Tabs & Admin Gateway */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 mb-8 border-b border-gray-200/70">
           <div className="flex items-center gap-2 overflow-x-auto pb-2 sm:pb-0">
             {['الكل', 'فعاليات', 'أجواء الكلية', 'لحظات وطنية'].map((cat) => (
               <button
@@ -177,77 +174,90 @@ export const UserGallery: React.FC = () => {
                 className={`px-5 py-2 rounded-full text-sm font-bold whitespace-nowrap transition-all duration-300 ${
                   activeFilter === cat
                     ? 'bg-[#064C3B] text-white shadow-sm'
-                    : 'bg-gray-100 text-gray-600 hover:bg-emerald-50 hover:text-[#008F68]'
+                    : 'bg-white text-gray-600 hover:bg-emerald-50 hover:text-[#008F68] border border-gray-200/80'
                 }`}
               >
                 {cat}
               </button>
             ))}
           </div>
+
+          {/* Discreet Admin Link */}
+          {onOpenAdmin && (
+            <button
+              onClick={onOpenAdmin}
+              className="text-xs text-gray-400 hover:text-[#008F68] flex items-center gap-1.5 self-end sm:self-auto font-medium transition-colors"
+            >
+              <Lock className="w-3.5 h-3.5" />
+              <span>لوحة مراجعة المشرف</span>
+            </button>
+          )}
         </div>
 
-        {/* Interactive Masonry-style Grid */}
-        <motion.div layout className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          <AnimatePresence>
-            {filteredPhotos.map((photo, idx) => {
-              const isOwner = photo.isUserAdded && photo.userToken === myUserToken;
-              return (
+        {/* Masonry / Editorial Public Gallery (Approved Only) */}
+        {filteredApprovedPhotos.length === 0 ? (
+          <div className="py-20 text-center rounded-3xl bg-white border-2 border-dashed border-gray-200 p-8">
+            <UploadCloud className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+            <p className="text-lg font-bold text-gray-700">لا توجد صور معتمدة في المعرض حالياً</p>
+            <p className="text-sm text-gray-400 mt-1">شاركي صورتك من بهو الكلية لتكوني أول من يظهر بعد اعتماد المشرف.</p>
+            <button
+              onClick={() => setIsUploadModalOpen(true)}
+              className="mt-6 inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-[#008F68] text-white text-sm font-bold shadow-md hover:bg-[#064C3B] transition-colors"
+            >
+              <ImagePlus className="w-4 h-4" />
+              <span>أضف صورتك الآن</span>
+            </button>
+          </div>
+        ) : (
+          <motion.div layout className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <AnimatePresence>
+              {filteredApprovedPhotos.map((photo, idx) => (
                 <motion.div
                   layout
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.95 }}
-                  transition={{ duration: 0.4, delay: idx * 0.05 }}
+                  transition={{ duration: 0.35, delay: idx * 0.05 }}
                   key={photo.id}
                   onClick={() => setLightboxIndex(idx)}
-                  className="group relative rounded-[2rem] overflow-hidden bg-gray-50 border border-gray-100 shadow-sm hover:shadow-2xl transition-all duration-500 cursor-pointer aspect-[4/3]"
+                  className="group relative rounded-3xl overflow-hidden bg-white border border-emerald-100 shadow-sm hover:shadow-xl transition-all duration-500 cursor-pointer aspect-[4/3]"
                 >
                   <img
-                    src={photo.url}
-                    alt={photo.title || 'صورة من بهو الكلية'}
-                    className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out"
+                    src={photo.image_url}
+                    alt={photo.description || 'صورة من بهو الكلية'}
+                    className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500 ease-out"
                     loading="lazy"
                   />
 
-                  {/* Gradient Overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-between p-6">
-                    <div className="flex items-center justify-between">
+                  {/* Clean Hover Overlay with "عرض الصورة" */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-between p-6">
+                    <div className="flex justify-end">
                       <span className="px-3 py-1 bg-white/20 backdrop-blur-md rounded-full text-xs font-bold text-white border border-white/20">
                         {photo.category}
                       </span>
-                      {isOwner && (
-                        <button
-                          onClick={(e) => handleDeletePhoto(photo.id, e)}
-                          className="p-2.5 rounded-full bg-red-500 text-white hover:bg-red-600 hover:scale-110 transition-all shadow-md"
-                          title="حذف صورتي"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      )}
                     </div>
 
-                    <div>
-                      <p className="text-white font-bold text-lg mb-1">{photo.title}</p>
-                      <p className="text-emerald-300 text-xs font-medium">{photo.createdAt}</p>
+                    <div className="text-right">
+                      {photo.description && (
+                        <p className="text-white font-bold text-base mb-2 line-clamp-2">{photo.description}</p>
+                      )}
+                      <div className="inline-flex items-center gap-1.5 text-emerald-300 text-xs font-bold bg-white/10 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/10">
+                        <Eye className="w-3.5 h-3.5" />
+                        <span>عرض الصورة</span>
+                      </div>
                     </div>
                   </div>
                 </motion.div>
-              );
-            })}
-          </AnimatePresence>
-        </motion.div>
-
-        {filteredPhotos.length === 0 && (
-          <div className="py-20 text-center text-gray-400 font-bold border-2 border-dashed border-gray-200 rounded-3xl">
-            لا توجد صور في هذا التصنيف حالياً. كوني أول من يشارك صورته!
-          </div>
+              ))}
+            </AnimatePresence>
+          </motion.div>
         )}
 
       </div>
 
       {/* Lightbox Modal */}
       <AnimatePresence>
-        {lightboxIndex !== null && filteredPhotos[lightboxIndex] && (
+        {lightboxIndex !== null && filteredApprovedPhotos[lightboxIndex] && (
           <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
             <button
               onClick={() => setLightboxIndex(null)}
@@ -257,12 +267,12 @@ export const UserGallery: React.FC = () => {
             </button>
 
             {/* Prev / Next controls */}
-            {filteredPhotos.length > 1 && (
+            {filteredApprovedPhotos.length > 1 && (
               <>
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    setLightboxIndex((lightboxIndex - 1 + filteredPhotos.length) % filteredPhotos.length);
+                    setLightboxIndex((lightboxIndex - 1 + filteredApprovedPhotos.length) % filteredApprovedPhotos.length);
                   }}
                   className="absolute right-6 top-1/2 -translate-y-1/2 z-30 p-4 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
                 >
@@ -271,7 +281,7 @@ export const UserGallery: React.FC = () => {
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    setLightboxIndex((lightboxIndex + 1) % filteredPhotos.length);
+                    setLightboxIndex((lightboxIndex + 1) % filteredApprovedPhotos.length);
                   }}
                   className="absolute left-6 top-1/2 -translate-y-1/2 z-30 p-4 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
                 >
@@ -281,26 +291,28 @@ export const UserGallery: React.FC = () => {
             )}
 
             <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
+              initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
+              exit={{ scale: 0.95, opacity: 0 }}
               className="relative max-w-5xl max-h-[85vh] rounded-3xl overflow-hidden shadow-2xl flex flex-col items-center"
             >
               <img
-                src={filteredPhotos[lightboxIndex].url}
-                alt={filteredPhotos[lightboxIndex].title}
+                src={filteredApprovedPhotos[lightboxIndex].image_url}
+                alt={filteredApprovedPhotos[lightboxIndex].description || 'معاينة'}
                 className="max-h-[75vh] w-auto object-contain rounded-2xl"
               />
               <div className="mt-4 text-center text-white">
-                <p className="text-xl font-black">{filteredPhotos[lightboxIndex].title}</p>
-                <span className="text-sm text-emerald-400 font-bold">{filteredPhotos[lightboxIndex].category}</span>
+                {filteredApprovedPhotos[lightboxIndex].description && (
+                  <p className="text-lg font-bold">{filteredApprovedPhotos[lightboxIndex].description}</p>
+                )}
+                <span className="text-xs text-emerald-400 font-bold">{filteredApprovedPhotos[lightboxIndex].category}</span>
               </div>
             </motion.div>
           </div>
         )}
       </AnimatePresence>
 
-      {/* Upload Modal */}
+      {/* Upload Modal / Bottom Sheet */}
       <AnimatePresence>
         {isUploadModalOpen && (
           <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
@@ -316,77 +328,82 @@ export const UserGallery: React.FC = () => {
               initial={{ scale: 0.95, y: 20 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.95, y: 20 }}
-              className="relative bg-white w-full max-w-xl rounded-3xl p-8 shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto"
+              className="relative bg-white w-full max-w-xl rounded-[2rem] p-6 sm:p-8 shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto z-10 text-right"
             >
               <button
                 onClick={() => setIsUploadModalOpen(false)}
-                className="absolute top-6 left-6 text-gray-400 hover:text-gray-700"
+                className="absolute top-5 left-5 text-gray-400 hover:text-gray-700 p-2 rounded-full hover:bg-gray-100 transition-colors"
               >
-                <X className="w-6 h-6" />
+                <X className="w-5 h-5" />
               </button>
 
-              <h3 className="text-2xl font-black text-[#064C3B] mb-2">إضافة صورة من بهو الكلية</h3>
-              <p className="text-sm text-gray-500 mb-6">شاركي لحظات الاحتفال باليوم الوطني 96</p>
+              <h3 className="text-2xl font-black text-[#064C3B] mb-1">أضف صورة من أجواء اليوم الوطني</h3>
+              <p className="text-sm text-gray-500 mb-6">شاركنا لحظة التقطتها داخل بهو كلية الأعمال والاقتصاد.</p>
 
-              {/* Privacy Notice Alert */}
-              <div className="mb-6 p-4 rounded-2xl bg-amber-50 border border-amber-200/80 text-amber-900 text-xs leading-relaxed flex items-start gap-3">
-                <ShieldAlert className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
-                <div>
-                  <p className="font-bold mb-1">ملاحظة الخصوصية والمراجعة:</p>
-                  <p>• سيتم مراجعة الصورة قبل نشرها في المعرض العام.</p>
-                  <p>• يرجى عدم رفع صور تُظهر وجوه الطالبات بوضوح دون موافقتهن.</p>
+              {/* Privacy Notices */}
+              <div className="mb-6 p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-xs leading-relaxed space-y-1">
+                <div className="flex items-center gap-2 font-bold mb-1">
+                  <ShieldAlert className="w-4 h-4 text-amber-600 shrink-0" />
+                  <span>تنبيه الخصوصية والمراجعة:</span>
                 </div>
+                <p>• يرجى عدم رفع صور تظهر وجوه الطالبات بوضوح دون موافقتهن.</p>
+                <p>• تخضع الصور للمراجعة قبل ظهورها في المعرض العام.</p>
               </div>
 
-              {submissionSuccess ? (
-                <div className="py-12 text-center">
-                  <div className="w-16 h-16 bg-emerald-100 text-[#008F68] rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Sparkles className="w-8 h-8" />
+              {submissionSuccessMsg ? (
+                <div className="py-10 text-center">
+                  <div className="w-14 h-14 bg-emerald-100 text-[#008F68] rounded-full flex items-center justify-center mx-auto mb-3">
+                    <CheckCircle2 className="w-7 h-7" />
                   </div>
-                  <h4 className="text-2xl font-black text-[#064C3B] mb-2">تم استلام صورتك بنجاح!</h4>
-                  <p className="text-gray-600 text-sm">تمت إضافة الصورة إلى معرضك وستظهر للجميع بعد المراجعة.</p>
+                  <h4 className="text-xl font-black text-[#064C3B] mb-2">{submissionSuccessMsg}</h4>
+                  <p className="text-gray-500 text-xs">يمكنكِ متابعة حالة الصورة عبر زر مشاركاتي.</p>
                 </div>
               ) : (
-                <form onSubmit={handleSubmitPhoto} className="space-y-5">
+                <form onSubmit={handleSubmitForReview} className="space-y-5">
                   
-                  {/* Image Picker / Preview Area */}
+                  {/* Image Picker OR Preview Section */}
                   {!previewUrl ? (
-                    <label className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-emerald-300 rounded-2xl cursor-pointer hover:bg-emerald-50/50 transition-colors">
+                    <label className="flex flex-col items-center justify-center w-full h-52 border-2 border-dashed border-emerald-300 rounded-2xl cursor-pointer hover:bg-emerald-50/50 transition-colors text-center p-4">
                       <UploadCloud className="w-10 h-10 text-[#008F68] mb-2" />
-                      <span className="font-bold text-[#064C3B] text-base mb-1">اضغط لاختيار صورة من جهازك</span>
-                      <span className="text-xs text-gray-400">JPG, PNG, WebP (بحد أقصى 5MB)</span>
+                      <span className="font-bold text-[#064C3B] text-base mb-1">اختر صورة من جهازك</span>
+                      <span className="text-xs text-gray-400">JPG / PNG / WebP</span>
                       <input type="file" accept="image/*" onChange={handleFileSelect} className="hidden" />
                     </label>
                   ) : (
-                    <div className="relative rounded-2xl overflow-hidden border border-gray-200 bg-gray-50 h-56 flex items-center justify-center">
-                      <img src={previewUrl} alt="معاينة" className="h-full w-full object-contain" />
-                      <div className="absolute top-3 left-3 flex gap-2">
-                        <label className="px-3 py-1.5 bg-black/60 hover:bg-black/80 text-white rounded-lg text-xs font-bold cursor-pointer flex items-center gap-1.5 transition-colors">
+                    <div className="space-y-3">
+                      {/* Big Preview */}
+                      <div className="relative rounded-2xl overflow-hidden border border-gray-200 bg-gray-50 h-64 flex items-center justify-center">
+                        <img src={previewUrl} alt="معاينة الصورة" className="h-full w-full object-contain" />
+                      </div>
+
+                      {/* Preview Action Buttons */}
+                      <div className="flex items-center gap-2">
+                        <label className="flex-1 py-2.5 px-3 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-xl text-xs font-bold cursor-pointer flex items-center justify-center gap-1.5 transition-colors">
                           <RefreshCw className="w-3.5 h-3.5" />
-                          <span>استبدال</span>
+                          <span>استبدال الصورة</span>
                           <input type="file" accept="image/*" onChange={handleFileSelect} className="hidden" />
                         </label>
                         <button
                           type="button"
-                          onClick={() => setPreviewUrl(null)}
-                          className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors"
+                          onClick={handleCancelPreview}
+                          className="flex-1 py-2.5 px-3 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-colors"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
-                          <span>حذف</span>
+                          <span>حذف الصورة</span>
                         </button>
                       </div>
                     </div>
                   )}
 
-                  {/* Title / Description */}
+                  {/* Description Input */}
                   <div>
                     <label className="block text-xs font-bold text-gray-700 mb-1.5">وصف الصورة (اختياري)</label>
                     <input
                       type="text"
                       placeholder="مثال: جانب من ركن القهوة السعودية في بهو الكلية"
-                      value={photoTitle}
-                      onChange={(e) => setPhotoTitle(e.target.value)}
-                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 focus:border-[#008F68] outline-none"
+                      value={photoDescription}
+                      onChange={(e) => setPhotoDescription(e.target.value)}
+                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-900 focus:border-[#008F68] outline-none"
                     />
                   </div>
 
@@ -412,17 +429,98 @@ export const UserGallery: React.FC = () => {
                   </div>
 
                   {/* Submit Button */}
-                  <div className="pt-4">
+                  <div className="pt-2">
                     <button
                       type="submit"
                       disabled={!previewUrl || isSubmitting}
                       className="w-full py-4 rounded-xl bg-[#008F68] hover:bg-[#064C3B] disabled:opacity-50 text-white font-black text-base shadow-lg transition-colors flex items-center justify-center gap-2"
                     >
-                      {isSubmitting ? 'جاري الإرسال...' : 'إرسال الصورة للمعرض'}
+                      {isSubmitting ? 'جاري الإرسال...' : 'إرسال للمراجعة'}
                     </button>
                   </div>
 
                 </form>
+              )}
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* My Submissions Modal */}
+      <AnimatePresence>
+        {isMySubmissionsOpen && (
+          <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-black/70 backdrop-blur-md"
+              onClick={() => setIsMySubmissionsOpen(false)}
+            />
+
+            <motion.div
+              initial={{ scale: 0.95, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.95, y: 20 }}
+              className="relative bg-white w-full max-w-2xl rounded-[2rem] p-6 sm:p-8 shadow-2xl overflow-hidden max-h-[85vh] overflow-y-auto z-10 text-right"
+            >
+              <button
+                onClick={() => setIsMySubmissionsOpen(false)}
+                className="absolute top-5 left-5 text-gray-400 hover:text-gray-700 p-2 rounded-full hover:bg-gray-100 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              <h3 className="text-2xl font-black text-[#064C3B] mb-1">مشاركاتي</h3>
+              <p className="text-xs text-gray-500 mb-6">متابعة حالة الصور التي قمتِ برفعها</p>
+
+              {myPhotos.length === 0 ? (
+                <p className="text-center py-12 text-sm text-gray-400 font-bold">لم تقومي برفع أي صور بعد.</p>
+              ) : (
+                <div className="space-y-4">
+                  {myPhotos.map((item) => {
+                    const statusConfig = {
+                      pending: { label: 'قيد المراجعة', class: 'bg-amber-100 text-amber-900 border-amber-200' },
+                      approved: { label: 'تم اعتماد الصورة', class: 'bg-emerald-100 text-emerald-900 border-emerald-200' },
+                      rejected: { label: 'تم رفض الصورة', class: 'bg-red-100 text-red-900 border-red-200' },
+                      deleted: { label: 'محذوفة', class: 'bg-gray-100 text-gray-700 border-gray-200' },
+                    }[item.status];
+
+                    return (
+                      <div
+                        key={item.id}
+                        className="p-4 rounded-2xl bg-gray-50 border border-gray-200 flex items-center justify-between gap-4"
+                      >
+                        <div className="flex items-center gap-4">
+                          <img
+                            src={item.image_url}
+                            alt="مشاركتي"
+                            className="w-16 h-16 rounded-xl object-cover border border-gray-200 shrink-0"
+                          />
+                          <div>
+                            <p className="text-sm font-bold text-[#064C3B] mb-1">{item.description || 'بدون وصف'}</p>
+                            <div className="flex items-center gap-2">
+                              <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${statusConfig.class}`}>
+                                {statusConfig.label}
+                              </span>
+                              <span className="text-[11px] text-gray-400">{item.category}</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {item.status === 'pending' && (
+                          <button
+                            onClick={() => handleDeleteMySubmission(item.id)}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 text-xs font-bold transition-colors shrink-0"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                            <span>حذف مشاركتي</span>
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
               )}
             </motion.div>
           </div>
