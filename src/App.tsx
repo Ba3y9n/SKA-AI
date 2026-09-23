@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { NationalHero } from './components/NationalHero';
+import { ScrollytellingSequence } from './components/ScrollytellingSequence';
 import { NationalCardSection } from './components/NationalCardSection';
 import { StorySections } from './components/StorySections';
 import { CharacterAvatar } from './components/CharacterAvatar';
@@ -89,7 +89,7 @@ const App: React.FC = () => {
       </div>
 
       {/* 1. Immersive Hero Section */}
-      <NationalHero />
+      <ScrollytellingSequence />
 
       {/* 2. The Voice AI Experience (Rewaa) */}
       <section className="relative w-full py-24 sm:py-32 bg-gradient-to-b from-[#e8f5e9] via-emerald-50/50 to-white overflow-hidden flex flex-col items-center z-10">
