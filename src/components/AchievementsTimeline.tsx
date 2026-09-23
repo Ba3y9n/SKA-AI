@@ -178,12 +178,12 @@ export const AchievementsTimeline: React.FC = () => {
       </div>
 
       {/* Segmented Switch Tabs */}
-      <div className="max-w-4xl mx-auto px-6 mb-12 relative z-10 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div className="max-w-5xl mx-auto px-6 mb-12 relative z-10 flex flex-col lg:flex-row items-center justify-between gap-6 lg:gap-8">
         
-        <div className="flex bg-gray-100/80 p-1.5 rounded-full border border-gray-200/80 w-full sm:w-auto">
+        <div className="flex flex-col sm:flex-row bg-gray-100/80 p-1.5 rounded-[2rem] sm:rounded-full border border-gray-200/80 w-full lg:w-auto">
           <button
             onClick={() => setActiveTab('students')}
-            className={`flex-1 sm:flex-none px-6 sm:px-8 py-3 rounded-full text-base sm:text-lg font-bold transition-all duration-300 ${
+            className={`flex-1 px-4 sm:px-8 py-3 rounded-full text-sm sm:text-base md:text-lg font-bold transition-all duration-300 ${
               activeTab === 'students' 
                 ? 'bg-white text-saudi-700 shadow-sm' 
                 : 'text-gray-500 hover:text-gray-900'
@@ -193,7 +193,7 @@ export const AchievementsTimeline: React.FC = () => {
           </button>
           <button
             onClick={() => setActiveTab('faculty')}
-            className={`flex-1 sm:flex-none px-6 sm:px-8 py-3 rounded-full text-base sm:text-lg font-bold transition-all duration-300 ${
+            className={`flex-1 px-4 sm:px-8 py-3 rounded-full text-sm sm:text-base md:text-lg font-bold transition-all duration-300 ${
               activeTab === 'faculty' 
                 ? 'bg-white text-saudi-700 shadow-sm' 
                 : 'text-gray-500 hover:text-gray-900'
@@ -205,10 +205,10 @@ export const AchievementsTimeline: React.FC = () => {
 
         <button 
           onClick={() => setIsAddModalOpen(true)}
-          className="inline-flex items-center gap-2 px-6 py-3 bg-saudi-600 hover:bg-saudi-700 text-white rounded-full font-bold text-sm transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 whitespace-nowrap"
+          className="inline-flex items-center justify-center gap-2 px-8 py-3.5 bg-saudi-600 hover:bg-saudi-700 text-white rounded-full font-bold text-base transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 whitespace-nowrap w-full lg:w-auto"
         >
-          <Plus className="w-4 h-4" />
-          <span>+ إضافة إنجاز جديد</span>
+          <Plus className="w-5 h-5" />
+          <span>إضافة إنجاز جديد</span>
         </button>
 
       </div>

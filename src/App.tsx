@@ -108,19 +108,6 @@ const App: React.FC = () => {
       {/* 2. Hero Image with change photo & big discover title */}
       <CinematicHero />
 
-      {/* Decorative Golden Divider */}
-      <div className="w-full flex justify-center py-8 bg-saudi-100 relative z-20">
-        <div 
-          className="w-11/12 max-w-4xl h-12 sm:h-20 opacity-90" 
-          style={{ 
-            backgroundImage: "url('/gold-border.png')", 
-            backgroundRepeat: 'repeat-x', 
-            backgroundSize: 'contain', 
-            backgroundPosition: 'center' 
-          }} 
-        />
-      </div>
-
       {/* 3. Rewaa Character Section */}
       <RewaaSection 
         onTalk={handleToggleListening} 

@@ -78,7 +78,7 @@ export const NationalCardSection: React.FC = () => {
               <div className="absolute -left-8 sm:-left-12 top-1/2 -translate-y-1/2 w-16 sm:w-20 h-10 sm:h-12 bg-contain bg-no-repeat bg-left rotate-180" style={{ backgroundImage: "url('/gold-border.png')" }} />
               
               <img 
-                src="/identity-logo.webp" 
+                src="/identity-logo.png" 
                 alt="عزنا بطبعنا" 
                 className="relative z-10 w-full max-w-[400px] object-contain drop-shadow-2xl hover:scale-105 transition-transform duration-700 ease-out"
               />
