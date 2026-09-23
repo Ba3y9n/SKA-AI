@@ -19,16 +19,10 @@ export const NationalCardSection: React.FC = () => {
             transition={{ duration: 0.9, ease: "easeOut" }}
             className="lg:col-span-6 text-right"
           >
-            <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-saudi-50 border border-saudi-200/60 text-saudi-700 text-sm font-bold mb-6">
+            <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-saudi-50 border border-saudi-200/60 text-saudi-700 text-sm font-bold mb-8">
               <span className="w-2 h-2 rounded-full bg-saudi-600" />
               اليوم الوطني السعودي 96
             </div>
-
-            <img 
-              src="/identity-logo.webp" 
-              alt="عزنا بطبعنا" 
-              className="h-24 sm:h-32 w-auto mb-6 ml-auto"
-            />
 
             <h2 className="text-3xl md:text-4xl lg:text-5xl font-black text-saudi-700 leading-tight mb-4 tracking-tight">
               عزّنا برؤيتنا، وشجاعتنا، وهمتنا،<br />
@@ -67,21 +61,31 @@ export const NationalCardSection: React.FC = () => {
             </div>
           </motion.div>
 
-          {/* Large Visual Showcase Column - Carpet */}
+          {/* Large Visual Showcase Column - Logo Presentation */}
           <motion.div 
             initial={{ opacity: 0, scale: 0.95, y: 30 }}
             whileInView={{ opacity: 1, scale: 1, y: 0 }}
             viewport={{ once: true, margin: "-10%" }}
             transition={{ duration: 1, ease: "easeOut" }}
-            className="lg:col-span-6 w-full"
+            className="lg:col-span-6 w-full h-full flex items-center justify-center"
           >
-            <div className="relative rounded-[2rem] overflow-hidden shadow-[0_30px_60px_rgba(198,161,91,0.15)] border border-gold/30 group">
+            <div className="relative w-full aspect-square max-w-[500px] rounded-[3rem] overflow-hidden shadow-[0_20px_60px_rgba(198,161,91,0.2)] border border-gold/40 group flex items-center justify-center">
+              
+              {/* White to Gold Background */}
+              <div className="absolute inset-0 bg-gradient-to-br from-white via-white to-gold/30 group-hover:to-gold/50 transition-colors duration-700" />
+              
+              {/* Optional Carpet as a very faint watermark */}
+              <div className="absolute inset-0 opacity-[0.03] group-hover:opacity-[0.05] transition-opacity duration-700" style={{ backgroundImage: "url('/carpet.webp')", backgroundSize: "cover", backgroundPosition: "center" }} />
+              
+              {/* Floating Identity Logo */}
               <img 
-                src="/carpet.webp" 
-                alt="سجادة تراثية" 
-                className="w-full h-auto max-h-[600px] object-cover object-center group-hover:scale-110 transition-transform duration-1000 ease-out"
+                src="/identity-logo.webp" 
+                alt="عزنا بطبعنا" 
+                className="relative z-10 w-3/4 max-w-[300px] object-contain group-hover:scale-105 transition-transform duration-700 ease-out drop-shadow-2xl"
               />
-              <div className="absolute inset-0 bg-gold/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              
+              {/* Interactive Glow */}
+              <div className="absolute inset-0 bg-gold/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 mix-blend-overlay pointer-events-none" />
             </div>
           </motion.div>
 
