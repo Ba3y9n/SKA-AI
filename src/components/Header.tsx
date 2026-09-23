@@ -13,8 +13,8 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenAmbitionModal,
 }) => {
   return (
-    <header className="w-full bg-black/20 backdrop-blur-md border-b border-white/10 transition-all">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between">
+    <header className="absolute top-0 left-0 w-full z-50 bg-transparent">
+      <div className="max-w-6xl mx-auto px-6 py-6 flex items-center justify-between">
         
         {/* Brand & Project Identity - Simplified with ND96 Logo */}
         <div className="flex items-center gap-3">

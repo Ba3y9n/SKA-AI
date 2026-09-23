@@ -1,90 +1,55 @@
 import React from 'react';
-import { motion, useScroll, useTransform } from 'framer-motion';
+import { motion } from 'framer-motion';
 
 export const NationalCardSection: React.FC = () => {
-  const containerRef = React.useRef<HTMLDivElement>(null);
-  const { scrollYProgress } = useScroll({
-    target: containerRef,
-    offset: ['start end', 'end start'],
-  });
-
-  const scale = useTransform(scrollYProgress, [0, 0.5, 1], [0.92, 1, 0.95]);
-  const opacity = useTransform(scrollYProgress, [0, 0.2, 0.8, 1], [0.3, 1, 1, 0.4]);
-
   return (
-    <section 
-      ref={containerRef}
-      className="relative w-full py-24 sm:py-32 bg-gradient-to-b from-white via-emerald-50/40 to-white overflow-hidden"
-    >
-      {/* Background Decorative Rings */}
-      <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-20">
-        <div className="w-[500px] h-[500px] sm:w-[750px] sm:h-[750px] rounded-full border border-emerald-400 border-dashed animate-[spin_80s_linear_infinite]" />
-      </div>
+    <section className="relative w-full py-32 bg-[#05110a] overflow-hidden z-20 border-t border-white/5">
+      {/* Background glow */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-emerald-900/20 rounded-full blur-[120px] pointer-events-none" />
 
-      <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 flex flex-col items-center text-center">
-        
-        {/* Section Tag */}
-        <motion.div
-          initial={{ opacity: 0, y: 15 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-100/70 border border-emerald-200/80 text-emerald-900 text-xs sm:text-sm font-bold tracking-wide mb-8 shadow-sm"
-        >
-          <span className="w-2 h-2 rounded-full bg-emerald-600 animate-pulse"></span>
-          الهوية الوطنية السعودية 96
-        </motion.div>
-
-        {/* National Card Showcase */}
-        <motion.div 
-          style={{ scale, opacity }}
-          className="relative w-full max-w-2xl rounded-3xl overflow-hidden shadow-2xl shadow-emerald-950/15 border border-emerald-200/60 bg-gradient-to-br from-[#0B3D2E] via-[#0D4A38] to-[#06241A] p-1 sm:p-2"
-        >
-          {/* Card Inner Container */}
-          <div className="relative w-full rounded-2xl overflow-hidden aspect-[16/10] sm:aspect-[16/9] flex items-center justify-center">
-            
-            {/* National Card Image (Asset) with Graceful Fallback */}
-            <img 
-              src="/national_card.webp" 
-              onError={(e) => {
-                // If specific national_card.webp isn't yet in place, fallback to the official 96 visual hero
-                (e.target as HTMLImageElement).src = '/national_hero.jpg';
-              }}
-              alt="بطاقة الهوية الوطنية 96" 
-              className="w-full h-full object-cover object-center transform hover:scale-105 transition-transform duration-700"
-            />
-
-            {/* Gradient Overlay for Card Typography */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-6 sm:p-10 text-right">
-              <motion.span 
-                initial={{ opacity: 0, y: 10 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 }}
-                className="text-xs sm:text-sm font-bold text-emerald-300 tracking-wider mb-1"
-              >
-                اليوم الوطني السعودي 96
-              </motion.span>
-              <motion.h3 
-                initial={{ opacity: 0, y: 10 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.4 }}
-                className="text-lg sm:text-2xl md:text-3xl font-extrabold text-white leading-snug drop-shadow"
-              >
-                عزّنا برؤيتنا، وهمتنا، وأصالتنا التي لا تتغير
-              </motion.h3>
-            </div>
+      <div className="max-w-6xl mx-auto px-6 relative z-10">
+        <div className="flex flex-col lg:flex-row items-center gap-16 lg:gap-24">
+          
+          {/* Text Content */}
+          <div className="flex-1 text-center lg:text-right">
+            <motion.h2 
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-4xl md:text-5xl lg:text-6xl font-black text-white mb-6 leading-tight drop-shadow-md"
+            >
+              عزّنا برؤيتنا، وهمّتنا،<br />
+              <span className="text-emerald-400">وأصالتنا التي لا تتغير.</span>
+            </motion.h2>
+            <motion.p 
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.2 }}
+              className="text-xl text-gray-400 font-medium tracking-wide"
+            >
+              اليوم الوطني السعودي 96
+            </motion.p>
           </div>
-        </motion.div>
 
-        {/* Visual Transition Indicator linking to the Story */}
-        <motion.div 
-          initial={{ opacity: 0, height: 0 }}
-          whileInView={{ opacity: 1, height: 80 }}
-          viewport={{ once: true }}
-          transition={{ duration: 1, delay: 0.3 }}
-          className="w-px bg-gradient-to-b from-emerald-500 via-emerald-300 to-transparent mt-12 mb-2"
-        />
+          {/* Card Image */}
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.9, rotateY: -15 }}
+            whileInView={{ opacity: 1, scale: 1, rotateY: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
+            className="flex-1 w-full max-w-md relative perspective-1000"
+          >
+            {/* Soft border glow */}
+            <div className="absolute -inset-1 bg-gradient-to-r from-emerald-500/30 to-green-900/30 rounded-3xl blur-md" />
+            <img 
+              src="/media_1790129786646.jpg" 
+              alt="البطاقة الوطنية" 
+              className="relative w-full h-auto rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-white/10 object-cover"
+            />
+          </motion.div>
 
+        </div>
       </div>
     </section>
   );

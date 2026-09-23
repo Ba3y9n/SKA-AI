@@ -80,14 +80,15 @@ export async function fetchAmbitions(): Promise<Ambition[]> {
   }
 }
 
-export async function submitAmbitionIdea(text: string, department: string, major?: string): Promise<Ambition> {
+export async function submitAmbitionIdea(ambitionData: Partial<Ambition>): Promise<Ambition> {
   if (!isSupabaseConfigured() || !supabase) {
-    // If Supabase credentials are not provided, provide a clean local card
     return {
       id: 'local-' + Date.now(),
-      text,
-      department,
-      major,
+      text: ambitionData.text || '',
+      name: ambitionData.name,
+      role: ambitionData.role,
+      department: ambitionData.department || '',
+      major: ambitionData.major,
       created_at: new Date().toISOString(),
       status: 'approved',
       is_approved: true
@@ -95,9 +96,11 @@ export async function submitAmbitionIdea(text: string, department: string, major
   }
 
   const payload: any = {
-    text,
-    department,
-    major: major || null,
+    text: ambitionData.text,
+    name: ambitionData.name,
+    role: ambitionData.role,
+    department: ambitionData.department,
+    major: ambitionData.major || null,
     status: 'approved',
     is_approved: true
   };
@@ -110,12 +113,11 @@ export async function submitAmbitionIdea(text: string, department: string, major
       .single();
 
     if (error) {
-      console.warn('Supabase insert with is_approved failed, attempting fallback payload:', error);
-      // Fallback without is_approved in case column is not created
+      console.warn('Supabase insert failed, attempting fallback payload:', error);
       const fallbackPayload = {
-        text,
-        department,
-        major: major || null,
+        text: ambitionData.text,
+        department: ambitionData.department || (ambitionData.name ? `${ambitionData.name} - ${ambitionData.role}` : ''),
+        major: ambitionData.major || null,
         status: 'approved'
       };
 
@@ -126,8 +128,7 @@ export async function submitAmbitionIdea(text: string, department: string, major
         .single();
 
       if (retryResult.error) {
-        console.error('Supabase fallback insert failed:', retryResult.error);
-        throw new Error('حدث خطأ أثناء حفظ الطموح في قاعدة البيانات');
+        throw new Error('Supabase insert failed');
       }
 
       return retryResult.data as Ambition;
@@ -136,7 +137,7 @@ export async function submitAmbitionIdea(text: string, department: string, major
     return data as Ambition;
   } catch (err: any) {
     console.error('Supabase submission exception:', err);
-    throw new Error(err.message || 'حدث خطأ أثناء حفظ الطموح');
+    throw new Error(err.message || 'Error occurred');
   }
 }
 
