@@ -4,6 +4,8 @@ import { Mic, MicOff, Send, Volume2, VolumeX, Sparkles, MessageSquare, RotateCcw
 import { ChatMessage } from '../types/chat';
 import { CharacterState } from '../types/character';
 
+import { audioPlayer } from '../services/audioPlayer';
+
 interface RewaaSectionProps {
   messages: ChatMessage[];
   characterState: CharacterState;
@@ -42,6 +44,7 @@ export const RewaaSection: React.FC<RewaaSectionProps> = ({
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (inputText.trim()) {
+      audioPlayer.initAudioContext();
       onSendMessage(inputText.trim());
       setInputText('');
     }
@@ -314,7 +317,10 @@ export const RewaaSection: React.FC<RewaaSectionProps> = ({
             {sampleQuestions.map((q, idx) => (
               <button
                 key={idx}
-                onClick={() => onSendMessage(q)}
+                onClick={() => {
+                  audioPlayer.initAudioContext();
+                  onSendMessage(q);
+                }}
                 disabled={characterState === 'THINKING'}
                 className="shrink-0 text-xs font-bold px-3 py-1.5 rounded-full bg-saudi-50/80 hover:bg-saudi-100 text-saudi-700 border border-saudi-200/50 transition-colors disabled:opacity-50"
               >

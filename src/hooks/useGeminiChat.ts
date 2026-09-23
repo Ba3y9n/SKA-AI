@@ -51,7 +51,6 @@ export function useGeminiChat() {
 
       const onAudioEnd = () => {
         setCharacterState('IDLE');
-        // If the user is in continuous voice mode, automatically resume listening!
         if (isVoiceSessionActiveRef.current) {
           setTimeout(() => {
             if (isVoiceSessionActiveRef.current) {
@@ -62,48 +61,17 @@ export function useGeminiChat() {
         }
       };
 
-      if (audioBase64) {
-        console.log('AUDIO_RECEIVED_PLAYING_BASE64');
-        audioPlayer
-          .playBase64Audio(
-            audioBase64,
-            mimeType || 'audio/mpeg',
-            () => setCharacterState('SPEAKING'),
-            onAudioEnd,
-            (err) => {
-              console.warn('Base64 playback error, using Stream fallback:', err);
-              audioPlayer.playArabicStream(
-                replyText,
-                () => setCharacterState('SPEAKING'),
-                onAudioEnd,
-                () => {
-                  setCharacterState('IDLE');
-                  setAudioNotice('تعذر تشغيل الصوت، يمكنك قراءة الرد.');
-                }
-              );
-            }
-          )
-          .catch(() => {
-            audioPlayer.playArabicStream(
-              replyText,
-              () => setCharacterState('SPEAKING'),
-              onAudioEnd,
-              () => setCharacterState('IDLE')
-            );
-          });
-      } else {
-        // Play direct Arabic audio stream fallback
-        audioPlayer.playArabicStream(
-          replyText,
-          () => setCharacterState('SPEAKING'),
-          onAudioEnd,
-          (err) => {
-            console.error('AUDIO_PLAYBACK_ERROR', err);
-            setCharacterState('IDLE');
-            setAudioNotice('تعذر تشغيل الصوت، يمكنك قراءة الرد.');
-          }
-        );
-      }
+      audioPlayer.speak(
+        replyText,
+        audioBase64,
+        mimeType,
+        () => setCharacterState('SPEAKING'),
+        onAudioEnd,
+        () => {
+          setCharacterState('IDLE');
+          setAudioNotice('تعذر تشغيل الصوت، يمكنك قراءة الرد.');
+        }
+      );
     },
     []
   );
@@ -112,6 +80,9 @@ export function useGeminiChat() {
   const sendMessage = useCallback(
     async (text: string, isVoice: boolean = false) => {
       if (!text || text.trim().length === 0) return;
+
+      // Unlock audio context on user interaction
+      audioPlayer.initAudioContext();
 
       const userText = text.trim();
       setErrorMessage(null);

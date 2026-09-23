@@ -1,9 +1,30 @@
 class AudioPlayerService {
   private audioCtx: AudioContext | null = null;
-  private currentSource: AudioBufferSourceNode | null = null;
   private currentAudioElement: HTMLAudioElement | null = null;
-  private safetyTimer: any = null;
+  private voices: SpeechSynthesisVoice[] = [];
   private isPlayingAudio: boolean = false;
+  private safetyTimer: any = null;
+
+  constructor() {
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      this.loadVoices();
+      if (window.speechSynthesis.onvoiceschanged !== undefined) {
+        window.speechSynthesis.onvoiceschanged = () => {
+          this.loadVoices();
+        };
+      }
+    }
+  }
+
+  public loadVoices() {
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      try {
+        this.voices = window.speechSynthesis.getVoices() || [];
+      } catch {
+        this.voices = [];
+      }
+    }
+  }
 
   public initAudioContext() {
     try {
@@ -14,50 +35,36 @@ class AudioPlayerService {
         }
       }
       if (this.audioCtx && this.audioCtx.state === 'suspended') {
-        this.audioCtx.resume().catch((err) => {
-          console.warn('AudioContext resume warning:', err);
-        });
+        this.audioCtx.resume().catch(() => {});
+      }
+      if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+        window.speechSynthesis.resume();
+        this.loadVoices();
       }
     } catch (e) {
       console.warn('AudioContext init error:', e);
     }
   }
 
-  /**
-   * Stop any currently playing audio immediately
-   */
   public stop() {
     if (this.safetyTimer) {
       clearTimeout(this.safetyTimer);
       this.safetyTimer = null;
     }
 
-    if (this.currentSource) {
-      try {
-        this.currentSource.stop();
-        this.currentSource.disconnect();
-      } catch {
-        // ignore if already stopped
-      }
-      this.currentSource = null;
-    }
-
     if (this.currentAudioElement) {
       try {
         this.currentAudioElement.pause();
+        this.currentAudioElement.currentTime = 0;
         this.currentAudioElement.src = '';
-      } catch {
-        // ignore
-      }
+      } catch {}
       this.currentAudioElement = null;
     }
 
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
       try {
         window.speechSynthesis.cancel();
-      } catch {
-        // ignore
-      }
+      } catch {}
     }
 
     this.isPlayingAudio = false;
@@ -68,7 +75,7 @@ class AudioPlayerService {
   }
 
   /**
-   * Plays audio from base64 string using AudioContext or HTML5 Audio
+   * Play base64 audio with graceful fallback
    */
   public async playBase64Audio(
     base64Data: string,
@@ -89,7 +96,6 @@ class AudioPlayerService {
         this.safetyTimer = null;
       }
       this.isPlayingAudio = false;
-      this.currentSource = null;
       this.currentAudioElement = null;
       if (onEnd) onEnd();
     };
@@ -122,16 +128,18 @@ class AudioPlayerService {
         URL.revokeObjectURL(blobUrl);
         this.isPlayingAudio = false;
         this.currentAudioElement = null;
-        console.error('AUDIO_PLAYBACK_ERROR', e);
+        console.warn('Base64 audio playback failed:', e);
         if (onError) onError(e);
         triggerEnd();
       };
 
-      await audio.play();
+      const playPromise = audio.play();
+      if (playPromise !== undefined) {
+        await playPromise;
+      }
       return true;
     } catch (error: any) {
       this.isPlayingAudio = false;
-      console.error('AUDIO_PLAYBACK_ERROR', error);
       if (onError) onError(error);
       triggerEnd();
       return false;
@@ -139,9 +147,9 @@ class AudioPlayerService {
   }
 
   /**
-   * Direct high-compatibility audio stream
+   * Synthesize speech via Web SpeechSynthesis API with full Arabic voice support
    */
-  public async playArabicStream(
+  public playSpeechSynthesis(
     text: string,
     onStart?: () => void,
     onEnd?: () => void,
@@ -149,6 +157,12 @@ class AudioPlayerService {
   ) {
     this.stop();
     this.initAudioContext();
+
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
+      if (onError) onError(new Error('SpeechSynthesis not supported'));
+      if (onEnd) onEnd();
+      return;
+    }
 
     const cleanText = text
       .replace(/[*_#`~[\]()><{}|\\]/g, ' ')
@@ -162,62 +176,7 @@ class AudioPlayerService {
       return;
     }
 
-    const sentence = cleanText.split(/([.!؟?\n]+)/).filter(Boolean).slice(0, 2).join(' ').slice(0, 180);
-    const streamUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(sentence)}&tl=ar&client=tw-ob`;
-
-    let hasEnded = false;
-    const triggerEnd = () => {
-      if (hasEnded) return;
-      hasEnded = true;
-      if (this.safetyTimer) {
-        clearTimeout(this.safetyTimer);
-        this.safetyTimer = null;
-      }
-      this.isPlayingAudio = false;
-      this.currentAudioElement = null;
-      if (onEnd) onEnd();
-    };
-
-    try {
-      const audio = new Audio(streamUrl);
-      this.currentAudioElement = audio;
-
-      audio.onplay = () => {
-        this.isPlayingAudio = true;
-        if (onStart) onStart();
-      };
-
-      audio.onended = () => {
-        triggerEnd();
-      };
-
-      audio.onerror = () => {
-        // Fallback to SpeechSynthesis
-        this.playSpeechSynthesis(cleanText, onStart, onEnd, onError);
-      };
-
-      await audio.play();
-    } catch {
-      this.playSpeechSynthesis(cleanText, onStart, onEnd, onError);
-    }
-  }
-
-  /**
-   * Synthesize via Web SpeechSynthesis API as reliable browser fallback
-   */
-  public playSpeechSynthesis(
-    text: string,
-    onStart?: () => void,
-    onEnd?: () => void,
-    onError?: (err: any) => void
-  ) {
-    this.stop();
-
-    if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
-      if (onError) onError(new Error('SpeechSynthesis not supported'));
-      if (onEnd) onEnd();
-      return;
-    }
+    this.loadVoices();
 
     let hasEnded = false;
     const triggerEnd = () => {
@@ -232,29 +191,28 @@ class AudioPlayerService {
     };
 
     try {
-      window.speechSynthesis.cancel();
-
-      const cleanText = text
-        .replace(/[*_#`~[\]()><{}|\\]/g, ' ')
-        .replace(/https?:\/\/\S+/g, 'رابط')
-        .replace(/[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, '')
-        .replace(/\s+/g, ' ')
-        .trim();
-
-      if (!cleanText) {
-        triggerEnd();
-        return;
-      }
-
       const utterance = new SpeechSynthesisUtterance(cleanText);
       utterance.lang = 'ar-SA';
-      utterance.rate = 0.95;
+      utterance.rate = 1.0;
       utterance.pitch = 1.0;
 
-      const voices = window.speechSynthesis.getVoices();
-      const arabicVoice = voices.find(
-        (v) => v.lang.startsWith('ar') || v.lang.includes('SA') || v.lang.includes('XA')
+      // Match best Arabic voice available on this platform (iOS, Android, Windows, macOS)
+      const arabicVoice = this.voices.find(
+        (v) =>
+          v.lang.startsWith('ar') ||
+          v.lang.includes('SA') ||
+          v.lang.includes('XA') ||
+          v.lang.includes('EG') ||
+          v.name.toLowerCase().includes('arabic') ||
+          v.name.toLowerCase().includes('maged') ||
+          v.name.toLowerCase().includes('laila') ||
+          v.name.toLowerCase().includes('tarik') ||
+          v.name.toLowerCase().includes('salma') ||
+          v.name.toLowerCase().includes('naayf') ||
+          v.name.toLowerCase().includes('hoda') ||
+          v.name.toLowerCase().includes('zayd')
       );
+
       if (arabicVoice) {
         utterance.voice = arabicVoice;
       }
@@ -270,27 +228,63 @@ class AudioPlayerService {
       };
 
       utterance.onerror = (e) => {
-        console.error('SpeechSynthesis error:', e);
+        console.warn('SpeechSynthesis utterance error:', e);
         triggerEnd();
       };
 
-      // Safety timer for SpeechSynthesis (approx 150ms per word + 2s baseline)
-      const estimatedWords = cleanText.split(' ').length;
-      const estimatedMs = Math.max(3000, estimatedWords * 350 + 2000);
+      // Safety fallback timer for speech synthesis
+      const wordsCount = cleanText.split(' ').length;
+      const estimatedMs = Math.max(3000, wordsCount * 400 + 2500);
       this.safetyTimer = setTimeout(() => {
         triggerEnd();
       }, estimatedMs);
 
       window.speechSynthesis.resume();
       window.speechSynthesis.speak(utterance);
+
+      // Workaround for Chrome bug where long utterance gets paused after 15 seconds
+      const resumeCheck = setInterval(() => {
+        if (!hasEnded && window.speechSynthesis.speaking) {
+          window.speechSynthesis.pause();
+          window.speechSynthesis.resume();
+        } else {
+          clearInterval(resumeCheck);
+        }
+      }, 3500);
     } catch (err: any) {
       this.isPlayingAudio = false;
-      console.error('AUDIO_PLAYBACK_ERROR', err);
+      console.error('SpeechSynthesis error:', err);
       if (onError) onError(err);
       triggerEnd();
+    }
+  }
+
+  /**
+   * General speak function that tries Base64 first, then SpeechSynthesis
+   */
+  public speak(
+    text: string,
+    audioBase64?: string | null,
+    mimeType?: string,
+    onStart?: () => void,
+    onEnd?: () => void,
+    onError?: (err: any) => void
+  ) {
+    if (audioBase64 && audioBase64.length > 50) {
+      this.playBase64Audio(
+        audioBase64,
+        mimeType || 'audio/mpeg',
+        onStart,
+        onEnd,
+        () => {
+          // Fallback to SpeechSynthesis if base64 fails
+          this.playSpeechSynthesis(text, onStart, onEnd, onError);
+        }
+      );
+    } else {
+      this.playSpeechSynthesis(text, onStart, onEnd, onError);
     }
   }
 }
 
 export const audioPlayer = new AudioPlayerService();
-
