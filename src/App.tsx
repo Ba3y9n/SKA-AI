@@ -1,19 +1,17 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { NationalHero } from './components/NationalHero';
-import { ScrollQuote } from './components/ScrollQuote';
+import { NationalCardSection } from './components/NationalCardSection';
 import { StorySections } from './components/StorySections';
 import { CharacterAvatar } from './components/CharacterAvatar';
 import { FutureVisionBoard } from './components/FutureVisionBoard';
 import { AchievementsTimeline } from './components/AchievementsTimeline';
 import { AmbitionModal } from './components/AmbitionModal';
 import { Footer } from './components/Footer';
-import { Mic, MicOff, Sparkles, Volume2 } from 'lucide-react';
-import { CharacterState } from './types/character';
-import { useGeminiChat } from './hooks/useGeminiChat';
-import { fetchAmbitions } from './services/apiService';
-import { isSupabaseConfigured } from './lib/supabase';
-import { Ambition } from './types/ambition';
 import { Header } from './components/Header';
+import { Mic, MicOff, Sparkles } from 'lucide-react';
+import { useGeminiChat } from './hooks/useGeminiChat';
+import { fetchAmbitions, subscribeToAmbitions } from './services/apiService';
+import { Ambition } from './types/ambition';
 import { AnimatePresence, motion } from 'framer-motion';
 
 const App: React.FC = () => {
@@ -35,34 +33,53 @@ const App: React.FC = () => {
   const lastRewaaMessage = messages.slice().reverse().find(m => m.sender === 'rewaa');
   const displaySubtitle = transcript ? transcript : (characterState === 'SPEAKING' || characterState === 'IDLE' ? lastRewaaMessage?.text : '');
 
+  // Cleanup on unmount
   useEffect(() => {
     return () => {
       stopSpeaking();
     };
   }, [stopSpeaking]);
 
+  // Initial fetch and Realtime subscription for ambitions
   useEffect(() => {
-    const loadData = async () => {
-      if (isSupabaseConfigured()) {
-        try {
-          const data = await fetchAmbitions();
-          setAmbitions(data);
-        } catch (error) {
-          console.error("Error loading ambitions:", error);
-        }
+    let unsubscribe: (() => void) | undefined;
+
+    const initAmbitions = async () => {
+      try {
+        const initialData = await fetchAmbitions();
+        setAmbitions(initialData);
+      } catch (err) {
+        console.error('Failed to load initial ambitions:', err);
       }
+
+      // Realtime listener
+      unsubscribe = subscribeToAmbitions((newAmbition) => {
+        setAmbitions((prev) => {
+          // Avoid duplicates
+          if (prev.some((a) => a.id === newAmbition.id)) return prev;
+          return [newAmbition, ...prev];
+        });
+      });
     };
-    loadData();
+
+    initAmbitions();
+
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
   }, []);
 
   const handleAmbitionAdded = (newAmbition: Ambition) => {
-    setAmbitions(prev => [newAmbition, ...prev]);
+    setAmbitions(prev => {
+      if (prev.some(a => a.id === newAmbition.id)) return prev;
+      return [newAmbition, ...prev];
+    });
   };
 
   return (
     <div className="flex flex-col min-h-screen font-sans selection:bg-emerald-200 selection:text-emerald-900 bg-white overflow-x-hidden">
       
-      {/* Global Fixed Header */}
+      {/* Global Fixed Glass Header */}
       <div className="fixed top-0 inset-x-0 z-50">
         <Header 
           isAutoVoiceEnabled={isAutoVoiceEnabled}
@@ -74,26 +91,38 @@ const App: React.FC = () => {
       {/* 1. Immersive Hero Section */}
       <NationalHero />
 
-      {/* 2. Scroll Quote Section */}
-      <ScrollQuote />
-
-      {/* 3. The Voice AI Experience (Rewaa) */}
-      <section className="relative w-full py-20 bg-gradient-to-b from-[#e8f5e9] to-white overflow-hidden flex flex-col items-center z-10 border-t border-emerald-100">
+      {/* 2. The Voice AI Experience (Rewaa) */}
+      <section className="relative w-full py-24 sm:py-32 bg-gradient-to-b from-[#e8f5e9] via-emerald-50/50 to-white overflow-hidden flex flex-col items-center z-10">
         
-        {/* Title */}
-        <div className="text-center mb-2 z-20">
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-[#0B3D2E] tracking-tight">رِواء</h2>
-          <p className="text-sm sm:text-base font-semibold text-emerald-600 mt-2 tracking-wide">صوت الجيل السعودي الرقمي</p>
+        {/* Title & Tagline */}
+        <div className="text-center mb-4 z-20 px-4">
+          <motion.h2 
+            initial={{ opacity: 0, y: 15 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-3xl sm:text-5xl font-black text-[#0B3D2E] tracking-tight"
+          >
+            رِواء
+          </motion.h2>
+          <motion.p 
+            initial={{ opacity: 0, y: 15 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.1 }}
+            className="text-sm sm:text-lg font-bold text-emerald-700 mt-2 tracking-wide"
+          >
+            صوت الجيل السعودي الرقمي
+          </motion.p>
         </div>
 
-        {/* 3D Character Avatar & Orbits */}
+        {/* 3D Character Avatar & AI Orbits */}
         <CharacterAvatar
           state={characterState}
           isListening={isListening}
         />
 
-        {/* Interactive Status & Mic */}
-        <div className="relative z-20 w-full max-w-2xl text-center flex flex-col items-center justify-center">
+        {/* Interactive Voice Mic Control & Status */}
+        <div className="relative z-20 w-full max-w-2xl text-center flex flex-col items-center justify-center px-4">
           
           <button
             onClick={handleToggleListening}
@@ -127,30 +156,30 @@ const App: React.FC = () => {
             )}
           </button>
 
-          {/* Transcript Subtitles Area */}
-          <div className="w-full min-h-[120px] flex flex-col items-center justify-start text-center px-4 mt-8">
+          {/* Transcript Subtitles Box (Sync with Voice) */}
+          <div className="w-full min-h-[110px] flex flex-col items-center justify-start text-center px-4 mt-8">
             <AnimatePresence mode="wait">
               {characterState === 'THINKING' ? (
-                <motion.div key="thinking" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="text-emerald-600 animate-pulse font-bold text-sm">
-                  جاري التفكير...
+                <motion.div key="thinking" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="text-emerald-700 font-bold text-sm bg-emerald-100/70 px-4 py-1.5 rounded-full">
+                  جارٍ التفكير...
                 </motion.div>
               ) : isListening ? (
-                <motion.div key="listening" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="text-red-500 font-bold text-sm">
-                  {transcript ? `"${transcript}"` : "أستمع إليك الآن..."}
+                <motion.div key="listening" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="text-red-600 font-bold text-sm bg-red-50 px-4 py-1.5 rounded-full border border-red-200">
+                  {transcript ? `"${transcript}"` : "أستمع إليكِ الآن..."}
                 </motion.div>
               ) : characterState === 'ERROR' ? (
-                <motion.div key="error" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="text-red-500 font-bold text-sm bg-red-50 px-4 py-2 rounded-full border border-red-200">
+                <motion.div key="error" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="text-red-600 font-bold text-sm bg-red-50 px-4 py-2 rounded-full border border-red-200">
                   {errorMessage}
                 </motion.div>
               ) : displaySubtitle ? (
-                <motion.div key="speaking" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="w-full bg-white/60 backdrop-blur-md p-6 rounded-3xl border border-emerald-50 shadow-sm">
-                  <p className="text-lg sm:text-xl font-medium leading-relaxed text-[#0B3D2E]">
+                <motion.div key="speaking" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="w-full bg-white/80 backdrop-blur-md p-6 rounded-3xl border border-emerald-100 shadow-lg shadow-emerald-950/5">
+                  <p className="text-lg sm:text-xl font-bold leading-relaxed text-[#0B3D2E]">
                     {displaySubtitle}
                   </p>
                 </motion.div>
               ) : (
-                <motion.div key="idle" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-gray-400 font-medium text-sm">
-                  اضغط على الميكروفون للبدء
+                <motion.div key="idle" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-gray-400 font-semibold text-sm">
+                  اضغطي على الميكروفون للتحدث مع رِواء
                 </motion.div>
               )}
             </AnimatePresence>
@@ -158,25 +187,29 @@ const App: React.FC = () => {
         </div>
       </section>
 
-      {/* 4. Story Sections (Meaning, Message, Goal) */}
+      {/* 3. National Identity Card Showcase */}
+      <NationalCardSection />
+
+      {/* 4. Story Sections (المعنى، الرسالة، الهدف) */}
       <StorySections />
 
-      {/* 5. Future Vision Board (Ambitions Orbits) */}
+      {/* 5. Future Vision Board (طموحات الطالبات - Supabase Realtime) */}
       <FutureVisionBoard
         ambitions={ambitions}
         onOpenAddModal={() => setIsAmbitionModalOpen(true)}
       />
 
-      {/* 6. Achievements Timeline */}
+      {/* 6. Achievements Timeline (إنجازات طالبات ودكتورات الكلية) */}
       <AchievementsTimeline />
 
+      {/* 7. Ambition Submission Modal */}
       <AmbitionModal
         isOpen={isAmbitionModalOpen}
         onClose={() => setIsAmbitionModalOpen(false)}
         onAmbitionAdded={handleAmbitionAdded}
       />
 
-      {/* 7. Footer */}
+      {/* 8. Footer */}
       <Footer />
     </div>
   );

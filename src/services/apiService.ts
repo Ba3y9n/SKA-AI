@@ -1,6 +1,7 @@
 import { ChatMessage } from '../types/chat';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { Ambition } from '../types/ambition';
+
 export interface ServerStatus {
   status: string;
   model: string;
@@ -54,35 +55,46 @@ export async function fetchAmbitions(): Promise<Ambition[]> {
     return [];
   }
 
-  const { data, error } = await supabase
-    .from('ambitions')
-    .select('*')
-    .eq('is_approved', true)
-    .order('created_at', { ascending: false });
+  try {
+    const { data, error } = await supabase
+      .from('ambitions')
+      .select('*')
+      .order('created_at', { ascending: false });
 
-  if (error) {
-    console.error('Supabase fetch error:', error);
-    throw new Error('حدث خطأ أثناء جلب الطموحات');
+    if (error) {
+      console.error('Supabase fetch error:', error);
+      return [];
+    }
+
+    // Include all approved or non-rejected ambitions
+    const validData = (data || []).filter((item: any) => {
+      if (item.status === 'rejected') return false;
+      if (item.is_approved === false) return false;
+      return true;
+    });
+
+    return validData as Ambition[];
+  } catch (err) {
+    console.error('Error fetching ambitions from Supabase:', err);
+    return [];
   }
-
-  return data as Ambition[];
 }
 
 export async function submitAmbitionIdea(text: string, department: string, major?: string): Promise<Ambition> {
   if (!isSupabaseConfigured() || !supabase) {
-    // If Supabase is not yet configured by the user, return a local mock so it doesn't break development UI testing
+    // If Supabase credentials are not provided, provide a clean local card
     return {
       id: 'local-' + Date.now(),
       text,
       department,
       major,
       created_at: new Date().toISOString(),
-      status: 'pending',
-      is_approved: false
+      status: 'approved',
+      is_approved: true
     };
   }
 
-  const newAmbition = {
+  const payload: any = {
     text,
     department,
     major: major || null,
@@ -90,17 +102,68 @@ export async function submitAmbitionIdea(text: string, department: string, major
     is_approved: true
   };
 
-  const { data, error } = await supabase
-    .from('ambitions')
-    .insert([newAmbition])
-    .select()
-    .single();
+  try {
+    const { data, error } = await supabase
+      .from('ambitions')
+      .insert([payload])
+      .select()
+      .single();
 
-  if (error) {
-    console.error('Supabase insert error:', error);
-    throw new Error('حدث خطأ أثناء حفظ الطموح');
+    if (error) {
+      console.warn('Supabase insert with is_approved failed, attempting fallback payload:', error);
+      // Fallback without is_approved in case column is not created
+      const fallbackPayload = {
+        text,
+        department,
+        major: major || null,
+        status: 'approved'
+      };
+
+      const retryResult = await supabase
+        .from('ambitions')
+        .insert([fallbackPayload])
+        .select()
+        .single();
+
+      if (retryResult.error) {
+        console.error('Supabase fallback insert failed:', retryResult.error);
+        throw new Error('حدث خطأ أثناء حفظ الطموح في قاعدة البيانات');
+      }
+
+      return retryResult.data as Ambition;
+    }
+
+    return data as Ambition;
+  } catch (err: any) {
+    console.error('Supabase submission exception:', err);
+    throw new Error(err.message || 'حدث خطأ أثناء حفظ الطموح');
   }
-
-  return data as Ambition;
 }
 
+export function subscribeToAmbitions(onNewAmbition: (ambition: Ambition) => void) {
+  if (!isSupabaseConfigured() || !supabase) {
+    return () => {};
+  }
+
+  const channel = supabase
+    .channel('public:ambitions')
+    .on(
+      'postgres_changes',
+      { event: 'INSERT', schema: 'public', table: 'ambitions' },
+      (payload) => {
+        if (payload.new) {
+          const newRecord = payload.new as Ambition;
+          if (newRecord.status !== 'rejected' && newRecord.is_approved !== false) {
+            onNewAmbition(newRecord);
+          }
+        }
+      }
+    )
+    .subscribe();
+
+  return () => {
+    if (supabase) {
+      supabase.removeChannel(channel);
+    }
+  };
+}
