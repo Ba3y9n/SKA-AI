@@ -177,3 +177,24 @@ export function subscribeToAmbitions(onNewAmbition: (ambition: Ambition) => void
     }
   };
 }
+
+export async function deleteAmbition(id: string): Promise<boolean> {
+  if (!isSupabaseConfigured() || !supabase) return true;
+
+  try {
+    const { error } = await supabase
+      .from('ambitions')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      console.warn('Could not delete from Supabase (likely due to RLS policies):', error);
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.error('Exception during delete:', err);
+    return false;
+  }
+}
+

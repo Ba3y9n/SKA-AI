@@ -56,6 +56,7 @@ export const FutureVisionBoard: React.FC<FutureVisionBoardProps> = ({ ambitions,
   const [selectedAmbitionForShare, setSelectedAmbitionForShare] = useState<Ambition | null>(null);
   const [localList, setLocalList] = useState<Ambition[]>([]);
   const [myUserToken, setMyUserToken] = useState<string>('');
+  const [deletedIds, setDeletedIds] = useState<string[]>([]);
 
   useEffect(() => {
     let token = localStorage.getItem('rewaa_user_token');
@@ -73,11 +74,20 @@ export const FutureVisionBoard: React.FC<FutureVisionBoardProps> = ({ ambitions,
         console.error(e);
       }
     }
+
+    const savedDeleted = localStorage.getItem('deleted_ambitions');
+    if (savedDeleted) {
+      try {
+        setDeletedIds(JSON.parse(savedDeleted));
+      } catch (e) {
+        console.error(e);
+      }
+    }
   }, []);
 
-  // Merge remote ambitions, local storage ambitions and defaults (clean filter)
+  // Merge remote ambitions, local storage ambitions (clean filter)
   const allAmbitions = React.useMemo(() => {
-    const list = [...localList.filter(l => !l.text?.includes('CBE_GALLERY') && !l.text?.startsWith('{') && l.text !== 'test 1' && l.text !== 'test 3' && l.text !== 'انا بيان')];
+    const list = [...localList.filter(l => !l.text?.includes('CBE_GALLERY') && !l.text?.startsWith('{'))];
     ambitions.forEach(a => {
       if (
         !list.some(item => item.id === a.id || item.text === a.text) &&
@@ -91,20 +101,28 @@ export const FutureVisionBoard: React.FC<FutureVisionBoardProps> = ({ ambitions,
         list.push(a);
       }
     });
-    DEFAULT_AMBITIONS.forEach(d => {
-      if (!list.some(item => item.id === d.id || item.text === d.text)) {
-        list.push(d);
-      }
-    });
-    return list;
-  }, [ambitions, localList]);
 
-  const handleDeleteAmbition = (id: string, e: React.MouseEvent) => {
+    // Filter out deleted ones
+    return list.filter(item => !deletedIds.includes(item.id));
+  }, [ambitions, localList, deletedIds]);
+
+  const handleDeleteAmbition = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (window.confirm('هل تريد حذف طموحك؟')) {
-      const updated = localList.filter(item => item.id !== id);
-      setLocalList(updated);
-      localStorage.setItem('user_local_ambitions', JSON.stringify(updated));
+    if (window.confirm('هل أنت متأكد من حذف طموحك؟')) {
+      const updatedLocal = localList.filter(item => item.id !== id);
+      setLocalList(updatedLocal);
+      localStorage.setItem('user_local_ambitions', JSON.stringify(updatedLocal));
+
+      const updatedDeleted = [...deletedIds, id];
+      setDeletedIds(updatedDeleted);
+      localStorage.setItem('deleted_ambitions', JSON.stringify(updatedDeleted));
+
+      // Attempt to delete from backend (will fail silently if RLS prevents it)
+      if (typeof window !== 'undefined') {
+        import('../services/apiService').then(({ deleteAmbition }) => {
+          deleteAmbition(id);
+        });
+      }
     }
   };
 
@@ -112,28 +130,28 @@ export const FutureVisionBoard: React.FC<FutureVisionBoardProps> = ({ ambitions,
     <section className="relative w-full py-32 bg-saudi-700 text-saudi-50 overflow-hidden z-20 border-t border-saudi-600" id="ambitions">
       
       {/* Background Subtle Gradient */}
-      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-saudi-100/30 rounded-full blur-[140px] pointer-events-none" />
+      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-saudi-600/50 rounded-full blur-[140px] pointer-events-none" />
 
       <div className="max-w-7xl mx-auto px-6 relative z-10">
         
         {/* Section Header */}
         <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8 mb-16 text-right">
           <div>
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-saudi-600/10 text-saudi-700 text-sm font-bold mb-4">
-              <Sparkles className="w-4 h-4 text-saudi-600" />
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-saudi-50/10 border border-gold/30 text-gold-light text-sm font-bold mb-4 shadow-lg">
+              <Sparkles className="w-4 h-4 text-gold" />
               جدار المستقبل
             </div>
-            <h2 className="text-3xl sm:text-5xl font-black text-saudi-700 leading-tight mb-4">
-              صوتنا يصنع المستقبل
+            <h2 className="text-4xl sm:text-6xl font-black text-white leading-tight mb-4 drop-shadow-md">
+              صوتنا يصنع <span className="text-gold">المستقبل</span>
             </h2>
-            <p className="text-lg md:text-xl text-gray-600 font-medium max-w-2xl leading-relaxed">
-              وش طموحك للسعودية؟ شاركي رؤيتك وأفكارك التي تصنع الغد.
+            <p className="text-lg md:text-xl text-saudi-100 font-medium max-w-2xl leading-relaxed">
+              وش طموحك للسعودية؟ شاركي رؤيتك وأفكارك التي تصنع الغد. مساحتك الحرة لترك بصمتك في اليوم الوطني.
             </p>
           </div>
 
           <button
             onClick={onAddClick}
-            className="self-start lg:self-auto inline-flex items-center gap-3 px-8 py-4 rounded-full bg-saudi-600 hover:bg-saudi-700 text-white font-bold text-lg shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300"
+            className="self-start lg:self-auto inline-flex items-center gap-3 px-8 py-4 rounded-full bg-gold hover:bg-gold-light text-saudi-700 font-black text-lg shadow-[0_0_20px_rgba(198,161,91,0.4)] hover:shadow-[0_0_30px_rgba(198,161,91,0.6)] hover:-translate-y-1 transition-all duration-300"
           >
             <Plus className="w-5 h-5" />
             <span>+ أضف طموحك</span>
@@ -141,89 +159,102 @@ export const FutureVisionBoard: React.FC<FutureVisionBoardProps> = ({ ambitions,
         </div>
 
         {/* Multi-Card Interactive Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <AnimatePresence>
-            {allAmbitions.map((ambition, i) => {
-              const isOwner = (ambition as any).isUserAdded && (ambition as any).userToken === myUserToken;
-              const authorName = ambition.name || ambition.department || 'طالبة طموحة';
-              const authorRole = ambition.role || 'كلية الأعمال والاقتصاد';
-              const ambitionImg = (ambition as any).imageUrl;
+        {allAmbitions.length === 0 ? (
+          <div className="w-full py-20 flex flex-col items-center justify-center text-center bg-saudi-600/30 backdrop-blur-md rounded-3xl border border-gold/20">
+            <div className="w-20 h-20 bg-saudi-700 rounded-full flex items-center justify-center mb-6 shadow-inner border border-saudi-600">
+              <Sparkles className="w-10 h-10 text-gold-light/50" />
+            </div>
+            <h3 className="text-2xl font-black text-white mb-2">كوني أول من يشارك طموحها!</h3>
+            <p className="text-saudi-200">هذه المساحة مخصصة لطموحاتكم وأفكاركم التي ستصنع المستقبل.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <AnimatePresence>
+              {allAmbitions.map((ambition, i) => {
+                const isOwner = (ambition as any).isUserAdded && (ambition as any).userToken === myUserToken;
+                const authorName = ambition.name || ambition.department || 'طالبة طموحة';
+                const authorRole = ambition.role || 'كلية الأعمال والاقتصاد';
+                const ambitionImg = (ambition as any).imageUrl;
 
-              return (
-                <motion.div
-                  layout
-                  initial={{ opacity: 0, y: 25 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: "-5%" }}
-                  transition={{ duration: 0.5, delay: (i % 6) * 0.08 }}
-                  key={ambition.id || `amb-${i}`}
-                  className="group bg-white rounded-[2rem] p-7 border border-saudi-100/80 shadow-[0_10px_30px_rgba(0,108,79,0.04)] hover:shadow-xl hover:border-gold-light transition-all duration-300 flex flex-col justify-between relative overflow-hidden"
-                >
-                  {/* Decorative corner accent */}
-                  <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-saudi-50 to-transparent rounded-bl-[3rem] -z-0 group-hover:scale-110 transition-transform" />
+                return (
+                  <motion.div
+                    layout
+                    initial={{ opacity: 0, y: 25 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, margin: "-5%" }}
+                    transition={{ duration: 0.5, delay: (i % 6) * 0.08 }}
+                    key={ambition.id || `amb-${i}`}
+                    className="group bg-saudi-600/30 backdrop-blur-xl rounded-[2.5rem] p-8 border border-gold/20 shadow-[0_15px_40px_rgba(0,0,0,0.2)] hover:shadow-[0_20px_50px_rgba(198,161,91,0.15)] hover:border-gold-light/50 transition-all duration-500 flex flex-col justify-between relative overflow-hidden"
+                  >
+                    {/* Decorative corner accent */}
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-gold/10 to-transparent rounded-bl-[4rem] -z-0 group-hover:scale-110 transition-transform duration-700" />
+                    
+                    {/* Gold line accent */}
+                    <div className="absolute top-0 left-8 right-8 h-1 bg-gradient-to-r from-transparent via-gold to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
-                  <div className="relative z-10">
-                    {/* Header: Author Info & Actions */}
-                    <div className="flex items-center justify-between gap-3 mb-5">
-                      <div className="flex items-center gap-3">
-                        <div className="w-11 h-11 rounded-full bg-saudi-100 border border-saudi-200 flex items-center justify-center text-saudi-600 font-black text-base shadow-sm">
-                          {authorName.charAt(0) || <User className="w-5 h-5" />}
+                    <div className="relative z-10">
+                      {/* Header: Author Info & Actions */}
+                      <div className="flex items-center justify-between gap-3 mb-6">
+                        <div className="flex items-center gap-4">
+                          <div className="w-14 h-14 rounded-full bg-saudi-700 border border-gold/40 flex items-center justify-center text-gold-light font-black text-xl shadow-lg">
+                            {authorName.charAt(0) || <User className="w-6 h-6" />}
+                          </div>
+                          <div>
+                            <h4 className="font-bold text-white text-lg leading-snug">{authorName}</h4>
+                            <p className="text-sm text-gold-light/80 font-medium">{authorRole}</p>
+                          </div>
                         </div>
-                        <div>
-                          <h4 className="font-bold text-saudi-700 text-base leading-snug">{authorName}</h4>
-                          <p className="text-xs text-gray-500 font-medium">{authorRole}</p>
-                        </div>
-                      </div>
 
-                      <div className="flex items-center gap-1.5">
-                        {isOwner && (
+                        <div className="flex items-center gap-2 bg-saudi-700/50 rounded-full p-1 border border-saudi-600">
+                          {isOwner && (
+                            <button
+                              onClick={(e) => handleDeleteAmbition(ambition.id, e)}
+                              className="p-2 text-red-400 hover:text-white hover:bg-red-500/80 rounded-full transition-all"
+                              title="حذف طموحي"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          )}
                           <button
-                            onClick={(e) => handleDeleteAmbition(ambition.id, e)}
-                            className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors"
-                            title="حذف طموحي"
+                            onClick={() => setSelectedAmbitionForShare(ambition)}
+                            className="p-2 text-saudi-200 hover:text-gold hover:bg-saudi-600 rounded-full transition-all flex items-center gap-1"
+                            title="مشاركة الطموح"
                           >
-                            <Trash2 className="w-4 h-4" />
+                            <Share2 className="w-4 h-4" />
                           </button>
-                        )}
-                        <button
-                          onClick={() => setSelectedAmbitionForShare(ambition)}
-                          className="p-2 text-gray-400 hover:text-saudi-600 hover:bg-saudi-50 rounded-full transition-colors flex items-center gap-1"
-                          title="مشاركة الطموح"
-                        >
-                          <Share2 className="w-4 h-4" />
-                        </button>
+                        </div>
                       </div>
+
+                      {/* Ambition Optional Image */}
+                      {ambitionImg && (
+                        <div className="mb-6 rounded-2xl overflow-hidden h-40 w-full border border-gold/20 shadow-inner">
+                          <img src={ambitionImg} alt="مرفق الطموح" className="w-full h-full object-cover" />
+                        </div>
+                      )}
+
+                      {/* Ambition Quote */}
+                      <p className="text-saudi-50 text-lg sm:text-xl font-medium leading-loose mb-8">
+                        "{ambition.text}"
+                      </p>
                     </div>
 
-                    {/* Ambition Optional Image */}
-                    {ambitionImg && (
-                      <div className="mb-4 rounded-xl overflow-hidden h-36 w-full border border-gray-100">
-                        <img src={ambitionImg} alt="مرفق الطموح" className="w-full h-full object-cover" />
-                      </div>
-                    )}
-
-                    {/* Ambition Quote */}
-                    <p className="text-gray-700 text-base sm:text-lg font-medium leading-relaxed mb-6">
-                      "{ambition.text}"
-                    </p>
-                  </div>
-
-                  {/* Card Bottom Footer */}
-                  <div className="relative z-10 pt-4 border-t border-gray-100 flex items-center justify-between text-xs text-gray-400 font-medium">
-                    <span className="text-saudi-600 font-bold">اليوم الوطني 96</span>
-                    <button
-                      onClick={() => setSelectedAmbitionForShare(ambition)}
-                      className="inline-flex items-center gap-1 text-saudi-700 hover:text-saudi-600 font-bold text-xs group-hover:translate-x-[-2px] transition-transform"
-                    >
-                      <Share2 className="w-3.5 h-3.5" />
-                      <span>مشاركة كبطاقة</span>
-                    </button>
-                  </div>
-                </motion.div>
-              );
-            })}
-          </AnimatePresence>
-        </div>
+                    {/* Card Bottom Footer */}
+                    <div className="relative z-10 pt-5 border-t border-saudi-500/50 flex items-center justify-between text-xs font-medium">
+                      <span className="text-gold-light/70 font-bold tracking-wider">اليوم الوطني 96</span>
+                      <button
+                        onClick={() => setSelectedAmbitionForShare(ambition)}
+                        className="inline-flex items-center gap-1.5 text-white hover:text-gold font-bold text-sm group-hover:-translate-x-1 transition-all"
+                      >
+                        <Share2 className="w-4 h-4" />
+                        <span>مشاركة البطاقة</span>
+                      </button>
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </AnimatePresence>
+          </div>
+        )}
 
       </div>
 
