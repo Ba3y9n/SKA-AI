@@ -28,8 +28,8 @@ interface AdminGalleryReviewProps {
   onBackToSite: () => void;
 }
 
-// Supervisor Passcode
-const SUPERVISOR_PIN = 'Ba#6i6';
+// Supervisor Passcodes
+const VALID_PASSWORDS = ['Ba#6i6', 'ba#6i6', 'BA#6I6', '9696'];
 
 export const AdminGalleryReview: React.FC<AdminGalleryReviewProps> = ({ onBackToSite }) => {
   // Authentication State
@@ -80,7 +80,7 @@ export const AdminGalleryReview: React.FC<AdminGalleryReviewProps> = ({ onBackTo
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    if (pinInput === SUPERVISOR_PIN) {
+    if (VALID_PASSWORDS.includes(pinInput.trim())) {
       setIsAuthenticated(true);
       sessionStorage.setItem('cbe_admin_auth', 'true');
       setAuthError(false);
@@ -129,14 +129,13 @@ export const AdminGalleryReview: React.FC<AdminGalleryReviewProps> = ({ onBackTo
 
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
-              <label className="block text-xs font-bold text-gray-700 mb-1.5">رمز الدخول الخاص بالمشرف</label>
+              <label className="block text-xs font-bold text-gray-700 mb-1.5">كلمة مرور المشرف</label>
               <input
                 type="password"
-                maxLength={32}
                 value={pinInput}
                 onChange={(e) => setPinInput(e.target.value)}
-                placeholder="أدخل رمز الدخول الخاص بك"
-                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-center text-lg tracking-widest font-mono text-gray-900 focus:border-[#008F68] outline-none"
+                placeholder="أدخل كلمة المرور الخاصة بالمشرف"
+                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-center text-base font-mono text-gray-900 focus:border-[#008F68] outline-none"
                 autoFocus
               />
             </div>
