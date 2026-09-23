@@ -41,22 +41,13 @@ export const NationalCardSection: React.FC = () => {
                 <p className="text-sm font-bold text-saudi-600/80">من المجد والنماء</p>
               </div>
 
-              {/* Interactive Golden Sadu Divider */}
-              <div className="relative flex flex-col items-center justify-center py-4">
-                <div className="w-px h-8 bg-gradient-to-b from-transparent via-gold to-transparent" />
+              {/* Interactive Golden Divider */}
+              <div className="relative flex items-center justify-center mx-4 group/line">
+                {/* Core Line */}
+                <div className="w-0.5 h-16 bg-gradient-to-b from-transparent via-gold-dark to-transparent" />
                 
-                <motion.div 
-                  className="w-4 h-4 border-2 border-gold rotate-45 flex items-center justify-center my-1"
-                  whileHover={{ scale: 1.5, rotate: 90 }}
-                  transition={{ type: "spring", stiffness: 300 }}
-                >
-                  <div className="w-1.5 h-1.5 bg-gold-light" />
-                </motion.div>
-                
-                <div className="w-px h-8 bg-gradient-to-t from-transparent via-gold to-transparent" />
-                
-                {/* Glow effect on hover */}
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 bg-gold/20 blur-md rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+                {/* Glow that appears on hover */}
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-4 h-16 bg-gold/30 blur-sm rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
               </div>
 
               <div className="text-center sm:text-right transition-transform duration-300 group-hover:translate-x-2">

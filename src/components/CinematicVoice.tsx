@@ -8,6 +8,8 @@ export const CinematicVoice: React.FC = () => {
     offset: ['start end', 'end start'],
   });
 
+  const typographyX = useTransform(scrollYProgress, [0.3, 0.8], ['-15%', '15%']);
+  const typographyXReverse = useTransform(scrollYProgress, [0.3, 0.8], ['15%', '-15%']);
   const yTransform = useTransform(scrollYProgress, [0, 1], [50, -50]);
 
   return (
@@ -20,6 +22,16 @@ export const CinematicVoice: React.FC = () => {
       
       {/* Subtle Central Glow */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gold/10 rounded-full blur-[120px] pointer-events-none" />
+
+      {/* Ambient Moving Typography Behind Text */}
+      <div className="absolute inset-0 z-0 overflow-hidden opacity-[0.04] pointer-events-none flex flex-col justify-center gap-10 select-none">
+        <motion.div style={{ x: typographyX }} className="whitespace-nowrap">
+          <span className="text-7xl md:text-9xl font-black text-white uppercase tracking-widest px-6">الهوية • الأثر • الطموح • المستقبل</span>
+        </motion.div>
+        <motion.div style={{ x: typographyXReverse }} className="whitespace-nowrap">
+          <span className="text-7xl md:text-9xl font-black text-gold-light uppercase tracking-widest px-6">كلية الأعمال والاقتصاد • اليوم الوطني 96</span>
+        </motion.div>
+      </div>
 
       {/* Main Content */}
       <motion.div style={{ y: yTransform }} className="max-w-5xl mx-auto px-6 text-center relative z-10">
