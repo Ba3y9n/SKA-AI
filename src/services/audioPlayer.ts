@@ -1,71 +1,35 @@
 class AudioPlayerService {
   private isPlayingAudio: boolean = false;
-  private currentAudio: HTMLAudioElement | null = null;
-  private voices: SpeechSynthesisVoice[] = [];
-  private resumeTimer: any = null;
+  private currentAudioElement: HTMLAudioElement | null = null;
+  private stopRequested: boolean = false;
 
-  constructor() {
-    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-      this.initVoices();
-      if (window.speechSynthesis.onvoiceschanged !== undefined) {
-        window.speechSynthesis.onvoiceschanged = () => {
-          this.initVoices();
-        };
-      }
-    }
-  }
-
-  private initVoices() {
-    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-      try {
-        this.voices = window.speechSynthesis.getVoices() || [];
-      } catch {
-        this.voices = [];
-      }
-    }
-  }
-
-  /**
-   * Unlock audio permissions on any user click
-   */
   public initAudioContext() {
-    if (typeof window === 'undefined') return;
+    // Unblock audio on user interaction
     try {
-      if ('speechSynthesis' in window) {
+      if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
         window.speechSynthesis.resume();
-        this.initVoices();
+        window.speechSynthesis.getVoices();
       }
-    } catch (e) {
-      console.warn('Audio init warning:', e);
-    }
+    } catch {}
   }
 
-  /**
-   * Stop any current speech or audio
-   */
   public stop() {
-    if (this.resumeTimer) {
-      clearInterval(this.resumeTimer);
-      this.resumeTimer = null;
-    }
+    this.stopRequested = true;
+    this.isPlayingAudio = false;
 
-    if (this.currentAudio) {
+    if (this.currentAudioElement) {
       try {
-        this.currentAudio.pause();
-        this.currentAudio.src = '';
+        this.currentAudioElement.pause();
+        this.currentAudioElement.src = '';
       } catch {}
-      this.currentAudio = null;
+      this.currentAudioElement = null;
     }
 
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
       try {
-        if (window.speechSynthesis.speaking || window.speechSynthesis.pending) {
-          window.speechSynthesis.cancel();
-        }
+        window.speechSynthesis.cancel();
       } catch {}
     }
-
-    this.isPlayingAudio = false;
   }
 
   public isPlaying(): boolean {
@@ -73,7 +37,7 @@ class AudioPlayerService {
   }
 
   /**
-   * Play speech using Web Speech API with full Arabic dialect support
+   * Speak Arabic text using direct high-fidelity TTS audio stream + SpeechSynthesis backup
    */
   public speak(
     text: string,
@@ -84,6 +48,7 @@ class AudioPlayerService {
     onError?: (err: any) => void
   ) {
     this.stop();
+    this.stopRequested = false;
     this.initAudioContext();
 
     if (typeof window === 'undefined') {
@@ -91,154 +56,129 @@ class AudioPlayerService {
       return;
     }
 
-    const cleanText = text
+    const clean = text
       .replace(/[*_#`~[\]()><{}|\\]/g, ' ')
       .replace(/https?:\/\/\S+/g, ' ')
       .replace(/[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, '')
       .replace(/\s+/g, ' ')
       .trim();
 
-    if (!cleanText) {
+    if (!clean) {
       if (onEnd) onEnd();
       return;
     }
 
-    // Try HTML5 Audio if base64 data is present
-    if (audioBase64 && audioBase64.length > 50) {
-      try {
-        const binaryString = window.atob(audioBase64);
-        const len = binaryString.length;
-        const bytes = new Uint8Array(len);
-        for (let i = 0; i < len; i++) {
-          bytes[i] = binaryString.charCodeAt(i);
-        }
-        const blob = new Blob([bytes], { type: mimeType || 'audio/mpeg' });
-        const blobUrl = URL.createObjectURL(blob);
-        const audio = new Audio(blobUrl);
-        this.currentAudio = audio;
+    // Split into conversational sentences for smooth streaming
+    const rawChunks = clean.match(/[^.!؟?\n]+[.!?؟\n]*/g) || [clean];
+    const chunks: string[] = [];
+    let current = '';
 
-        audio.onplay = () => {
-          this.isPlayingAudio = true;
-          if (onStart) onStart();
-        };
-
-        audio.onended = () => {
-          URL.revokeObjectURL(blobUrl);
-          this.isPlayingAudio = false;
-          this.currentAudio = null;
-          if (onEnd) onEnd();
-        };
-
-        audio.onerror = () => {
-          URL.revokeObjectURL(blobUrl);
-          this.currentAudio = null;
-          // Fallback to SpeechSynthesis
-          this.speakWithSpeechSynthesis(cleanText, onStart, onEnd, onError);
-        };
-
-        audio.play().catch(() => {
-          this.speakWithSpeechSynthesis(cleanText, onStart, onEnd, onError);
-        });
-        return;
-      } catch {
-        // Fallback to SpeechSynthesis
+    for (const piece of rawChunks) {
+      const p = piece.trim();
+      if (!p) continue;
+      if ((current + ' ' + p).length < 130) {
+        current += (current ? ' ' : '') + p;
+      } else {
+        if (current) chunks.push(current);
+        current = p;
       }
     }
+    if (current) chunks.push(current);
+    if (chunks.length === 0) chunks.push(clean.slice(0, 120));
 
-    this.speakWithSpeechSynthesis(cleanText, onStart, onEnd, onError);
+    let index = 0;
+    this.isPlayingAudio = true;
+
+    const playNextChunk = () => {
+      if (this.stopRequested || index >= chunks.length) {
+        this.isPlayingAudio = false;
+        this.currentAudioElement = null;
+        if (onEnd) onEnd();
+        return;
+      }
+
+      const chunkText = chunks[index];
+      index++;
+
+      const ttsUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(chunkText)}&tl=ar&client=tw-ob`;
+      const audio = new Audio(ttsUrl);
+      this.currentAudioElement = audio;
+
+      let started = false;
+      const markStart = () => {
+        if (!started) {
+          started = true;
+          if (index === 1 && onStart) onStart();
+        }
+      };
+
+      audio.onplay = markStart;
+
+      audio.onended = () => {
+        if (!this.stopRequested) {
+          playNextChunk();
+        }
+      };
+
+      audio.onerror = () => {
+        console.warn('Audio tag failed, falling back to Web Speech API for chunk:', chunkText);
+        this.fallbackSpeechSynthesis(chunkText, markStart, playNextChunk, playNextChunk);
+      };
+
+      audio.play().catch((err) => {
+        console.warn('Audio play prevented by browser, falling back to Web Speech API:', err);
+        this.fallbackSpeechSynthesis(chunkText, markStart, playNextChunk, playNextChunk);
+      });
+    };
+
+    playNextChunk();
   }
 
-  private speakWithSpeechSynthesis(
+  private fallbackSpeechSynthesis(
     text: string,
     onStart?: () => void,
     onEnd?: () => void,
     onError?: (err: any) => void
   ) {
-    if (!('speechSynthesis' in window)) {
-      if (onError) onError(new Error('SpeechSynthesis not supported'));
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
       if (onEnd) onEnd();
       return;
     }
-
-    this.initVoices();
-
-    let hasEnded = false;
-    const triggerEnd = () => {
-      if (hasEnded) return;
-      hasEnded = true;
-      if (this.resumeTimer) {
-        clearInterval(this.resumeTimer);
-        this.resumeTimer = null;
-      }
-      this.isPlayingAudio = false;
-      if (onEnd) onEnd();
-    };
 
     try {
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.lang = 'ar-SA';
       utterance.rate = 1.0;
-      utterance.pitch = 1.05;
+      utterance.pitch = 1.0;
 
-      // Select Arabic voice
-      const currentVoices = this.voices.length > 0 ? this.voices : window.speechSynthesis.getVoices();
-      const arabicVoice = currentVoices.find(
+      const voices = window.speechSynthesis.getVoices() || [];
+      const arVoice = voices.find(
         (v) =>
           v.lang.toLowerCase().startsWith('ar') ||
-          v.lang.toLowerCase().includes('sa') ||
           v.name.toLowerCase().includes('arabic') ||
           v.name.toLowerCase().includes('salma') ||
-          v.name.toLowerCase().includes('laila') ||
           v.name.toLowerCase().includes('maged') ||
-          v.name.toLowerCase().includes('tarik') ||
-          v.name.toLowerCase().includes('hoda') ||
-          v.name.toLowerCase().includes('naayf')
+          v.name.toLowerCase().includes('laila') ||
+          v.name.toLowerCase().includes('tarik')
       );
 
-      if (arabicVoice) {
-        utterance.voice = arabicVoice;
-      }
+      if (arVoice) utterance.voice = arVoice;
 
       utterance.onstart = () => {
-        this.isPlayingAudio = true;
-        console.log('AUDIO_SPEECH_STARTED');
         if (onStart) onStart();
       };
-
       utterance.onend = () => {
-        triggerEnd();
+        if (onEnd) onEnd();
       };
-
       utterance.onerror = (e) => {
-        console.warn('Speech error:', e);
-        triggerEnd();
+        if (onError) onError(e);
+        if (onEnd) onEnd();
       };
 
-      // Workaround for Chrome / Edge pausing after 10-15 seconds
       window.speechSynthesis.resume();
       window.speechSynthesis.speak(utterance);
-
-      this.resumeTimer = setInterval(() => {
-        if (!hasEnded && window.speechSynthesis.speaking) {
-          window.speechSynthesis.pause();
-          window.speechSynthesis.resume();
-        } else {
-          clearInterval(this.resumeTimer);
-          this.resumeTimer = null;
-        }
-      }, 4000);
-
-      // Safety timeout: max 25 seconds
-      setTimeout(() => {
-        if (!hasEnded && !window.speechSynthesis.speaking) {
-          triggerEnd();
-        }
-      }, Math.max(4000, text.length * 90));
-
-    } catch (e: any) {
-      console.error('SpeechSynthesis exception:', e);
-      triggerEnd();
-      if (onError) onError(e);
+    } catch {
+      if (onEnd) onEnd();
     }
   }
 }

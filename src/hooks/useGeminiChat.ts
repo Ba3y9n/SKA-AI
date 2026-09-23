@@ -201,25 +201,9 @@ export function useGeminiChat() {
   }, [isListening, isVoiceSessionActive, characterState, startListening, stopListening]);
 
   const replayMessageVoice = useCallback(
-    async (text: string) => {
+    (text: string) => {
       audioPlayer.stop();
-      setCharacterState('THINKING');
-      try {
-        const res = await fetch(`/api/tts?text=${encodeURIComponent(text)}`);
-        if (res.ok) {
-          const blob = await res.blob();
-          const reader = new FileReader();
-          reader.onloadend = () => {
-            const base64data = (reader.result as string).split(',')[1];
-            playAudio(text, base64data, 'audio/mpeg');
-          };
-          reader.readAsDataURL(blob);
-        } else {
-          playAudio(text);
-        }
-      } catch {
-        playAudio(text);
-      }
+      playAudio(text);
     },
     [playAudio]
   );
