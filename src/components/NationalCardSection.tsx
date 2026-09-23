@@ -34,16 +34,36 @@ export const NationalCardSection: React.FC = () => {
               نحتفي برحلة وطن طموح، وبصمات طالبات ودكتورات كلية الأعمال والاقتصاد اللاتي يرسمن ملامح المستقبل بالعلم والريادة والابتكار.
             </p>
 
-            <div className="mt-8 pt-8 border-t border-gray-200/70 flex items-center gap-6">
-              <div>
-                <p className="text-2xl font-black text-saudi-700">96 عاماً</p>
-                <p className="text-sm font-bold text-gray-500">من المجد والنماء</p>
+            <div className="mt-10 pt-10 border-t border-saudi-200/50 flex flex-col sm:flex-row items-center gap-8 group">
+              
+              <div className="text-center sm:text-right transition-transform duration-300 group-hover:-translate-x-2">
+                <p className="text-3xl font-black text-saudi-700 mb-1">96 عاماً</p>
+                <p className="text-sm font-bold text-saudi-600/80">من المجد والنماء</p>
               </div>
-              <div className="w-[1px] h-10 bg-gray-200" />
-              <div>
-                <p className="text-2xl font-black text-saudi-600">طموح 2030</p>
-                <p className="text-sm font-bold text-gray-500">بأيدي أبناء وبنات الوطن</p>
+
+              {/* Interactive Golden Sadu Divider */}
+              <div className="relative flex flex-col items-center justify-center py-4">
+                <div className="w-px h-8 bg-gradient-to-b from-transparent via-gold to-transparent" />
+                
+                <motion.div 
+                  className="w-4 h-4 border-2 border-gold rotate-45 flex items-center justify-center my-1"
+                  whileHover={{ scale: 1.5, rotate: 90 }}
+                  transition={{ type: "spring", stiffness: 300 }}
+                >
+                  <div className="w-1.5 h-1.5 bg-gold-light" />
+                </motion.div>
+                
+                <div className="w-px h-8 bg-gradient-to-t from-transparent via-gold to-transparent" />
+                
+                {/* Glow effect on hover */}
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 bg-gold/20 blur-md rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
               </div>
+
+              <div className="text-center sm:text-right transition-transform duration-300 group-hover:translate-x-2">
+                <p className="text-3xl font-black text-gold-dark mb-1">طموح 2030</p>
+                <p className="text-sm font-bold text-saudi-600/80">بأيدي أبناء وبنات الوطن</p>
+              </div>
+
             </div>
           </motion.div>
 
