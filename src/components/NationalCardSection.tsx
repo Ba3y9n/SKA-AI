@@ -24,14 +24,17 @@ export const NationalCardSection: React.FC = () => {
               اليوم الوطني السعودي 96
             </div>
 
-            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-black text-saudi-700 leading-[1.25] mb-6 tracking-tight">
-              عزّنا برؤيتنا،<br />
-              وهمّتنا،<br />
-              <span className="text-saudi-600">وأصالتنا التي لا تتغير.</span>
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-black text-saudi-700 leading-tight mb-4 tracking-tight">
+              عزّنا برؤيتنا، وشجاعتنا، وهمتنا،<br />
+              وأصالتنا، وكرمنا، وجودنا..
             </h2>
+            
+            <div className="w-24 h-1.5 bg-gradient-to-r from-transparent via-gold to-transparent mb-6 rounded-full" />
 
-            <p className="text-lg md:text-xl text-gray-600 font-medium leading-relaxed max-w-xl">
-              نحتفي برحلة وطن طموح، وبصمات طالبات ودكتورات كلية الأعمال والاقتصاد اللاتي يرسمن ملامح المستقبل بالعلم والريادة والابتكار.
+            <p className="text-lg md:text-2xl text-saudi-600 font-bold leading-relaxed max-w-xl mb-6">
+              96 عاماً من المجد والتاريخ والشموخ.<br />
+              <span className="text-gold-dark">دمت يا وطني عزيزاً شامخاً،</span><br />
+              ودام عزك بطبعك الأصيل الذي لا يتغير!
             </p>
 
             <div className="mt-10 pt-10 border-t border-saudi-200/50 flex flex-col sm:flex-row items-center gap-8 group">
@@ -58,7 +61,7 @@ export const NationalCardSection: React.FC = () => {
             </div>
           </motion.div>
 
-          {/* Large Visual Showcase Column */}
+          {/* Large Visual Showcase Column - Carpet */}
           <motion.div 
             initial={{ opacity: 0, scale: 0.95, y: 30 }}
             whileInView={{ opacity: 1, scale: 1, y: 0 }}
@@ -66,13 +69,15 @@ export const NationalCardSection: React.FC = () => {
             transition={{ duration: 1, ease: "easeOut" }}
             className="lg:col-span-6 w-full"
           >
-            <div className="relative rounded-[2.5rem] overflow-hidden shadow-[0_20px_50px_rgba(0,108,79,0.12)] border border-saudi-100 group">
-              <img 
-                src="/media_1790129786646.jpg" 
-                alt="الهوية الوطنية السعودية 96" 
-                className="w-full h-auto max-h-[600px] object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#064C3B]/60 via-transparent to-transparent opacity-40 group-hover:opacity-20 transition-opacity" />
+            <div className="relative rounded-[2rem] overflow-hidden shadow-2xl border-4 border-gold/30 group p-2 bg-saudi-700">
+              <div className="relative rounded-[1.5rem] overflow-hidden">
+                <img 
+                  src="/carpet.webp" 
+                  alt="سجادة تراثية" 
+                  className="w-full h-auto max-h-[600px] object-cover object-center group-hover:scale-110 transition-transform duration-1000 ease-out"
+                />
+                <div className="absolute inset-0 bg-gold/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              </div>
             </div>
           </motion.div>
 

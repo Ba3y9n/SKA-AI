@@ -95,7 +95,7 @@ export const CinematicVoice: React.FC = () => {
           })}
         </div>
 
-        {/* Idea Section - No Box, Pure Typography */}
+        {/* Poem Section - Pure Typography */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -104,20 +104,20 @@ export const CinematicVoice: React.FC = () => {
           className="text-center max-w-4xl mx-auto flex flex-col items-center"
         >
           <span className="text-gold-light text-lg md:text-xl font-bold tracking-widest mb-6 block">
-            رؤية المشروع
+            قصيدة وطن
           </span>
           
-          <h3 className="text-5xl md:text-7xl font-black text-white mb-4 drop-shadow-lg">
-            فكرة
+          <h3 className="text-4xl md:text-6xl font-black text-white mb-4 drop-shadow-lg leading-tight">
+            وطني الحبيبُ وهل أُحِبُّ سِواهُ؟
           </h3>
           
           {/* Thick, Clear Gold Line */}
-          <div className="w-32 md:w-48 h-2 bg-gradient-to-r from-transparent via-gold to-transparent mb-10 rounded-full" />
+          <div className="w-48 md:w-64 h-2 bg-gradient-to-r from-transparent via-gold to-transparent mb-10 rounded-full" />
           
-          <p className="text-2xl md:text-4xl text-saudi-100 font-medium leading-[1.8] md:leading-[1.8]">
-            رِواء ليست مجرد مساعد افتراضي،<br />
-            بل مساحة رقمية تُروى فيها قصص الإنجاز،<br />
-            <span className="text-gold-light font-black mt-4 block text-3xl md:text-5xl drop-shadow-md">وتُسمع فيها أصوات الطموح.</span>
+          <p className="text-2xl md:text-4xl text-saudi-100 font-medium leading-[2] md:leading-[2]">
+            روحي وما مـَلَكَتْ يداي فـِداهُ،<br />
+            وطني الذي قد عِشْتُ تحتَ سَمائِهِ،<br />
+            <span className="text-gold-light font-black mt-4 block text-3xl md:text-5xl drop-shadow-md">وهوَ الذي قد عِشْتُ فـَوْقَ ثَراهُ.</span>
           </p>
         </motion.div>
       </motion.div>
