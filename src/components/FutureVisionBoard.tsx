@@ -75,11 +75,19 @@ export const FutureVisionBoard: React.FC<FutureVisionBoardProps> = ({ ambitions,
     }
   }, []);
 
-  // Merge remote ambitions, local storage ambitions and defaults
+  // Merge remote ambitions, local storage ambitions and defaults (clean filter)
   const allAmbitions = React.useMemo(() => {
-    const list = [...localList];
+    const list = [...localList.filter(l => !l.text?.includes('CBE_GALLERY') && !l.text?.startsWith('{') && l.text !== 'test 1' && l.text !== 'test 3' && l.text !== 'انا بيان')];
     ambitions.forEach(a => {
-      if (!list.some(item => item.id === a.id || item.text === a.text)) {
+      if (
+        !list.some(item => item.id === a.id || item.text === a.text) &&
+        !a.text?.includes('CBE_GALLERY') &&
+        !a.text?.startsWith('{') &&
+        !a.department?.startsWith('CBE_GALLERY') &&
+        a.text !== 'test 1' &&
+        a.text !== 'test 3' &&
+        a.text !== 'انا بيان'
+      ) {
         list.push(a);
       }
     });

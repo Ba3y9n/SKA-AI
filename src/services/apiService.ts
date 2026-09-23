@@ -66,10 +66,13 @@ export async function fetchAmbitions(): Promise<Ambition[]> {
       return [];
     }
 
-    // Include all approved or non-rejected ambitions
+    // Filter legitimate ambitions (exclude internal gallery items & test strings)
     const validData = (data || []).filter((item: any) => {
       if (item.status === 'rejected') return false;
       if (item.is_approved === false) return false;
+      if (item.department && item.department.startsWith('CBE_GALLERY')) return false;
+      if (item.text && (item.text.startsWith('{') || item.text.includes('CBE_GALLERY'))) return false;
+      if (item.text === 'test 1' || item.text === 'test 3' || item.text === 'انا بيان') return false;
       return true;
     });
 
@@ -99,7 +102,7 @@ export async function submitAmbitionIdea(ambitionData: Partial<Ambition>): Promi
     text: ambitionData.text,
     name: ambitionData.name,
     role: ambitionData.role,
-    department: ambitionData.department,
+    department: ambitionData.department || 'كلية الأعمال والاقتصاد',
     major: ambitionData.major || null,
     status: 'approved',
     is_approved: true
@@ -116,9 +119,10 @@ export async function submitAmbitionIdea(ambitionData: Partial<Ambition>): Promi
       console.warn('Supabase insert failed, attempting fallback payload:', error);
       const fallbackPayload = {
         text: ambitionData.text,
-        department: ambitionData.department || (ambitionData.name ? `${ambitionData.name} - ${ambitionData.role}` : ''),
+        department: ambitionData.department || (ambitionData.name ? `${ambitionData.name} - ${ambitionData.role}` : 'كلية الأعمال والاقتصاد'),
         major: ambitionData.major || null,
-        status: 'approved'
+        status: 'approved',
+        is_approved: true
       };
 
       const retryResult = await supabase
@@ -153,8 +157,13 @@ export function subscribeToAmbitions(onNewAmbition: (ambition: Ambition) => void
       { event: 'INSERT', schema: 'public', table: 'ambitions' },
       (payload) => {
         if (payload.new) {
-          const newRecord = payload.new as Ambition;
-          if (newRecord.status !== 'rejected' && newRecord.is_approved !== false) {
+          const newRecord = payload.new as any;
+          if (
+            newRecord.status !== 'rejected' && 
+            newRecord.is_approved !== false &&
+            !newRecord.department?.startsWith('CBE_GALLERY') &&
+            !newRecord.text?.startsWith('{')
+          ) {
             onNewAmbition(newRecord);
           }
         }
