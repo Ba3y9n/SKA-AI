@@ -65,30 +65,30 @@ export const CinematicVoice: React.FC = () => {
           </h2>
         </motion.div>
 
-        {/* Dynamic Voice Waveform Visualization */}
-        <div className="mt-16 flex items-center justify-center gap-1.5 md:gap-2 h-32 group cursor-pointer mb-20">
-          {[...Array(28)].map((_, i) => {
-            const isCenter = Math.abs(i - 14) < 6;
+        {/* Dynamic Voice Waveform Visualization (Wide & Long) */}
+        <div className="mt-16 flex items-center justify-center gap-1 md:gap-1.5 h-32 group cursor-pointer mb-20 w-full max-w-6xl mx-auto overflow-hidden px-4">
+          {[...Array(90)].map((_, i) => {
+            const isCenter = Math.abs(i - 45) < 15;
             return (
               <motion.div
                 key={i}
                 className={`w-1.5 md:w-2 rounded-full transition-colors duration-500 ${
-                  isCenter ? 'bg-gold group-hover:bg-gold-light' : 'bg-gold/30 group-hover:bg-gold/50'
+                  isCenter ? 'bg-gold group-hover:bg-gold-light' : 'bg-gold/30 group-hover:bg-gold/60'
                 }`}
                 animate={{
                   height: [
-                    `${20 + (i % 5) * 10}%`,
-                    `${70 + ((i * 7) % 30)}%`,
-                    `${30 + (i % 3) * 15}%`,
-                    `${90 + ((i * 5) % 10)}%`,
-                    `${25 + (i % 4) * 10}%`,
+                    `${10 + (i % 7) * 10}%`,
+                    `${60 + ((i * 11) % 40)}%`,
+                    `${20 + (i % 4) * 15}%`,
+                    `${90 + ((i * 3) % 10)}%`,
+                    `${15 + (i % 5) * 15}%`,
                   ],
                 }}
                 transition={{
-                  duration: 1.5 + (i % 5) * 0.2,
+                  duration: 1.5 + (i % 7) * 0.15,
                   repeat: Infinity,
                   ease: 'easeInOut',
-                  delay: i * 0.05,
+                  delay: i * 0.02,
                 }}
               />
             );
@@ -101,14 +101,19 @@ export const CinematicVoice: React.FC = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8, delay: 0.2 }}
-          className="pt-24 border-t border-gold/20 text-center max-w-4xl mx-auto"
+          className="text-center max-w-4xl mx-auto flex flex-col items-center"
         >
           <span className="text-gold-light text-lg md:text-xl font-bold tracking-widest mb-6 block">
             رؤية المشروع
           </span>
-          <h3 className="text-5xl md:text-7xl font-black text-white mb-10 drop-shadow-lg title-gold-line inline-block">
+          
+          <h3 className="text-5xl md:text-7xl font-black text-white mb-4 drop-shadow-lg">
             فكرة
           </h3>
+          
+          {/* Thick, Clear Gold Line */}
+          <div className="w-32 md:w-48 h-2 bg-gradient-to-r from-transparent via-gold to-transparent mb-10 rounded-full" />
+          
           <p className="text-2xl md:text-4xl text-saudi-100 font-medium leading-[1.8] md:leading-[1.8]">
             رِواء ليست مجرد مساعد افتراضي،<br />
             بل مساحة رقمية تُروى فيها قصص الإنجاز،<br />
