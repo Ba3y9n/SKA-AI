@@ -159,8 +159,13 @@ export const UserGallery: React.FC<UserGalleryProps> = ({ onOpenAdmin }) => {
         {/* Section Header */}
         <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8 mb-14 text-right">
           <div>
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-saudi-700 leading-tight mb-4 tracking-tight">
-              شاركنا لحظات اليوم الوطني في كلية الأعمال والاقتصاد
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-saudi-700 leading-tight mb-4 tracking-tight flex flex-wrap items-center gap-3">
+              <span className="relative inline-flex items-center justify-center px-8 py-1.5 mx-2 border-y-[1.5px] border-gold/60">
+                <span className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-contain bg-no-repeat" style={{ backgroundImage: "url('/gold-border.png')", backgroundPosition: 'left center' }}></span>
+                <span className="absolute -left-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-contain bg-no-repeat" style={{ backgroundImage: "url('/gold-border.png')", backgroundPosition: 'left center' }}></span>
+                <span className="relative z-10">شاركنا</span>
+              </span>
+              <span>لحظات اليوم الوطني في كلية الأعمال والاقتصاد</span>
             </h2>
             <p className="text-base sm:text-lg text-gray-600 font-medium max-w-2xl leading-relaxed">
               التقط لحظتك في البهو وشاركنا أجواء اليوم الوطني داخل الكلية.
