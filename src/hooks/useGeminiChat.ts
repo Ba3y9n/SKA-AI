@@ -63,7 +63,7 @@ export function useGeminiChat() {
       };
 
       if (audioBase64) {
-        console.log('AUDIO_RECEIVED');
+        console.log('AUDIO_RECEIVED_PLAYING_BASE64');
         audioPlayer
           .playBase64Audio(
             audioBase64,
@@ -71,9 +71,8 @@ export function useGeminiChat() {
             () => setCharacterState('SPEAKING'),
             onAudioEnd,
             (err) => {
-              console.warn('Base64 playback error, using SpeechSynthesis fallback:', err);
-              // Fallback to browser SpeechSynthesis
-              audioPlayer.playSpeechSynthesis(
+              console.warn('Base64 playback error, using Stream fallback:', err);
+              audioPlayer.playArabicStream(
                 replyText,
                 () => setCharacterState('SPEAKING'),
                 onAudioEnd,
@@ -85,12 +84,16 @@ export function useGeminiChat() {
             }
           )
           .catch(() => {
-            setCharacterState('IDLE');
-            setAudioNotice('تعذر تشغيل الصوت، يمكنك قراءة الرد.');
+            audioPlayer.playArabicStream(
+              replyText,
+              () => setCharacterState('SPEAKING'),
+              onAudioEnd,
+              () => setCharacterState('IDLE')
+            );
           });
       } else {
-        // Use browser SpeechSynthesis if no backend audio buffer
-        audioPlayer.playSpeechSynthesis(
+        // Play direct Arabic audio stream fallback
+        audioPlayer.playArabicStream(
           replyText,
           () => setCharacterState('SPEAKING'),
           onAudioEnd,

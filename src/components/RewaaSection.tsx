@@ -77,19 +77,19 @@ export const RewaaSection: React.FC<RewaaSectionProps> = ({
         </div>
 
         {/* Character Visual Showcase */}
-        <div className="flex flex-col items-center justify-center mb-10">
+        <div className="flex flex-col items-center justify-center mb-8">
           
-          <div className="relative group flex items-center justify-center">
+          <div className="relative w-60 h-60 sm:w-80 sm:h-80 md:w-96 md:h-96 aspect-square rounded-full flex items-center justify-center mx-auto">
             
             {/* Animated Glow Rings based on state */}
             <AnimatePresence>
               {characterState === 'LISTENING' && (
                 <motion.div 
-                  initial={{ scale: 0.8, opacity: 0 }}
-                  animate={{ scale: [1, 1.15, 1], opacity: [0.6, 0.9, 0.6] }}
-                  exit={{ scale: 0.8, opacity: 0 }}
+                  initial={{ scale: 0.95, opacity: 0 }}
+                  animate={{ scale: [1, 1.06, 1], opacity: [0.6, 1, 0.6] }}
+                  exit={{ scale: 0.95, opacity: 0 }}
                   transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
-                  className="absolute inset-0 w-72 h-72 sm:w-96 sm:h-96 rounded-full border-2 border-gold shadow-[0_0_50px_rgba(198,161,91,0.4)] pointer-events-none -z-10"
+                  className="absolute inset-0 rounded-full border-3 border-gold shadow-[0_0_40px_rgba(198,161,91,0.5)] pointer-events-none"
                 />
               )}
             </AnimatePresence>
@@ -97,11 +97,11 @@ export const RewaaSection: React.FC<RewaaSectionProps> = ({
             <AnimatePresence>
               {characterState === 'THINKING' && (
                 <motion.div 
-                  initial={{ scale: 0.85, opacity: 0 }}
-                  animate={{ scale: [1, 1.08, 1], opacity: [0.4, 0.8, 0.4] }}
-                  exit={{ scale: 0.85, opacity: 0 }}
+                  initial={{ scale: 0.95, opacity: 0 }}
+                  animate={{ scale: [1, 1.04, 1], opacity: [0.4, 0.8, 0.4] }}
+                  exit={{ scale: 0.95, opacity: 0 }}
                   transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut" }}
-                  className="absolute inset-0 w-72 h-72 sm:w-96 sm:h-96 rounded-full bg-saudi-500/10 blur-xl pointer-events-none -z-10"
+                  className="absolute inset-0 rounded-full bg-saudi-500/10 blur-xl pointer-events-none"
                 />
               )}
             </AnimatePresence>
@@ -109,38 +109,38 @@ export const RewaaSection: React.FC<RewaaSectionProps> = ({
             <AnimatePresence>
               {characterState === 'SPEAKING' && (
                 <motion.div 
-                  initial={{ scale: 0.9, opacity: 0 }}
-                  animate={{ scale: [1, 1.1, 1], opacity: [0.5, 0.8, 0.5] }}
-                  exit={{ scale: 0.9, opacity: 0 }}
-                  transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-                  className="absolute inset-0 w-72 h-72 sm:w-96 sm:h-96 rounded-full border border-saudi-500/40 shadow-[0_0_40px_rgba(0,108,79,0.25)] pointer-events-none -z-10"
+                  initial={{ scale: 0.95, opacity: 0 }}
+                  animate={{ scale: [1, 1.05, 1], opacity: [0.5, 0.9, 0.5] }}
+                  exit={{ scale: 0.95, opacity: 0 }}
+                  transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
+                  className="absolute inset-0 rounded-full border-2 border-saudi-500 shadow-[0_0_35px_rgba(0,108,79,0.3)] pointer-events-none"
                 />
               )}
             </AnimatePresence>
 
-            {/* Avatar Image */}
+            {/* Avatar Image (Centered and Perfectly Symmetrical) */}
             <motion.div
               animate={
                 characterState === 'THINKING'
-                  ? { y: [0, -6, 0], transition: { repeat: Infinity, duration: 1.6 } }
+                  ? { y: [0, -4, 0], transition: { repeat: Infinity, duration: 1.6 } }
                   : characterState === 'SPEAKING'
-                  ? { scale: [1, 1.02, 1], transition: { repeat: Infinity, duration: 1.2 } }
-                  : { y: [0, -4, 0], transition: { repeat: Infinity, duration: 4, ease: "easeInOut" } }
+                  ? { scale: [1, 1.015, 1], transition: { repeat: Infinity, duration: 1.2 } }
+                  : { y: [0, -3, 0], transition: { repeat: Infinity, duration: 4, ease: "easeInOut" } }
               }
-              className="relative z-10"
+              className="w-full h-full flex items-center justify-center p-1 relative z-10"
             >
               <img 
                 src="/rewaa_avatar_real_transparent.png" 
                 alt="رِواء AI" 
-                className="w-56 sm:w-72 md:w-80 h-auto object-contain drop-shadow-2xl select-none"
+                className="w-full h-full object-contain rounded-full drop-shadow-xl select-none"
               />
             </motion.div>
 
           </div>
 
-          {/* Interactive State Badge */}
-          <div className="mt-4 flex items-center gap-2">
-            <span className={`inline-flex items-center gap-2 px-4 py-1 rounded-full text-xs font-bold transition-all shadow-sm ${
+          {/* Interactive State Badge (Well spaced below circle) */}
+          <div className="mt-5 flex items-center justify-center">
+            <span className={`inline-flex items-center gap-2 px-5 py-1.5 rounded-full text-xs sm:text-sm font-bold transition-all shadow-sm ${
               characterState === 'LISTENING'
                 ? 'bg-gold/20 text-gold-dark border border-gold/40 animate-pulse'
                 : characterState === 'THINKING'
@@ -153,7 +153,7 @@ export const RewaaSection: React.FC<RewaaSectionProps> = ({
                 characterState === 'LISTENING' ? 'bg-gold' : characterState === 'SPEAKING' ? 'bg-white' : characterState === 'THINKING' ? 'bg-saudi-600' : 'bg-green-500'
               }`} />
               {characterState === 'LISTENING' && 'جاري الاستماع إليكِ...'}
-              {characterState === 'THINKING' && 'جاري التفكير...'}
+              {characterState === 'THINKING' && 'جاري التفكير في الإجابة...'}
               {characterState === 'SPEAKING' && 'رِواء تتحدث الآن...'}
               {characterState === 'IDLE' && 'رِواء جاهزة للاستماع'}
               {characterState === 'ERROR' && 'حدث انقطاع بسيط'}
@@ -161,10 +161,10 @@ export const RewaaSection: React.FC<RewaaSectionProps> = ({
           </div>
 
           {/* Primary Voice Action Buttons */}
-          <div className="flex items-center gap-3 mt-6">
+          <div className="flex items-center gap-3 mt-5">
             <button
               onClick={onToggleListening}
-              className={`group relative inline-flex items-center gap-3 px-8 py-4 rounded-full font-black text-base sm:text-lg transition-all duration-300 shadow-lg ${
+              className={`group relative inline-flex items-center gap-3 px-8 py-4 rounded-full font-black text-base sm:text-lg transition-all duration-300 shadow-lg min-h-[48px] ${
                 isListening 
                   ? 'bg-red-500 text-white hover:bg-red-600 shadow-[0_0_25px_rgba(239,68,68,0.4)] scale-105' 
                   : 'bg-saudi-600 text-white hover:bg-saudi-700 hover:shadow-xl hover:-translate-y-0.5'
@@ -182,7 +182,7 @@ export const RewaaSection: React.FC<RewaaSectionProps> = ({
             <button
               onClick={onToggleVoice}
               title={isAutoVoiceEnabled ? 'كتم الصوت التلقائي' : 'تفعيل الرد الصوتي'}
-              className={`p-4 rounded-full border transition-all shadow-sm ${
+              className={`p-4 min-h-[48px] min-w-[48px] rounded-full border transition-all shadow-sm flex items-center justify-center ${
                 isAutoVoiceEnabled 
                   ? 'bg-white text-saudi-700 border-saudi-200 hover:bg-saudi-50' 
                   : 'bg-gray-100 text-gray-400 border-gray-200 hover:bg-gray-200'

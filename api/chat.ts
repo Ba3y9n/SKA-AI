@@ -141,16 +141,38 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
     }
 
-    if (!reply) {
-      if (lastError?.message && (lastError.message.includes('429') || lastError.message.includes('quota'))) {
-        reply = 'أهلاً بك! يبدو أن هناك ضغطاً مؤقتاً على الخدمة. تفضل بإعادة المحاولة بعد ثوانٍ بسيطة.';
-      } else {
-        reply = 'أهلاً بك! يسعدني الحديث معك، تفضل بالسؤال عن المنصة أو فعاليات اليوم الوطني.';
+    let audioBase64: string | null = null;
+    try {
+      const cleanText = reply
+        .replace(/[*_#`~[\]()><{}|\\]/g, ' ')
+        .replace(/https?:\/\/\S+/g, 'رابط')
+        .replace(/[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+      if (cleanText) {
+        const sentence = cleanText.split(/([.!؟?\n]+)/).filter(Boolean).slice(0, 2).join(' ').slice(0, 180);
+        const ttsUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(sentence)}&tl=ar&client=tw-ob`;
+        const audioRes = await fetch(ttsUrl, {
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Referer': 'https://translate.google.com/'
+          },
+          signal: AbortSignal.timeout(4000)
+        });
+        if (audioRes.ok) {
+          const ab = await audioRes.arrayBuffer();
+          audioBase64 = Buffer.from(ab).toString('base64');
+        }
       }
+    } catch (ttsErr) {
+      console.warn('TTS error in Vercel function:', ttsErr);
     }
 
     return res.status(200).json({
       reply,
+      audioBase64,
+      mimeType: 'audio/mpeg',
       model: usedModel,
       timestamp: new Date().toISOString(),
     });

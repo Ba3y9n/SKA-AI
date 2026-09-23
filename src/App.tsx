@@ -154,14 +154,6 @@ const App: React.FC = () => {
       {/* 9. Final Clean Footer */}
       <Footer />
 
-      {/* Discreet Floating Voice Assistant Widget */}
-      <FloatingVoiceWidget
-        isListening={isListening}
-        transcript={transcript}
-        rewaaMessage={characterState === 'SPEAKING' || characterState === 'IDLE' ? lastRewaaMessage?.text : undefined}
-        onToggleListening={handleToggleListening}
-      />
-
       {/* Add Ambition Modal */}
       <AmbitionModal
         isOpen={isAmbitionModalOpen}
