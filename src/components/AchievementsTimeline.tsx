@@ -22,6 +22,8 @@ export const AchievementsTimeline: React.FC = () => {
   const [newMajor, setNewMajor] = useState('');
   const [newType, setNewType] = useState('');
   const [newDesc, setNewDesc] = useState('');
+  const [newLinkedIn, setNewLinkedIn] = useState('');
+  const [newSource, setNewSource] = useState('');
   const [newImage, setNewImage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -78,6 +80,8 @@ export const AchievementsTimeline: React.FC = () => {
         achievementTitle: newType.trim() || 'إنجاز أكاديمي/مهني',
         year: new Date().getFullYear().toString(),
         description: newDesc.trim(),
+        linkedIn: newLinkedIn.trim() || undefined,
+        officialSource: newSource.trim() || undefined,
         source: { 
           sourceType: 'user', 
           sourceName: 'مشاركة مستخدم', 
@@ -96,6 +100,8 @@ export const AchievementsTimeline: React.FC = () => {
       setNewMajor('');
       setNewType('');
       setNewDesc('');
+      setNewLinkedIn('');
+      setNewSource('');
       setNewImage(null);
     }, 400);
   };
@@ -393,6 +399,31 @@ export const AchievementsTimeline: React.FC = () => {
                     onChange={e => setNewDesc(e.target.value)} 
                     className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-900 focus:border-saudi-600 outline-none resize-none" 
                   />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 mb-1.5">رابط حساب لينكد إن (اختياري)</label>
+                    <input 
+                      type="url" 
+                      placeholder="https://linkedin.com/..."
+                      value={newLinkedIn} 
+                      onChange={e => setNewLinkedIn(e.target.value)} 
+                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-900 focus:border-saudi-600 outline-none text-left" 
+                      dir="ltr"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 mb-1.5">المصدر الرسمي (اختياري)</label>
+                    <input 
+                      type="url" 
+                      placeholder="رابط الخبر أو التوثيق..."
+                      value={newSource} 
+                      onChange={e => setNewSource(e.target.value)} 
+                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-900 focus:border-saudi-600 outline-none text-left" 
+                      dir="ltr"
+                    />
+                  </div>
                 </div>
 
                 {/* Optional Image with Preview / Replace / Delete */}
