@@ -4,7 +4,6 @@ class AudioPlayerService {
   private stopRequested: boolean = false;
 
   public initAudioContext() {
-    // Unblock audio on user interaction
     try {
       if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
         window.speechSynthesis.resume();
@@ -20,6 +19,7 @@ class AudioPlayerService {
     if (this.currentAudioElement) {
       try {
         this.currentAudioElement.pause();
+        this.currentAudioElement.currentTime = 0;
         this.currentAudioElement.src = '';
       } catch {}
       this.currentAudioElement = null;
@@ -37,7 +37,7 @@ class AudioPlayerService {
   }
 
   /**
-   * Speak Arabic text using direct high-fidelity TTS audio stream + SpeechSynthesis backup
+   * Speak Arabic text using backend TTS endpoint (/api/tts) with fallback to SpeechSynthesis
    */
   public speak(
     text: string,
@@ -68,70 +68,88 @@ class AudioPlayerService {
       return;
     }
 
-    // Split into conversational sentences for smooth streaming
-    const rawChunks = clean.match(/[^.!؟?\n]+[.!?؟\n]*/g) || [clean];
-    const chunks: string[] = [];
-    let current = '';
+    // 1. If base64 data was supplied by server
+    if (audioBase64 && audioBase64.length > 50) {
+      try {
+        const binaryString = window.atob(audioBase64);
+        const len = binaryString.length;
+        const bytes = new Uint8Array(len);
+        for (let i = 0; i < len; i++) {
+          bytes[i] = binaryString.charCodeAt(i);
+        }
+        const blob = new Blob([bytes], { type: mimeType || 'audio/mpeg' });
+        const blobUrl = URL.createObjectURL(blob);
+        const audio = new Audio(blobUrl);
+        this.currentAudioElement = audio;
 
-    for (const piece of rawChunks) {
-      const p = piece.trim();
-      if (!p) continue;
-      if ((current + ' ' + p).length < 130) {
-        current += (current ? ' ' : '') + p;
-      } else {
-        if (current) chunks.push(current);
-        current = p;
+        audio.onplay = () => {
+          this.isPlayingAudio = true;
+          if (onStart) onStart();
+        };
+
+        audio.onended = () => {
+          URL.revokeObjectURL(blobUrl);
+          this.isPlayingAudio = false;
+          this.currentAudioElement = null;
+          if (onEnd) onEnd();
+        };
+
+        audio.onerror = () => {
+          URL.revokeObjectURL(blobUrl);
+          this.playViaTtsEndpoint(clean, onStart, onEnd, onError);
+        };
+
+        audio.play().catch(() => {
+          this.playViaTtsEndpoint(clean, onStart, onEnd, onError);
+        });
+        return;
+      } catch {
+        // Fallback to endpoint
       }
     }
-    if (current) chunks.push(current);
-    if (chunks.length === 0) chunks.push(clean.slice(0, 120));
 
-    let index = 0;
-    this.isPlayingAudio = true;
+    // 2. Play via same-origin TTS endpoint
+    this.playViaTtsEndpoint(clean, onStart, onEnd, onError);
+  }
 
-    const playNextChunk = () => {
-      if (this.stopRequested || index >= chunks.length) {
+  private playViaTtsEndpoint(
+    text: string,
+    onStart?: () => void,
+    onEnd?: () => void,
+    onError?: (err: any) => void
+  ) {
+    try {
+      const endpointUrl = `/api/tts?text=${encodeURIComponent(text.slice(0, 400))}`;
+      const audio = new Audio(endpointUrl);
+      this.currentAudioElement = audio;
+
+      audio.onplay = () => {
+        this.isPlayingAudio = true;
+        console.log('TTS_AUDIO_PLAYING');
+        if (onStart) onStart();
+      };
+
+      audio.onended = () => {
         this.isPlayingAudio = false;
         this.currentAudioElement = null;
         if (onEnd) onEnd();
-        return;
+      };
+
+      audio.onerror = (e) => {
+        console.warn('TTS endpoint failed, trying SpeechSynthesis fallback:', e);
+        this.fallbackSpeechSynthesis(text, onStart, onEnd, onError);
+      };
+
+      const p = audio.play();
+      if (p !== undefined) {
+        p.catch((err) => {
+          console.warn('Audio play catch:', err);
+          this.fallbackSpeechSynthesis(text, onStart, onEnd, onError);
+        });
       }
-
-      const chunkText = chunks[index];
-      index++;
-
-      const ttsUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(chunkText)}&tl=ar&client=tw-ob`;
-      const audio = new Audio(ttsUrl);
-      this.currentAudioElement = audio;
-
-      let started = false;
-      const markStart = () => {
-        if (!started) {
-          started = true;
-          if (index === 1 && onStart) onStart();
-        }
-      };
-
-      audio.onplay = markStart;
-
-      audio.onended = () => {
-        if (!this.stopRequested) {
-          playNextChunk();
-        }
-      };
-
-      audio.onerror = () => {
-        console.warn('Audio tag failed, falling back to Web Speech API for chunk:', chunkText);
-        this.fallbackSpeechSynthesis(chunkText, markStart, playNextChunk, playNextChunk);
-      };
-
-      audio.play().catch((err) => {
-        console.warn('Audio play prevented by browser, falling back to Web Speech API:', err);
-        this.fallbackSpeechSynthesis(chunkText, markStart, playNextChunk, playNextChunk);
-      });
-    };
-
-    playNextChunk();
+    } catch {
+      this.fallbackSpeechSynthesis(text, onStart, onEnd, onError);
+    }
   }
 
   private fallbackSpeechSynthesis(
@@ -165,12 +183,15 @@ class AudioPlayerService {
       if (arVoice) utterance.voice = arVoice;
 
       utterance.onstart = () => {
+        this.isPlayingAudio = true;
         if (onStart) onStart();
       };
       utterance.onend = () => {
+        this.isPlayingAudio = false;
         if (onEnd) onEnd();
       };
       utterance.onerror = (e) => {
+        this.isPlayingAudio = false;
         if (onError) onError(e);
         if (onEnd) onEnd();
       };
