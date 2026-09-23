@@ -2,16 +2,16 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 import { REWAA_SYSTEM_PROMPT, AMBITION_ANALYZER_PROMPT } from '../prompts.js';
 
 const DEFAULT_MODELS = [
+  'gemini-3.7-flash',
   'gemini-2.5-flash',
   'gemini-2.0-flash',
   'gemini-1.5-flash',
   'gemini-2.5-pro',
-  'gemini-1.5-pro',
-  'gemini-3.7-flash'
+  'gemini-1.5-pro'
 ];
 
 export function getGeminiModel(): string {
-  return process.env.GEMINI_MODEL || 'gemini-2.5-flash';
+  return process.env.GEMINI_MODEL || 'gemini-3.7-flash';
 }
 
 export function isApiKeyConfigured(): boolean {
@@ -21,7 +21,13 @@ export function isApiKeyConfigured(): boolean {
 
 export async function generateChatResponse(
   message: string,
-  history: Array<{ sender: 'user' | 'rewaa' | 'system'; text: string }> = []
+  history: Array<{ sender: 'user' | 'rewaa' | 'system'; text: string }> = [],
+  userContext?: {
+    ambitionsCount?: number;
+    achievementsCount?: number;
+    galleryCount?: number;
+    galleryStatus?: string;
+  }
 ): Promise<string> {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey || !isApiKeyConfigured()) {
@@ -29,6 +35,15 @@ export async function generateChatResponse(
   }
 
   const genAI = new GoogleGenerativeAI(apiKey);
+
+  let dynamicSystemInstruction = REWAA_SYSTEM_PROMPT;
+  if (userContext) {
+    dynamicSystemInstruction += `\n\n## بيانات المستخدم الحالية في هذه الجلسة:
+- عدد الطموحات المسجلة للمستخدم: ${userContext.ambitionsCount ?? 0}
+- عدد الإنجازات المضافة: ${userContext.achievementsCount ?? 0}
+- عدد الصور المرفوعة للمعرض: ${userContext.galleryCount ?? 0}
+- حالة أحدث صورة للمستخدم: ${userContext.galleryStatus || 'لا توجد صورة مرفوعة بعد'}`;
+  }
 
   // Prepare formatted history for Gemini API (must start with 'user')
   const validHistory = history.filter((h) => h.sender === 'user' || h.sender === 'rewaa');
@@ -63,7 +78,7 @@ export async function generateChatResponse(
       console.log(`[Gemini] Attempting with model: ${modelName}`);
       const model = genAI.getGenerativeModel({
         model: modelName,
-        systemInstruction: REWAA_SYSTEM_PROMPT,
+        systemInstruction: dynamicSystemInstruction,
       });
 
       const chat = model.startChat({

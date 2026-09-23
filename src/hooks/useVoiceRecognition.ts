@@ -108,17 +108,18 @@ export function useVoiceRecognition({ onResult, onError, onEnd }: VoiceRecogniti
 
       if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
         setIsListening(false);
-        onErrorRef.current('ما قدرت أوصل للميكروفون. يرجى إعطاء الصلاحية في المتصفح.');
+        onErrorRef.current('اسمحي للمتصفح باستخدام الميكروفون حتى تقدرين تتحدثين معي.');
       } else if (event.error === 'no-speech') {
         if (latestTranscriptRef.current.trim()) {
           triggerFinalResult();
         } else {
           setIsListening(false);
+          onErrorRef.current('ما قدرت أسمعك، حاولي مرة ثانية.');
           if (onEndRef.current) onEndRef.current();
         }
       } else if (event.error !== 'aborted') {
         setIsListening(false);
-        onErrorRef.current('تعذر التقاط الصوت بوضوح، يرجى إعادة المحاولة.');
+        onErrorRef.current('ما قدرت أسمعك، حاولي مرة ثانية.');
       }
     };
 

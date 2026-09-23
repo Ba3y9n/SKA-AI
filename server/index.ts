@@ -34,13 +34,13 @@ app.get('/api/status', (req: Request, res: Response) => {
 // Chat API Route (Proxies to Gemini securely + attaches Audio)
 app.post('/api/chat', async (req: Request, res: Response) => {
   try {
-    const { message, history } = req.body;
+    const { message, history, userContext } = req.body;
 
     if (!message || typeof message !== 'string' || message.trim().length === 0) {
       return res.status(400).json({ error: 'الرسالة مطلوبة ولا يمكن أن تكون فارغة.' });
     }
 
-    const reply = await generateChatResponse(message.trim(), history || []);
+    const reply = await generateChatResponse(message.trim(), history || [], userContext);
     
     // Attempt audio generation in parallel
     let audioBase64: string | null = null;

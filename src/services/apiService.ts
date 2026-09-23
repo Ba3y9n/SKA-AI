@@ -27,7 +27,13 @@ export async function checkServerStatus(): Promise<ServerStatus> {
 
 export async function sendChatMessage(
   message: string,
-  history: ChatMessage[]
+  history: ChatMessage[],
+  userContext?: {
+    ambitionsCount?: number;
+    achievementsCount?: number;
+    galleryCount?: number;
+    galleryStatus?: string;
+  }
 ): Promise<{ reply: string; model: string; audioBase64?: string | null; mimeType?: string }> {
   const formattedHistory = history.map((m) => ({
     sender: m.sender,
@@ -37,7 +43,7 @@ export async function sendChatMessage(
   const res = await fetch('/api/chat', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ message, history: formattedHistory }),
+    body: JSON.stringify({ message, history: formattedHistory, userContext }),
     signal: AbortSignal.timeout(18000),
   });
 

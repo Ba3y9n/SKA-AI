@@ -10,7 +10,7 @@ export function useGeminiChat() {
     {
       id: 'welcome-msg',
       sender: 'rewaa',
-      text: 'أهلاً بك! أنا "رِواء AI"، صوت الجيل السعودي الرقمي في اليوم الوطني 96. تفضل بالحديث معي مباشرة عبر الميكروفون عن تاريخ وطننا، تراث مناطقه، ومستقبلنا الواعد.',
+      text: 'أهلاً بك، أنا رِواء. صوت الجيل السعودي الرقمي في اليوم الوطني 96. تفضلي بالحديث معي صوتياً أو كتابةً، أو اسأليني عن أقسام المنصة وفعاليات كلية الأعمال والاقتصاد.',
       timestamp: new Date(),
     },
   ]);
@@ -25,6 +25,21 @@ export function useGeminiChat() {
 
   const isVoiceSessionActiveRef = useRef(isVoiceSessionActive);
   isVoiceSessionActiveRef.current = isVoiceSessionActive;
+
+  const getUserContext = useCallback(() => {
+    try {
+      const achievements = JSON.parse(localStorage.getItem('user_achievements') || '[]');
+      const userToken = localStorage.getItem('rewaa_user_token') || '';
+      return {
+        achievementsCount: achievements.length,
+        ambitionsCount: 0,
+        galleryCount: 0,
+        galleryStatus: 'جاهز للاستفسار'
+      };
+    } catch {
+      return undefined;
+    }
+  }, []);
 
   // Forward ref for startListening
   const startListeningRef = useRef<() => void>(() => {});
@@ -115,7 +130,8 @@ export function useGeminiChat() {
       setCharacterState('THINKING');
 
       try {
-        const response = await sendChatMessage(userText, messagesRef.current);
+        const userCtx = getUserContext();
+        const response = await sendChatMessage(userText, messagesRef.current, userCtx);
         console.log('GEMINI_RESPONSE_RECEIVED');
 
         const replyText = response.reply;

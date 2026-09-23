@@ -23,11 +23,14 @@ const App: React.FC = () => {
   const {
     messages,
     characterState,
+    errorMessage,
     isListening,
     transcript,
     isAutoVoiceEnabled,
     setIsAutoVoiceEnabled,
+    sendMessage,
     handleToggleListening,
+    replayMessageVoice,
     stopSpeaking
   } = useGeminiChat();
 
@@ -110,8 +113,16 @@ const App: React.FC = () => {
 
       {/* 3. Rewaa Character Section */}
       <RewaaSection 
-        onTalk={handleToggleListening} 
-        isListening={isListening} 
+        messages={messages}
+        characterState={characterState}
+        isListening={isListening}
+        transcript={transcript}
+        errorMessage={errorMessage}
+        isAutoVoiceEnabled={isAutoVoiceEnabled}
+        onToggleVoice={() => setIsAutoVoiceEnabled(!isAutoVoiceEnabled)}
+        onToggleListening={handleToggleListening}
+        onSendMessage={(text) => sendMessage(text, false)}
+        onReplayVoice={(text) => replayMessageVoice(text)}
       />
 
       {/* 4. Cinematic Voice ("صوت يروي... وصوت يُسمع" & "فكرة") */}
