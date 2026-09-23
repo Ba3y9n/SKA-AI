@@ -26,7 +26,7 @@ export const CinematicHero: React.FC = () => {
   };
 
   return (
-    <section className="relative w-full h-screen overflow-hidden bg-white">
+    <section className="relative w-full h-[calc(100vh-80px)] overflow-hidden bg-white">
       
       {/* Background Image */}
       <motion.div 
