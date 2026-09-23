@@ -24,6 +24,12 @@ export const NationalCardSection: React.FC = () => {
               اليوم الوطني السعودي 96
             </div>
 
+            <img 
+              src="/identity-logo.webp" 
+              alt="عزنا بطبعنا" 
+              className="h-24 sm:h-32 w-auto mb-6 ml-auto"
+            />
+
             <h2 className="text-3xl md:text-4xl lg:text-5xl font-black text-saudi-700 leading-tight mb-4 tracking-tight">
               عزّنا برؤيتنا، وشجاعتنا، وهمتنا،<br />
               وأصالتنا، وكرمنا، وجودنا..

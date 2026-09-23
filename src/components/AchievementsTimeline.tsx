@@ -126,7 +126,7 @@ export const AchievementsTimeline: React.FC = () => {
       <div className="max-w-4xl mx-auto px-6 mb-16 text-center relative z-10">
         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-saudi-600/10 text-saudi-700 text-sm font-bold mb-4">
           <Award className="w-4 h-4 text-saudi-600" />
-          طالبات كلية الأعمال والاقتصاد ودكتوراتها
+          إنجازات كلية الأعمال والاقتصاد
         </div>
         <motion.h2 
           initial={{ opacity: 0, y: 20 }}
@@ -143,7 +143,7 @@ export const AchievementsTimeline: React.FC = () => {
           transition={{ delay: 0.1 }}
           className="text-lg md:text-xl text-gray-600 font-medium leading-relaxed"
         >
-          مساحة نحتفي فيها بإنجازات طالبات كلية الأعمال والاقتصاد وإسهامات دكتوراتها.
+          مساحة نحتفي فيها بإنجازات طالبات وأعضاء هيئة التدريس في كلية الأعمال والاقتصاد.
         </motion.p>
       </div>
 
@@ -151,8 +151,8 @@ export const AchievementsTimeline: React.FC = () => {
       <div className="max-w-5xl mx-auto px-6 mb-16 relative z-10">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 p-6 sm:p-8 rounded-[2rem] bg-saudi-100 border border-saudi-100/80 shadow-sm">
           {[
-            { label: 'طالبة وخريجة', value: students.length, icon: GraduationCap },
-            { label: 'دكتورة وعضوة هيئة تدريس', value: faculty.length, icon: Briefcase },
+            { label: 'طالبات الكلية', value: students.length, icon: GraduationCap },
+            { label: 'أعضاء هيئة التدريس', value: faculty.length, icon: Briefcase },
             { label: 'إجمالي الإنجازات', value: allAchievements.length, icon: Award },
             { label: 'تخصصات وأقسام', value: new Set(allAchievements.map(a => a.major)).size, icon: Sparkles }
           ].map((stat, i) => {
@@ -189,7 +189,7 @@ export const AchievementsTimeline: React.FC = () => {
                 : 'text-gray-500 hover:text-gray-900'
             }`}
           >
-            الطالبات والخريجات
+            طالبات كلية الأعمال والاقتصاد
           </button>
           <button
             onClick={() => setActiveTab('faculty')}
@@ -199,7 +199,7 @@ export const AchievementsTimeline: React.FC = () => {
                 : 'text-gray-500 hover:text-gray-900'
             }`}
           >
-            الدكتورات وعضوات هيئة التدريس
+            أعضاء هيئة التدريس بكلية الأعمال والاقتصاد
           </button>
         </div>
 
