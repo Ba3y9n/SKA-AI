@@ -142,10 +142,11 @@ export const FutureVisionBoard: React.FC<FutureVisionBoardProps> = ({ ambitions,
               جدار المستقبل
             </div>
             <h2 className="text-4xl sm:text-6xl font-black text-white leading-tight mb-4 drop-shadow-md">
-              صوتنا يصنع <span className="text-gold">المستقبل</span>
+              طالباتنا يصنعن <span className="text-gold">المستقبل</span>
             </h2>
-            <p className="text-lg md:text-xl text-saudi-100 font-medium max-w-2xl leading-relaxed">
-              وش طموحك للسعودية؟ شاركي رؤيتك وأفكارك التي تصنع الغد. مساحتك الحرة لترك بصمتك في اليوم الوطني.
+            <p className="text-lg md:text-xl text-saudi-100 font-medium max-w-3xl leading-relaxed">
+              يا بنات كلية الأعمال والاقتصاد بجامعة القصيم.. أنتنّ صانعات الأثر وقادة الغد.
+              <br />شاركِي طموحكِ ورسالتكِ في مسيرة النماء لوطننا الغالي في هذا اليوم الاستثنائي.
             </p>
           </div>
 

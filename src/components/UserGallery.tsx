@@ -196,16 +196,16 @@ export const UserGallery: React.FC<UserGalleryProps> = ({ onOpenAdmin }) => {
         </div>
 
         {/* Filter Tabs & Admin Gateway */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 mb-8 border-b border-gray-200/70">
-          <div className="flex items-center gap-2 overflow-x-auto pb-2 sm:pb-0 w-full sm:w-auto">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 mb-8 border-b border-saudi-200/50">
+          <div className="flex items-center gap-2 overflow-x-auto pb-2 sm:pb-0 w-full sm:w-auto hide-scrollbar">
             {['الكل', 'فعاليات', 'أجواء الكلية', 'لحظات وطنية'].map((cat) => (
               <button
                 key={cat}
                 onClick={() => setActiveFilter(cat)}
-                className={`px-5 py-2 rounded-full text-sm font-bold whitespace-nowrap transition-all duration-300 ${
+                className={`px-6 py-2.5 rounded-full text-sm font-bold whitespace-nowrap transition-all duration-300 ${
                   activeFilter === cat
-                    ? 'bg-saudi-700 text-white shadow-sm'
-                    : 'bg-white text-gray-600 hover:bg-saudi-50 hover:text-saudi-600 border border-gray-200/80'
+                    ? 'bg-saudi-700 text-gold-light shadow-md'
+                    : 'bg-white text-gray-500 hover:bg-saudi-50 hover:text-saudi-600 border border-saudi-100'
                 }`}
               >
                 {cat}
@@ -217,7 +217,7 @@ export const UserGallery: React.FC<UserGalleryProps> = ({ onOpenAdmin }) => {
           {onOpenAdmin && (
             <button
               onClick={onOpenAdmin}
-              className="text-xs text-gray-400 hover:text-saudi-600 flex items-center gap-1.5 self-end sm:self-auto font-medium transition-colors p-1"
+              className="text-xs text-saudi-300 hover:text-gold flex items-center gap-1.5 self-end sm:self-auto font-medium transition-colors p-1"
             >
               <Lock className="w-3.5 h-3.5" />
               <span>لوحة مراجعة المشرف</span>
@@ -229,20 +229,27 @@ export const UserGallery: React.FC<UserGalleryProps> = ({ onOpenAdmin }) => {
         {isLoadingGallery ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {[1, 2, 3].map(n => (
-              <div key={n} className="aspect-[4/3] rounded-3xl bg-gray-100 animate-pulse" />
+              <div key={n} className="aspect-[4/3] rounded-3xl bg-saudi-50 animate-pulse border border-saudi-100" />
             ))}
           </div>
         ) : filteredApprovedPhotos.length === 0 ? (
-          <div className="py-20 text-center rounded-3xl bg-white border-2 border-dashed border-gray-200 p-8">
-            <UploadCloud className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-            <p className="text-lg font-bold text-gray-700">لا توجد صور معتمدة في المعرض حالياً</p>
-            <p className="text-sm text-gray-400 mt-1">شاركي صورتك من بهو الكلية لتكوني أول من يظهر بعد اعتماد المشرف.</p>
+          <div className="py-24 text-center rounded-[2.5rem] bg-white border border-gold/20 shadow-[0_10px_40px_rgba(198,161,91,0.05)] p-8 relative overflow-hidden group">
+            {/* Soft decorative background glow */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-gold/10 rounded-full blur-[80px] pointer-events-none" />
+            
+            <div className="w-20 h-20 bg-saudi-50 text-gold rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm border border-gold/20">
+              <ImagePlus className="w-8 h-8" />
+            </div>
+            <h3 className="text-2xl font-black text-saudi-700 mb-2">كوني أول من يوثّق اللحظة!</h3>
+            <p className="text-base text-gray-500 mt-1 max-w-md mx-auto">
+              المعرض بانتظار إبداعك. التقطي صورة لأجواء اليوم الوطني في كلية الأعمال والاقتصاد وشاركيها لتبقى ذكرى تروى.
+            </p>
             <button
               onClick={() => setIsUploadModalOpen(true)}
-              className="mt-6 inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-saudi-600 text-white text-sm font-bold shadow-md hover:bg-saudi-700 transition-colors"
+              className="mt-8 inline-flex items-center gap-2.5 px-8 py-3.5 rounded-full bg-saudi-600 text-white text-base font-bold shadow-lg hover:bg-saudi-700 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300"
             >
-              <ImagePlus className="w-4 h-4" />
-              <span>أضف صورتك الآن</span>
+              <ImagePlus className="w-5 h-5" />
+              <span>أضفي صورتكِ الأولى</span>
             </button>
           </div>
         ) : (

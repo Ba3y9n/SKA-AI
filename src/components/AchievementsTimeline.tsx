@@ -213,8 +213,8 @@ export const AchievementsTimeline: React.FC = () => {
 
       </div>
 
-      {/* Interactive Story Cards / Accordion List */}
-      <div className="max-w-4xl mx-auto px-6 relative z-10 min-h-[400px]">
+      {/* Interactive Story Cards / Grid List */}
+      <div className="max-w-7xl mx-auto px-6 relative z-10 min-h-[400px]">
         <AnimatePresence mode="wait">
           <motion.div
             key={activeTab}
@@ -222,113 +222,89 @@ export const AchievementsTimeline: React.FC = () => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -15 }}
             transition={{ duration: 0.35 }}
-            className="space-y-4"
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
           >
             {currentList.map((person, index) => {
-              const isExpanded = expandedId === person.id;
               const isOwner = person.isUserAdded && person.userToken === myUserToken;
 
               return (
                 <motion.div
                   layout
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
                   viewport={{ once: true, margin: "-5%" }}
-                  transition={{ duration: 0.4, delay: (index % 6) * 0.06 }}
+                  transition={{ duration: 0.4, delay: (index % 6) * 0.08 }}
                   key={person.id}
-                  onClick={() => setExpandedId(isExpanded ? null : person.id)}
-                  className={`group rounded-[2rem] border transition-all duration-300 cursor-pointer overflow-hidden ${
-                    isExpanded 
-                      ? 'bg-saudi-100 border-saudi-600 shadow-lg ring-1 ring-[#008F68]/20' 
-                      : 'bg-white border-gray-100 shadow-[0_4px_20px_rgba(0,0,0,0.02)] hover:shadow-md hover:border-saudi-200'
-                  }`}
+                  className="group relative bg-white rounded-3xl p-6 sm:p-8 border border-gray-100 shadow-[0_10px_30px_rgba(0,108,79,0.04)] hover:shadow-xl hover:border-saudi-200 transition-all duration-300 flex flex-col justify-between h-full text-right overflow-hidden"
                 >
-                  <div className="p-6 sm:p-7 flex items-center justify-between gap-4">
-                    <div className="flex items-center gap-5">
-                      {/* Avatar / Photo */}
-                      <div className="w-14 h-14 shrink-0 rounded-full bg-saudi-50 border border-saudi-100 flex items-center justify-center overflow-hidden">
+                  <div className="absolute top-0 left-0 w-24 h-24 bg-gradient-to-br from-saudi-50 to-transparent rounded-br-[3rem] -z-0 group-hover:scale-110 transition-transform duration-500" />
+                  
+                  <div className="relative z-10">
+                    <div className="flex items-center justify-between mb-5">
+                      <div className="w-14 h-14 shrink-0 rounded-full bg-saudi-50 border border-saudi-100 flex items-center justify-center overflow-hidden shadow-sm">
                         {person.userImage ? (
                           <img src={person.userImage} alt={person.nameAr} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
                         ) : (
                           <span className="text-saudi-600 font-black text-xl">{person.nameAr.charAt(0)}</span>
                         )}
                       </div>
-
-                      <div className="text-right">
-                        <div className="flex items-center gap-2 mb-1">
-                          <h3 className={`font-black text-lg sm:text-xl transition-colors ${isExpanded ? 'text-saudi-700' : 'text-gray-900 group-hover:text-saudi-600'}`}>
-                            {person.nameAr}
-                          </h3>
-                          {person.isUserAdded && (
-                            <span className="px-2 py-0.5 rounded-full bg-saudi-100 text-saudi-700 text-[10px] font-bold">
-                              مضاف حديثاً
-                            </span>
-                          )}
-                        </div>
-                        <div className="flex flex-wrap gap-2 items-center text-xs text-gray-500 font-medium">
-                          <span className="text-saudi-600 font-bold">{person.major}</span>
-                          <span className="w-1 h-1 rounded-full bg-gray-300" />
-                          <span>{person.type || person.achievementTitle}</span>
-                        </div>
+                      <div className="flex items-center gap-2">
+                        {isOwner && (
+                          <button 
+                            onClick={(e) => handleDelete(person.id, e)}
+                            className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors"
+                            title="حذف هذا الإنجاز"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        )}
                       </div>
                     </div>
-                    
-                    <div className="flex items-center gap-3">
-                      {isOwner && (
-                        <button 
-                          onClick={(e) => handleDelete(person.id, e)}
-                          className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors"
-                          title="حذف هذا الإنجاز"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      )}
-                      <motion.div animate={{ rotate: isExpanded ? 180 : 0 }} className="text-gray-400 p-1">
-                        <ChevronDown className="w-5 h-5" />
-                      </motion.div>
+
+                    <h3 className="font-black text-xl text-saudi-700 mb-1 leading-tight group-hover:text-saudi-600 transition-colors">
+                      {person.nameAr}
+                    </h3>
+                    <div className="flex flex-wrap gap-2 items-center text-xs text-gray-500 font-medium mb-4">
+                      <span className="text-saudi-600 font-bold px-2 py-1 bg-saudi-50 rounded-md">{person.major}</span>
+                      <span className="text-gold-light/90 font-bold">{person.type || person.achievementTitle}</span>
                     </div>
+
+                    <h4 className="text-base font-bold text-gray-900 mb-2">{person.achievementTitle}</h4>
+                    <p className="text-gray-600 leading-relaxed text-sm font-medium mb-6 line-clamp-4 group-hover:line-clamp-none transition-all duration-300">
+                      {person.description}
+                    </p>
                   </div>
 
-                  <AnimatePresence>
-                    {isExpanded && (
-                      <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: 'auto', opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        className="px-6 sm:px-7 pb-7 overflow-hidden text-right"
-                      >
-                        <div className="pt-5 border-t border-gray-200/80">
-                          <h4 className="text-base font-bold text-saudi-700 mb-2">{person.achievementTitle}</h4>
-                          <p className="text-gray-700 leading-relaxed text-sm sm:text-base font-medium mb-4">
-                            {person.description}
-                          </p>
-                          
-                          <div className="flex flex-wrap gap-3 pt-2">
-                            {person.linkedIn && (
-                              <a href={person.linkedIn} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100 text-xs font-bold transition-colors">
-                                <ExternalLink className="w-3.5 h-3.5" /> LinkedIn
-                              </a>
-                            )}
-                            {person.officialSource && (
-                              <a href={person.officialSource} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-saudi-50 text-saudi-600 hover:bg-saudi-100 text-xs font-bold transition-colors">
-                                <Link2 className="w-3.5 h-3.5" /> المصدر الرسمي
-                              </a>
-                            )}
-                          </div>
-                        </div>
-                      </motion.div>
+                  {/* Footer links */}
+                  <div className="relative z-10 pt-5 border-t border-gray-100 flex flex-wrap items-center gap-2 mt-auto">
+                    {person.linkedIn && (
+                      <a href={person.linkedIn} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-[#0A66C2]/10 hover:bg-[#0A66C2]/20 text-[#0A66C2] text-xs font-bold transition-colors w-full sm:w-auto">
+                        <ExternalLink className="w-4 h-4" /> حسابه في لينكد إن
+                      </a>
                     )}
-                  </AnimatePresence>
+                    {person.officialSource && (
+                      <a href={person.officialSource} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-saudi-50 hover:bg-saudi-100 text-saudi-700 text-xs font-bold transition-colors w-full sm:w-auto">
+                        <Link2 className="w-4 h-4" /> المصدر الرسمي
+                      </a>
+                    )}
+                    {(!person.linkedIn && !person.officialSource) && (
+                      <span className="text-xs font-bold text-gray-400 bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-100">
+                        {person.source.sourceName}
+                      </span>
+                    )}
+                  </div>
                 </motion.div>
               );
             })}
-            
-            {currentList.length === 0 && (
-              <div className="text-center py-20 text-gray-400 font-bold border-2 border-dashed border-gray-200 rounded-3xl">
-                لا توجد إنجازات مضافة في هذه الفئة بعد.
-              </div>
-            )}
           </motion.div>
+          {currentList.length === 0 && (
+            <motion.div 
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="text-center py-20 text-gray-400 font-bold border-2 border-dashed border-gray-200 rounded-3xl"
+            >
+              لا توجد إنجازات مضافة في هذه الفئة بعد.
+            </motion.div>
+          )}
         </AnimatePresence>
       </div>
 

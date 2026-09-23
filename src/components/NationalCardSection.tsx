@@ -69,15 +69,13 @@ export const NationalCardSection: React.FC = () => {
             transition={{ duration: 1, ease: "easeOut" }}
             className="lg:col-span-6 w-full"
           >
-            <div className="relative rounded-[2rem] overflow-hidden shadow-2xl border-4 border-gold/30 group p-2 bg-saudi-700">
-              <div className="relative rounded-[1.5rem] overflow-hidden">
-                <img 
-                  src="/carpet.webp" 
-                  alt="سجادة تراثية" 
-                  className="w-full h-auto max-h-[600px] object-cover object-center group-hover:scale-110 transition-transform duration-1000 ease-out"
-                />
-                <div className="absolute inset-0 bg-gold/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-              </div>
+            <div className="relative rounded-[2rem] overflow-hidden shadow-[0_30px_60px_rgba(198,161,91,0.15)] border border-gold/30 group">
+              <img 
+                src="/carpet.webp" 
+                alt="سجادة تراثية" 
+                className="w-full h-auto max-h-[600px] object-cover object-center group-hover:scale-110 transition-transform duration-1000 ease-out"
+              />
+              <div className="absolute inset-0 bg-gold/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
             </div>
           </motion.div>
 
