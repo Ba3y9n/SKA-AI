@@ -1,19 +1,16 @@
 class AudioPlayerService {
   private isPlayingAudio: boolean = false;
   private currentAudioElement: HTMLAudioElement | null = null;
-  private stopRequested: boolean = false;
 
   public initAudioContext() {
     try {
       if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-        window.speechSynthesis.resume();
-        window.speechSynthesis.getVoices();
+        window.speechSynthesis.cancel();
       }
     } catch {}
   }
 
   public stop() {
-    this.stopRequested = true;
     this.isPlayingAudio = false;
 
     if (this.currentAudioElement) {
@@ -37,7 +34,7 @@ class AudioPlayerService {
   }
 
   /**
-   * Speak Arabic text using backend TTS endpoint (/api/tts) with fallback to SpeechSynthesis
+   * Speak Arabic text using single unified crystal-clear female voice
    */
   public speak(
     text: string,
@@ -48,8 +45,6 @@ class AudioPlayerService {
     onError?: (err: any) => void
   ) {
     this.stop();
-    this.stopRequested = false;
-    this.initAudioContext();
 
     if (typeof window === 'undefined') {
       if (onEnd) onEnd();
@@ -68,91 +63,44 @@ class AudioPlayerService {
       return;
     }
 
-    // 1. If base64 data was supplied by server
-    if (audioBase64 && audioBase64.length > 50) {
-      try {
-        const binaryString = window.atob(audioBase64);
-        const len = binaryString.length;
-        const bytes = new Uint8Array(len);
-        for (let i = 0; i < len; i++) {
-          bytes[i] = binaryString.charCodeAt(i);
-        }
-        const blob = new Blob([bytes], { type: mimeType || 'audio/mpeg' });
-        const blobUrl = URL.createObjectURL(blob);
-        const audio = new Audio(blobUrl);
-        this.currentAudioElement = audio;
+    // Single source: Backend TTS MP3 endpoint
+    const endpointUrl = `/api/tts?text=${encodeURIComponent(clean.slice(0, 350))}`;
+    const audio = new Audio(endpointUrl);
+    this.currentAudioElement = audio;
 
-        audio.onplay = () => {
-          this.isPlayingAudio = true;
-          if (onStart) onStart();
-        };
+    let hasStarted = false;
+    audio.onplay = () => {
+      this.isPlayingAudio = true;
+      hasStarted = true;
+      if (onStart) onStart();
+    };
 
-        audio.onended = () => {
-          URL.revokeObjectURL(blobUrl);
-          this.isPlayingAudio = false;
-          this.currentAudioElement = null;
-          if (onEnd) onEnd();
-        };
+    audio.onended = () => {
+      this.isPlayingAudio = false;
+      this.currentAudioElement = null;
+      if (onEnd) onEnd();
+    };
 
-        audio.onerror = () => {
-          URL.revokeObjectURL(blobUrl);
-          this.playViaTtsEndpoint(clean, onStart, onEnd, onError);
-        };
-
-        audio.play().catch(() => {
-          this.playViaTtsEndpoint(clean, onStart, onEnd, onError);
-        });
-        return;
-      } catch {
-        // Fallback to endpoint
-      }
-    }
-
-    // 2. Play via same-origin TTS endpoint
-    this.playViaTtsEndpoint(clean, onStart, onEnd, onError);
-  }
-
-  private playViaTtsEndpoint(
-    text: string,
-    onStart?: () => void,
-    onEnd?: () => void,
-    onError?: (err: any) => void
-  ) {
-    try {
-      const endpointUrl = `/api/tts?text=${encodeURIComponent(text.slice(0, 400))}`;
-      const audio = new Audio(endpointUrl);
-      this.currentAudioElement = audio;
-
-      audio.onplay = () => {
-        this.isPlayingAudio = true;
-        console.log('TTS_AUDIO_PLAYING');
-        if (onStart) onStart();
-      };
-
-      audio.onended = () => {
+    audio.onerror = () => {
+      // If endpoint completely fails, fallback to female SpeechSynthesis only
+      if (!hasStarted) {
+        this.fallbackFemaleSpeech(clean, onStart, onEnd, onError);
+      } else {
         this.isPlayingAudio = false;
         this.currentAudioElement = null;
         if (onEnd) onEnd();
-      };
-
-      audio.onerror = (e) => {
-        console.warn('TTS endpoint failed, trying SpeechSynthesis fallback:', e);
-        this.fallbackSpeechSynthesis(text, onStart, onEnd, onError);
-      };
-
-      const p = audio.play();
-      if (p !== undefined) {
-        p.catch((err) => {
-          console.warn('Audio play catch:', err);
-          this.fallbackSpeechSynthesis(text, onStart, onEnd, onError);
-        });
       }
-    } catch {
-      this.fallbackSpeechSynthesis(text, onStart, onEnd, onError);
-    }
+    };
+
+    audio.play().catch(() => {
+      // Browser prevented autoplay without interaction
+      if (!hasStarted) {
+        this.fallbackFemaleSpeech(clean, onStart, onEnd, onError);
+      }
+    });
   }
 
-  private fallbackSpeechSynthesis(
+  private fallbackFemaleSpeech(
     text: string,
     onStart?: () => void,
     onEnd?: () => void,
@@ -164,23 +112,27 @@ class AudioPlayerService {
     }
 
     try {
+      window.speechSynthesis.cancel();
+
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.lang = 'ar-SA';
       utterance.rate = 1.0;
-      utterance.pitch = 1.0;
+      utterance.pitch = 1.1; // Slightly higher pitch for female character
 
       const voices = window.speechSynthesis.getVoices() || [];
-      const arVoice = voices.find(
+      // Prefer female Arabic voices only
+      const femaleArVoice = voices.find(
         (v) =>
-          v.lang.toLowerCase().startsWith('ar') ||
-          v.name.toLowerCase().includes('arabic') ||
-          v.name.toLowerCase().includes('salma') ||
-          v.name.toLowerCase().includes('maged') ||
-          v.name.toLowerCase().includes('laila') ||
-          v.name.toLowerCase().includes('tarik')
-      );
+          (v.lang.toLowerCase().startsWith('ar') || v.name.toLowerCase().includes('arabic')) &&
+          (v.name.toLowerCase().includes('salma') ||
+            v.name.toLowerCase().includes('laila') ||
+            v.name.toLowerCase().includes('hoda') ||
+            v.name.toLowerCase().includes('zeina') ||
+            v.name.toLowerCase().includes('female') ||
+            v.name.toLowerCase().includes('natural'))
+      ) || voices.find(v => v.lang.toLowerCase().startsWith('ar'));
 
-      if (arVoice) utterance.voice = arVoice;
+      if (femaleArVoice) utterance.voice = femaleArVoice;
 
       utterance.onstart = () => {
         this.isPlayingAudio = true;
@@ -196,7 +148,6 @@ class AudioPlayerService {
         if (onEnd) onEnd();
       };
 
-      window.speechSynthesis.resume();
       window.speechSynthesis.speak(utterance);
     } catch {
       if (onEnd) onEnd();
