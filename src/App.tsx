@@ -67,7 +67,7 @@ export const App: React.FC = () => {
       <main className="flex-1 w-full max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-10 flex flex-col items-center justify-center min-h-[80vh] relative">
         
         {/* Soft Background Layer */}
-        <div className="absolute inset-0 z-0 bg-[radial-gradient(circle_at_center,#ffffff_0%,#f4fdf8_50%,#f8fafc_100%)] pointer-events-none opacity-60"></div>
+        <div className="absolute inset-0 z-0 bg-gradient-to-b from-[#e8f5e9] via-[#dcedc8]/30 to-[#f1f8e9] pointer-events-none"></div>
 
         <div className="relative z-10 flex flex-col items-center w-full">
           {/* 1. Character Title */}
