@@ -8,73 +8,133 @@ export const CinematicVoice: React.FC = () => {
     offset: ['start end', 'end start'],
   });
 
-  const typographyX = useTransform(scrollYProgress, [0.3, 0.7], ['-20%', '20%']);
-  const typographyXReverse = useTransform(scrollYProgress, [0.3, 0.7], ['20%', '-20%']);
+  const typographyX = useTransform(scrollYProgress, [0.3, 0.8], ['-15%', '15%']);
+  const typographyXReverse = useTransform(scrollYProgress, [0.3, 0.8], ['15%', '-15%']);
 
   return (
-    <section ref={containerRef} className="relative w-full bg-[#EEF8F2] overflow-hidden py-32 z-20 border-t border-emerald-100/50">
-      
-      {/* 1. Voice Section */}
-      <div className="max-w-5xl mx-auto px-6 text-center mb-40 relative">
+    <section 
+      ref={containerRef} 
+      className="relative w-full bg-gradient-to-b from-[#04241a] via-[#064C3B] to-[#032017] text-white overflow-hidden py-36 z-20"
+    >
+      {/* Saudi Geometric Pattern / Sadu Texture Overlay */}
+      <div 
+        className="absolute inset-0 opacity-[0.07] pointer-events-none"
+        style={{
+          backgroundImage: `radial-gradient(#ffffff 1px, transparent 1px), radial-gradient(#10B981 1px, transparent 1px)`,
+          backgroundSize: `32px 32px`,
+          backgroundPosition: `0 0, 16px 16px`
+        }}
+      />
+
+      {/* Decorative Traditional Diamond Motifs */}
+      <div className="absolute top-1/2 left-10 -translate-y-1/2 w-48 h-48 border border-emerald-400/10 rotate-45 pointer-events-none hidden lg:block" />
+      <div className="absolute top-1/2 right-10 -translate-y-1/2 w-48 h-48 border border-emerald-400/10 rotate-45 pointer-events-none hidden lg:block" />
+
+      {/* Glowing Ambiance */}
+      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[700px] h-[400px] bg-emerald-500/15 rounded-full blur-[140px] pointer-events-none" />
+
+      {/* 1. Main Voice Cinematic Heading */}
+      <div className="max-w-5xl mx-auto px-6 text-center relative z-10">
+        
+        {/* Subtle Tag */}
         <motion.div
-          initial={{ opacity: 0, y: 50 }}
+          initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-20%" }}
-          transition={{ duration: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8 }}
+          className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-emerald-200 text-sm font-bold mb-8 shadow-inner"
         >
-          <h2 className="text-7xl md:text-9xl font-black text-emerald-900/5 tracking-tighter absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full text-center pointer-events-none select-none">
-            صوت
-          </h2>
-          <div className="relative z-10">
-            <h3 className="text-4xl md:text-6xl font-black text-[#008F68] mb-6">صوت يروي...</h3>
-            <h3 className="text-4xl md:text-6xl font-black text-[#064C3B]">وصوت يُسمع.</h3>
-          </div>
+          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+          رِواء تجربة صوتية ورقمية
         </motion.div>
 
-        {/* Abstract Waveform Animation */}
-        <div className="mt-20 flex items-center justify-center gap-1.5 h-32 opacity-80">
-          {[...Array(20)].map((_, i) => (
-            <motion.div
-              key={i}
-              className="w-1.5 sm:w-2 bg-[#008F68] rounded-full"
-              animate={{
-                height: ['20%', '80%', '40%', '100%', '30%', '20%'],
+        {/* Cinematic Title */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 1 }}
+          className="relative"
+        >
+          <h2 className="text-5xl md:text-7xl lg:text-8xl font-black text-white leading-tight mb-4 tracking-tight drop-shadow-2xl">
+            صوتٌ <motion.span 
+              animate={{ 
+                color: ['#ffffff', '#6ee7b7', '#a7f3d0', '#ffffff'],
+                textShadow: ['0 0 20px rgba(16,185,129,0.3)', '0 0 35px rgba(16,185,129,0.7)', '0 0 20px rgba(16,185,129,0.3)']
               }}
-              transition={{
-                duration: 1.5 + Math.random() * 1.5,
-                repeat: Infinity,
-                ease: 'easeInOut',
-                delay: Math.random(),
-              }}
-            />
-          ))}
+              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+              className="inline-block"
+            >
+              يروي...
+            </motion.span>
+          </h2>
+
+          <h2 className="text-5xl md:text-7xl lg:text-8xl font-black text-[#6ee7b7] leading-tight tracking-tight drop-shadow-2xl">
+            وصوتٌ يُسمع.
+          </h2>
+        </motion.div>
+
+        {/* Dynamic Voice Waveform Visualization */}
+        <div className="mt-14 flex items-center justify-center gap-1.5 md:gap-2 h-28">
+          {[...Array(24)].map((_, i) => {
+            const isCenter = Math.abs(i - 12) < 5;
+            return (
+              <motion.div
+                key={i}
+                className={`w-1 md:w-1.5 rounded-full ${
+                  isCenter ? 'bg-gradient-to-t from-emerald-400 to-teal-200' : 'bg-emerald-500/60'
+                }`}
+                animate={{
+                  height: [
+                    `${15 + (i % 6) * 10}%`,
+                    `${60 + ((i * 7) % 40)}%`,
+                    `${20 + (i % 4) * 15}%`,
+                    `${85 + ((i * 3) % 15)}%`,
+                    `${25 + (i % 5) * 10}%`,
+                  ],
+                }}
+                transition={{
+                  duration: 1.2 + (i % 5) * 0.25,
+                  repeat: Infinity,
+                  ease: 'easeInOut',
+                  delay: i * 0.05,
+                }}
+              />
+            );
+          })}
         </div>
       </div>
 
-      {/* 2. Idea Section */}
-      <div className="w-full relative py-20 flex flex-col items-center justify-center mt-20">
-        <h2 className="text-4xl md:text-6xl font-black text-[#006C4F] mb-12">فكرة</h2>
-        <div className="max-w-3xl px-6 text-center z-10 relative">
-          <p className="text-xl md:text-3xl text-gray-700 font-medium leading-loose">
-            رِواء تجربة رقمية تستمع إلى أصوات الجيل السعودي،<br/>
-            وتجمع بين الذكاء الاصطناعي،<br/>
-            والهوية، والإنجاز، والطموح.
+      {/* 2. Section "فكرة" — Clean, Integrated without extra white cards */}
+      <div className="w-full relative pt-28 pb-12 flex flex-col items-center justify-center border-t border-white/10 mt-28">
+        
+        <motion.div
+          initial={{ opacity: 0, y: 25 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8 }}
+          className="text-center z-10 px-6 max-w-4xl"
+        >
+          <span className="text-emerald-400 text-sm md:text-base font-bold tracking-widest uppercase mb-3 block">
+            رؤية المشروع
+          </span>
+          <h3 className="text-4xl md:text-6xl font-black text-white mb-8 drop-shadow-lg">
+            فكرة
+          </h3>
+          <p className="text-xl md:text-3xl text-emerald-100 font-medium leading-loose md:leading-relaxed">
+            رِواء ليست مجرد مساعد افتراضي،<br />
+            بل مساحة رقمية تُروى فيها قصص الإنجاز،<br />
+            <span className="text-emerald-300 font-bold">وتُسمع فيها أصوات الطموح.</span>
           </p>
-        </div>
+        </motion.div>
 
-        {/* Moving Typography Background */}
-        <div className="absolute inset-0 z-0 overflow-hidden opacity-10 pointer-events-none flex flex-col justify-center gap-8">
+        {/* Ambient Moving Typography Behind Text */}
+        <div className="absolute inset-0 z-0 overflow-hidden opacity-[0.06] pointer-events-none flex flex-col justify-center gap-6 select-none">
           <motion.div style={{ x: typographyX }} className="whitespace-nowrap">
-            <span className="text-7xl md:text-9xl font-black text-emerald-800 uppercase tracking-widest px-4">الهوية الهوية الهوية الهوية</span>
+            <span className="text-7xl md:text-9xl font-black text-white uppercase tracking-widest px-6">الهوية • الأثر • الطموح • المستقبل</span>
           </motion.div>
           <motion.div style={{ x: typographyXReverse }} className="whitespace-nowrap">
-            <span className="text-7xl md:text-9xl font-black text-emerald-600 uppercase tracking-widest px-4">الأثر الأثر الأثر الأثر الأثر</span>
-          </motion.div>
-          <motion.div style={{ x: typographyX }} className="whitespace-nowrap">
-            <span className="text-7xl md:text-9xl font-black text-emerald-800 uppercase tracking-widest px-4">الطموح الطموح الطموح الطموح</span>
-          </motion.div>
-          <motion.div style={{ x: typographyXReverse }} className="whitespace-nowrap">
-            <span className="text-7xl md:text-9xl font-black text-emerald-600 uppercase tracking-widest px-4">المستقبل المستقبل المستقبل</span>
+            <span className="text-7xl md:text-9xl font-black text-emerald-400 uppercase tracking-widest px-6">كلية الأعمال والاقتصاد • اليوم الوطني 96</span>
           </motion.div>
         </div>
       </div>
