@@ -1,7 +1,41 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 
 export const NationalCardSection: React.FC = () => {
+  const [customImage, setCustomImage] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitSuccess, setSubmitSuccess] = useState(false);
+
+  useEffect(() => {
+    const savedImage = localStorage.getItem('national_card_custom_image');
+    if (savedImage) {
+      setCustomImage(savedImage);
+    }
+  }, []);
+
+  const submitToGallery = () => {
+    setIsSubmitting(true);
+    // Simulate an API call to submit the image for review
+    setTimeout(() => {
+      setIsSubmitting(false);
+      setSubmitSuccess(true);
+      setTimeout(() => setSubmitSuccess(false), 3000);
+    }, 1500);
+  };
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64String = reader.result as string;
+        setCustomImage(base64String);
+        localStorage.setItem('national_card_custom_image', base64String);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   return (
     <section className="relative w-full py-28 bg-saudi-100 overflow-hidden z-20">
       
@@ -61,32 +95,56 @@ export const NationalCardSection: React.FC = () => {
             </div>
           </motion.div>
 
-          {/* Large Visual Showcase Column - Logo Presentation */}
+          {/* Large Visual Showcase Column - Upload Area */}
           <motion.div 
             initial={{ opacity: 0, scale: 0.95, y: 30 }}
             whileInView={{ opacity: 1, scale: 1, y: 0 }}
             viewport={{ once: true, margin: "-10%" }}
             transition={{ duration: 1, ease: "easeOut" }}
-            className="lg:col-span-6 w-full h-full flex items-center justify-center"
+            className="lg:col-span-6 w-full flex flex-col items-center justify-center min-h-[400px]"
           >
-            <div className="relative w-full aspect-square max-w-[500px] rounded-[3rem] overflow-hidden shadow-[0_20px_60px_rgba(198,161,91,0.2)] border border-gold/40 group flex items-center justify-center">
-              
-              {/* White to Gold Background */}
-              <div className="absolute inset-0 bg-gradient-to-br from-white via-white to-gold/30 group-hover:to-gold/50 transition-colors duration-700" />
-              
-              {/* Optional Carpet as a very faint watermark */}
-              <div className="absolute inset-0 opacity-[0.03] group-hover:opacity-[0.05] transition-opacity duration-700" style={{ backgroundImage: "url('/carpet.webp')", backgroundSize: "cover", backgroundPosition: "center" }} />
-              
-              {/* Floating Identity Logo */}
-              <img 
-                src="/identity-logo.webp" 
-                alt="عزنا بطبعنا" 
-                className="relative z-10 w-3/4 max-w-[300px] object-contain group-hover:scale-105 transition-transform duration-700 ease-out drop-shadow-2xl"
-              />
-              
-              {/* Interactive Glow */}
-              <div className="absolute inset-0 bg-gold/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 mix-blend-overlay pointer-events-none" />
-            </div>
+            {customImage ? (
+              <div className="relative w-full group flex flex-col items-center gap-4">
+                <img 
+                  src={customImage} 
+                  alt="مشاركة المستخدم" 
+                  className="w-full h-auto max-h-[700px] object-contain rounded-2xl"
+                />
+                
+                {/* Image Actions */}
+                <div className="flex flex-wrap justify-center gap-3 w-full">
+                  <label className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-xl cursor-pointer hover:bg-gray-50 transition-colors text-saudi-700 text-sm font-bold shadow-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                    <span>استبدال</span>
+                    <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
+                  </label>
+                  
+                  <button onClick={() => submitToGallery()} disabled={isSubmitting} className="inline-flex items-center gap-2 px-4 py-2 bg-saudi-600 border border-saudi-600 rounded-xl cursor-pointer hover:bg-saudi-700 transition-colors text-white text-sm font-bold shadow-sm disabled:opacity-50">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                    <span>{isSubmitting ? 'جاري الإرسال...' : 'إرسال للمراجعة'}</span>
+                  </button>
+
+                  <button onClick={() => { setCustomImage(null); localStorage.removeItem('national_card_custom_image'); }} className="inline-flex items-center gap-2 px-4 py-2 bg-red-50 border border-red-100 rounded-xl cursor-pointer hover:bg-red-100 transition-colors text-red-600 text-sm font-bold shadow-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                    <span>حذف</span>
+                  </button>
+                </div>
+                {submitSuccess && (
+                  <p className="text-sm font-bold text-saudi-600 mt-2 bg-saudi-50 px-4 py-2 rounded-lg">تم إرسال صورتك للمراجعة بنجاح!</p>
+                )}
+              </div>
+            ) : (
+              <label className="inline-flex items-center gap-2.5 px-8 py-4 rounded-full bg-saudi-600 hover:bg-saudi-700 text-white font-black text-lg shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 cursor-pointer">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                <span>أضف صورتك</span>
+                <input 
+                  type="file" 
+                  accept="image/*" 
+                  onChange={handleImageUpload} 
+                  className="hidden" 
+                />
+              </label>
+            )}
           </motion.div>
 
         </div>

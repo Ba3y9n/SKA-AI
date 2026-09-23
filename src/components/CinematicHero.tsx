@@ -58,6 +58,26 @@ export const CinematicHero: React.FC = () => {
         </label>
       </div>
 
+      {/* Framed Identity Logo in Hero */}
+      <div className="absolute inset-0 z-10 flex flex-col items-center justify-center pointer-events-none mt-20">
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 1, delay: 0.5 }}
+          className="relative inline-flex items-center justify-center px-10 py-6"
+        >
+          {/* Top/Bottom Borders */}
+          <div className="absolute inset-x-0 top-0 h-px bg-gold/60" />
+          <div className="absolute inset-x-0 bottom-0 h-px bg-gold/60" />
+          
+          {/* Side Patterns */}
+          <div className="absolute -right-6 top-1/2 -translate-y-1/2 w-12 h-8 bg-contain bg-no-repeat bg-left" style={{ backgroundImage: "url('/gold-border.png')" }} />
+          <div className="absolute -left-6 top-1/2 -translate-y-1/2 w-12 h-8 bg-contain bg-no-repeat bg-left rotate-180" style={{ backgroundImage: "url('/gold-border.png')" }} />
+          
+          <img src="/identity-logo.webp" alt="عزنا بطبعنا" className="h-32 md:h-48 object-contain drop-shadow-2xl" />
+        </motion.div>
+      </div>
+
       {/* Discover Section (Massive & Interactive at the bottom) */}
       <div className="absolute bottom-0 left-0 w-full flex flex-col items-center justify-end pb-20 z-20 bg-gradient-to-t from-saudi-100 via-saudi-100/80 to-transparent pt-40">
         <motion.div 
