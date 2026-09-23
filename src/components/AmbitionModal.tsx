@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { submitAmbitionIdea } from '../services/apiService';
-import { AmbitionCard } from '../types/ambition';
-import { Sparkles, X, Send, BrainCircuit, HeartHandshake, CheckCircle2 } from 'lucide-react';
+import { Ambition } from '../types/ambition';
+import { Sparkles, X, Send, BrainCircuit, CheckCircle2 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
 interface AmbitionModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onAmbitionAdded: (ambition: AmbitionCard) => void;
+  onAmbitionAdded: (ambition: Ambition) => void;
 }
 
 export const AmbitionModal: React.FC<AmbitionModalProps> = ({
@@ -16,21 +16,23 @@ export const AmbitionModal: React.FC<AmbitionModalProps> = ({
   onAmbitionAdded,
 }) => {
   const [ideaText, setIdeaText] = useState('');
+  const [department, setDepartment] = useState('كلية الأعمال والاقتصاد');
+  const [major, setMajor] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [successCard, setSuccessCard] = useState<AmbitionCard | null>(null);
+  const [successCard, setSuccessCard] = useState<Ambition | null>(null);
 
   if (!isOpen) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!ideaText.trim() || isLoading) return;
+    if (!ideaText.trim() || !department.trim() || isLoading) return;
 
     setIsLoading(true);
     setError(null);
 
     try {
-      const resultCard = await submitAmbitionIdea(ideaText.trim());
+      const resultCard = await submitAmbitionIdea(ideaText.trim(), department.trim(), major.trim() || undefined);
       setSuccessCard(resultCard);
       onAmbitionAdded(resultCard);
 
@@ -43,25 +45,7 @@ export const AmbitionModal: React.FC<AmbitionModalProps> = ({
       });
     } catch (err: any) {
       console.error('Submit ambition error:', err);
-      // Fallback local ambition card
-      const fallbackCard: AmbitionCard = {
-        id: 'local-' + Date.now(),
-        category: 'طموح شباب الوطن',
-        highlightPhrase: `طموحك: ${ideaText.trim().slice(0, 25)}`,
-        fullIdea: ideaText.trim(),
-        colorGradient: 'from-emerald-500/20 to-green-600/30',
-        iconName: 'Sparkles',
-        dateStr: 'اليوم الوطني 96',
-      };
-      setSuccessCard(fallbackCard);
-      onAmbitionAdded(fallbackCard);
-
-      confetti({
-        particleCount: 50,
-        spread: 60,
-        origin: { y: 0.6 },
-        colors: ['#006C35', '#10B981'],
-      });
+      setError(err.message || 'حدث خطأ أثناء إرسال الطموح، يرجى المحاولة لاحقاً');
     } finally {
       setIsLoading(false);
     }
@@ -69,6 +53,7 @@ export const AmbitionModal: React.FC<AmbitionModalProps> = ({
 
   const handleResetAndClose = () => {
     setIdeaText('');
+    setMajor('');
     setSuccessCard(null);
     setError(null);
     onClose();
@@ -95,10 +80,10 @@ export const AmbitionModal: React.FC<AmbitionModalProps> = ({
                 <Sparkles className="w-7 h-7 animate-pulse" />
               </div>
               <h3 className="text-xl sm:text-2xl font-bold text-gray-900 flex items-center justify-center gap-2">
-                صوتنا يصنع المستقبل
+                أضيفي طموحك للوطن
               </h3>
               <p className="text-sm text-gray-600 mt-2 font-medium leading-relaxed">
-                "لو كان بإمكانك صناعة تغيير واحد لمستقبل السعودية، وش بيكون؟"
+                "طموحات طالباتنا اليوم هي إنجازات الوطن غداً."
               </p>
             </div>
 
@@ -106,39 +91,64 @@ export const AmbitionModal: React.FC<AmbitionModalProps> = ({
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="block text-xs font-semibold text-gray-700 mb-1.5">
-                  شارك فكرتك أو طموحك (دون مشاركة أي بيانات شخصية):
+                  الكلية:
+                </label>
+                <input
+                  type="text"
+                  value={department}
+                  disabled
+                  className="w-full rounded-xl bg-gray-100 border border-gray-200 p-3 text-sm text-gray-600 cursor-not-allowed"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                  التخصص (اختياري):
+                </label>
+                <input
+                  type="text"
+                  value={major}
+                  onChange={(e) => setMajor(e.target.value)}
+                  placeholder="مثال: إدارة أعمال، مالية، اقتصاد..."
+                  disabled={isLoading}
+                  className="w-full rounded-xl bg-slate-50 border border-emerald-100 p-3 text-sm text-gray-900 placeholder-gray-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 outline-none transition"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                  ما هو طموحك لمستقبل المملكة؟
                 </label>
                 <textarea
                   rows={4}
                   value={ideaText}
                   onChange={(e) => setIdeaText(e.target.value)}
-                  placeholder="مثال: أتمنى أشوف تقنيات ذكاء اصطناعي سعودية تساعد في تطوير التعليم والمدارس..."
+                  placeholder="مثال: أتمنى أن أساهم في بناء اقتصاد رقمي..."
                   disabled={isLoading}
-                  className="w-full rounded-2xl bg-slate-50 border border-emerald-100 p-3.5 text-sm text-gray-900 placeholder-gray-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 outline-none resize-none transition"
-                  aria-label="اكتب طموحك لمستقبل السعودية"
+                  className="w-full rounded-xl bg-slate-50 border border-emerald-100 p-3.5 text-sm text-gray-900 placeholder-gray-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 outline-none resize-none transition"
                   required
                 />
               </div>
 
               {error && (
-                <p className="text-xs text-red-400 text-center">{error}</p>
+                <p className="text-xs text-red-500 text-center bg-red-50 p-2 rounded-md">{error}</p>
               )}
 
               {/* Submit Button */}
               <button
                 type="submit"
                 disabled={!ideaText.trim() || isLoading}
-                className="w-full py-3.5 rounded-xl font-bold text-sm bg-gradient-to-r from-emerald-500 to-emerald-700 hover:from-emerald-400 hover:to-emerald-600 text-white shadow-lg shadow-emerald-900/40 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:pointer-events-none"
+                className="w-full py-3.5 rounded-xl font-bold text-sm bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-500 hover:to-emerald-600 text-white shadow-lg shadow-emerald-900/20 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:pointer-events-none mt-4"
               >
                 {isLoading ? (
                   <>
                     <BrainCircuit className="w-5 h-5 animate-spin" />
-                    <span>Gemini يحلل طموحك...</span>
+                    <span>جاري الحفظ...</span>
                   </>
                 ) : (
                   <>
                     <Send className="w-4 h-4 rtl:rotate-180" />
-                    <span>تخليد طموحي في لوحة المستقبل</span>
+                    <span>تأكيد الإرسال</span>
                   </>
                 )}
               </button>
@@ -151,30 +161,26 @@ export const AmbitionModal: React.FC<AmbitionModalProps> = ({
               <CheckCircle2 className="w-10 h-10" />
             </div>
 
-            <h4 className="text-xl font-bold text-gray-900">طموحك يضيء سماء الوطن!</h4>
+            <h4 className="text-xl font-bold text-gray-900">تم حفظ طموحك بنجاح!</h4>
             
-            {/* Generated Ambition Card Preview */}
-            <div className="p-5 rounded-2xl bg-white border border-emerald-200 shadow-lg text-right">
-              <span className="text-[11px] font-semibold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100">
-                {successCard.category}
-              </span>
-              <h5 className="text-lg font-bold text-gray-900 mt-2.5">
-                {successCard.highlightPhrase}
-              </h5>
-              <p className="text-xs text-gray-600 mt-1.5 leading-relaxed">
-                "{successCard.fullIdea}"
+            <div className="p-5 rounded-2xl bg-white border border-emerald-200 shadow-sm text-right">
+              <p className="text-gray-800 text-sm font-medium leading-relaxed">
+                "{successCard.text}"
               </p>
+              <div className="mt-4 pt-3 border-t border-emerald-50 text-xs text-emerald-700 font-semibold">
+                طالبة من {successCard.department} {successCard.major ? ` - ${successCard.major}` : ''}
+              </div>
             </div>
 
-            <p className="text-xs text-gray-500">
-              تمت إضافة طموحك بنجاح إلى لوحة "صوتنا يصنع المستقبل".
+            <p className="text-xs text-gray-500 px-4">
+              سيظهر طموحك في جدار المستقبل بمجرد مراجعته واعتماده.
             </p>
 
             <button
               onClick={handleResetAndClose}
-              className="px-6 py-2.5 rounded-xl font-semibold text-sm bg-emerald-600 hover:bg-emerald-500 text-white transition"
+              className="mt-4 px-6 py-2.5 w-full rounded-xl font-semibold text-sm bg-emerald-600 hover:bg-emerald-500 text-white transition shadow-md"
             >
-              عرض لوحة الطموحات
+              العودة للرئيسية
             </button>
           </div>
         )}

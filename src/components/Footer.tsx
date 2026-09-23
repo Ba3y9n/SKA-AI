@@ -1,50 +1,55 @@
 import React from 'react';
-import { Flag, Heart, Sparkles, Cpu } from 'lucide-react';
+import { Flag } from 'lucide-react';
 
 export const Footer: React.FC = () => {
   return (
-    <footer className="w-full mt-16 border-t border-emerald-900/50 bg-[#040805] text-gray-400 py-10 px-4 sm:px-6 lg:px-8 transition-colors">
-      <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-right">
+    <footer className="w-full mt-16 border-t border-gray-100 bg-white text-gray-500 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-8 text-center md:text-right">
         
         {/* Identity & Context */}
-        <div className="space-y-1.5">
+        <div className="space-y-2">
           <div className="flex items-center justify-center md:justify-start gap-2">
-            <span className="font-bold text-white text-base flex items-center gap-1.5">
-              رِواء <span className="text-emerald-400 font-mono text-sm">AI</span>
+            <span className="font-extrabold text-gray-900 text-lg flex items-center gap-1.5">
+              رِواء <span className="text-emerald-600 font-mono text-sm mt-1">AI</span>
             </span>
-            <span className="text-xs px-2.5 py-0.5 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-800/60 font-medium">
-              اليوم الوطني السعودي 96 🇸🇦
+            <span className="text-[10px] px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100 font-bold tracking-wide">
+              اليوم الوطني 96 🇸🇦
             </span>
           </div>
-          <p className="text-xs text-gray-400 max-w-md">
-            مشروع ويب تفاعلي يربط الهوية السعودية بطموحات الجيل الجديد عبر الذكاء الاصطناعي والصوت.
+          <p className="text-sm text-gray-500 max-w-sm">
+            صوت الجيل السعودي الرقمي. تجربة تفاعلية تجمع بين أصالة الهوية وقوة الذكاء الاصطناعي.
           </p>
         </div>
 
-        {/* Academic / Student Club Credit */}
-        <div className="text-xs space-y-1 text-gray-400">
-          <p className="flex items-center justify-center md:justify-end gap-1.5 text-gray-300 font-medium">
-            <span>مشاركة في مسابقة أعمال اليوم الوطني 96</span>
-            <Flag className="w-3.5 h-3.5 text-emerald-400" />
-          </p>
-          <p className="text-emerald-400/80">
-            النادي الطلابي بكلية الأعمال والاقتصاد
-          </p>
+        {/* Links & Credits */}
+        <div className="flex flex-col sm:flex-row gap-6 sm:gap-12 text-sm font-medium">
+          <div className="flex flex-col gap-2">
+            <span className="text-gray-900 font-bold mb-1">الروابط السريعة</span>
+            <a href="#" className="hover:text-emerald-600 transition-colors">تحدث مع رِواء</a>
+            <a href="#" className="hover:text-emerald-600 transition-colors">أضف طموحك</a>
+          </div>
+          <div className="flex flex-col gap-2">
+            <span className="text-gray-900 font-bold mb-1">عن المشروع</span>
+            <span className="text-gray-500">جامعة القصيم</span>
+            <span className="text-gray-500 flex items-center justify-center sm:justify-start gap-1.5">
+              كلية الأعمال والاقتصاد <Flag className="w-3.5 h-3.5 text-emerald-500" />
+            </span>
+          </div>
         </div>
 
       </div>
 
       {/* Bottom Bar */}
-      <div className="max-w-7xl mx-auto mt-8 pt-6 border-t border-emerald-950 flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] text-gray-500">
-        <p>
+      <div className="max-w-6xl mx-auto mt-12 pt-6 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-gray-400">
+        <p className="font-medium text-gray-500">
           جميع الحقوق محفوظة © 2026 | صوتنا يصنع المستقبل
         </p>
-        <div className="flex items-center gap-4 font-mono text-emerald-400/70">
-          <span>React + TypeScript</span>
-          <span>•</span>
-          <span>Tailwind CSS</span>
-          <span>•</span>
-          <span>Gemini 3.7 Flash</span>
+        <div className="flex items-center gap-3 font-mono text-gray-400 bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-100">
+          <span>React</span>
+          <span className="w-1 h-1 rounded-full bg-gray-300"></span>
+          <span>Supabase</span>
+          <span className="w-1 h-1 rounded-full bg-gray-300"></span>
+          <span className="text-emerald-600 font-semibold">Gemini Flash</span>
         </div>
       </div>
     </footer>

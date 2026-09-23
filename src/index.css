@@ -4,7 +4,7 @@
 
 @layer base {
   body {
-    @apply bg-[#060c08] text-gray-100 font-arabic;
+    @apply bg-white text-gray-900 font-arabic;
   }
 }
 
@@ -15,16 +15,16 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: #060c08;
+  background: #f9fafb;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #0f3d23;
+  background: #d1d5db;
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #166534;
+  background: #059669; /* emerald-600 */
 }
 
 /* Pulse animation utility */

@@ -1,20 +1,9 @@
-import React, { useState } from 'react';
-import { AmbitionCard } from '../types/ambition';
-import {
-  Sparkles,
-  PlusCircle,
-  GraduationCap,
-  Leaf,
-  Cpu,
-  HeartPulse,
-  Building,
-  Rocket,
-  Shield,
-  Tag,
-} from 'lucide-react';
+import React from 'react';
+import { Ambition } from '../types/ambition';
+import { Sparkles, PlusCircle, Quote } from 'lucide-react';
 
 interface FutureVisionBoardProps {
-  ambitions: AmbitionCard[];
+  ambitions: Ambition[];
   onOpenAddModal: () => void;
 }
 
@@ -22,132 +11,74 @@ export const FutureVisionBoard: React.FC<FutureVisionBoardProps> = ({
   ambitions,
   onOpenAddModal,
 }) => {
-  const [selectedFilter, setSelectedFilter] = useState<string>('all');
-
-  const categories = ['all', ...Array.from(new Set(ambitions.map((a) => a.category)))];
-
-  const filtered =
-    selectedFilter === 'all'
-      ? ambitions
-      : ambitions.filter((a) => a.category === selectedFilter);
-
-  const getCardIcon = (iconName: string) => {
-    switch (iconName) {
-      case 'GraduationCap':
-        return <GraduationCap className="w-5 h-5 text-emerald-300" />;
-      case 'Leaf':
-        return <Leaf className="w-5 h-5 text-emerald-300" />;
-      case 'Cpu':
-        return <Cpu className="w-5 h-5 text-emerald-300" />;
-      case 'HeartPulse':
-        return <HeartPulse className="w-5 h-5 text-emerald-300" />;
-      case 'Building':
-        return <Building className="w-5 h-5 text-emerald-300" />;
-      case 'Rocket':
-        return <Rocket className="w-5 h-5 text-emerald-300" />;
-      case 'Shield':
-        return <Shield className="w-5 h-5 text-emerald-300" />;
-      default:
-        return <Sparkles className="w-5 h-5 text-emerald-300" />;
-    }
-  };
-
   return (
-    <section className="w-full mt-12 py-10 px-4 sm:px-6 rounded-3xl bg-white border border-emerald-100 shadow-sm relative overflow-hidden">
-      
-      {/* Background Subtle Geometric Pattern */}
-      <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-50/50 rounded-full blur-3xl pointer-events-none" />
+    <section className="w-full py-12 px-4 sm:px-6 bg-emerald-50/30 rounded-3xl border border-emerald-100 shadow-sm relative overflow-hidden">
+      {/* Background Soft Gradients */}
+      <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-100/50 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-0 left-0 w-80 h-80 bg-white/60 rounded-full blur-3xl pointer-events-none" />
 
       {/* Section Header */}
-      <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-8 border-b border-emerald-100 pb-6">
+      <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-12 relative z-10 text-center md:text-right">
         <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200 mb-2">
+          <div className="inline-flex items-center justify-center md:justify-start gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 mb-3 mx-auto md:mx-0">
             <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
-            <span>تجربة تفاعلية لليوم الوطني 96</span>
+            <span>صوت الجيل</span>
           </div>
-          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 flex items-center gap-2">
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900 tracking-tight">
             صوتنا يصنع المستقبل
           </h2>
-          <p className="text-sm text-gray-600 mt-1">
-            طموحات وأفكار شباب وشابات الوطن ملخصة بالذكاء الاصطناعي (Gemini 3.7 Flash)
+          <p className="text-sm sm:text-base text-gray-600 mt-2 max-w-lg">
+            طموحات طلاب وطالبات كلية الأعمال والاقتصاد لمستقبل مشرق يواكب تطلعات رؤية السعودية 2030.
           </p>
         </div>
 
-        {/* Add Ambition CTA */}
         <button
           onClick={onOpenAddModal}
-          className="flex items-center gap-2 px-5 py-3 rounded-xl font-bold text-sm bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-500 hover:to-emerald-600 text-white shadow-lg shadow-emerald-950/50 transition transform hover:scale-105 active:scale-95 border border-emerald-400/40"
+          className="shrink-0 flex items-center justify-center gap-2 px-6 py-3.5 rounded-full font-bold text-sm bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-200 transition-all hover:-translate-y-1 active:scale-95"
         >
-          <PlusCircle className="w-4 h-4" />
-          <span>أضف طموحك للوطن</span>
+          <PlusCircle className="w-5 h-5" />
+          <span>أضف طموحك</span>
         </button>
       </div>
 
-      {/* Category Filter Pills */}
-      {categories.length > 2 && (
-        <div className="flex items-center gap-2 overflow-x-auto pb-4 mb-6 scrollbar-none">
-          <Tag className="w-4 h-4 text-emerald-400 shrink-0 ml-1" />
-          {categories.map((cat) => (
-            <button
-              key={cat}
-              onClick={() => setSelectedFilter(cat)}
-              className={`px-3.5 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all ${
-                selectedFilter === cat
-                  ? 'bg-emerald-600 text-white font-semibold shadow-md shadow-emerald-900/30'
-                  : 'bg-emerald-950/40 text-gray-400 hover:text-gray-200 border border-emerald-900/40'
-              }`}
+      {/* Empty State */}
+      {ambitions.length === 0 ? (
+        <div className="relative z-10 flex flex-col items-center justify-center py-16 text-center bg-white rounded-2xl border border-dashed border-emerald-200">
+          <Sparkles className="w-12 h-12 text-emerald-200 mb-4" />
+          <h3 className="text-xl font-bold text-gray-800 mb-2">كوني من أول الأصوات</h3>
+          <p className="text-gray-500 text-sm max-w-sm">
+            لا توجد طموحات معتمدة حتى الآن. أضيفي طموحك ليكون الأول في جدار المستقبل.
+          </p>
+        </div>
+      ) : (
+        /* Ambitions Grid (Soft Bubbles/Cards Style) */
+        <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {ambitions.map((ambition) => (
+            <div
+              key={ambition.id}
+              className="group bg-white rounded-3xl p-6 sm:p-8 border border-emerald-50 shadow-sm hover:shadow-xl hover:shadow-emerald-100/50 hover:border-emerald-200 transition-all duration-300 transform hover:-translate-y-2 flex flex-col"
             >
-              {cat === 'all' ? 'جميع الطموحات' : cat}
-            </button>
+              <div className="flex items-start justify-between mb-4">
+                <Quote className="w-8 h-8 text-emerald-100 group-hover:text-emerald-200 transition-colors" />
+                <span className="text-[10px] font-medium text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full">
+                  {new Date(ambition.created_at).toLocaleDateString('ar-SA')}
+                </span>
+              </div>
+              
+              <p className="text-gray-800 text-base sm:text-lg font-medium leading-relaxed mb-6 flex-grow">
+                "{ambition.text}"
+              </p>
+              
+              <div className="mt-auto pt-4 border-t border-gray-50">
+                <p className="text-xs font-bold text-gray-900">طالبة من:</p>
+                <p className="text-sm font-medium text-emerald-700 mt-0.5">
+                  {ambition.department} {ambition.major ? ` - ${ambition.major}` : ''}
+                </p>
+              </div>
+            </div>
           ))}
         </div>
       )}
-
-      {/* Ambition Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {filtered.map((ambition) => (
-          <div
-            key={ambition.id}
-            className="group relative rounded-2xl bg-white border border-emerald-100 hover:border-emerald-300 p-5 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 hover:shadow-md"
-          >
-            <div>
-              {/* Header: Icon & Category */}
-              <div className="flex items-center justify-between mb-3">
-                <div className="p-2.5 rounded-xl bg-emerald-50 border border-emerald-100">
-                  {getCardIcon(ambition.iconName)}
-                </div>
-                <div className="flex items-center gap-1.5">
-                  {ambition.isDemo && (
-                    <span className="text-[10px] px-2 py-0.5 rounded bg-gray-100 text-gray-500 border border-gray-200">
-                      Demo Data
-                    </span>
-                  )}
-                  <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
-                    {ambition.category}
-                  </span>
-                </div>
-              </div>
-
-              {/* Highlight Phrase */}
-              <h4 className="text-base font-bold text-gray-900 group-hover:text-emerald-700 transition-colors leading-snug">
-                {ambition.highlightPhrase}
-              </h4>
-
-              {/* Full Idea */}
-              <p className="text-xs text-gray-600 mt-2 line-clamp-3 leading-relaxed font-normal">
-                "{ambition.fullIdea}"
-              </p>
-            </div>
-
-            {/* Footer / Stamp */}
-            <div className="mt-4 pt-3 border-t border-emerald-50 flex items-center justify-between text-[10px] text-emerald-600">
-              <span>{ambition.dateStr || 'اليوم الوطني 96'}</span>
-              <span className="font-mono">Vision 2030</span>
-            </div>
-          </div>
-        ))}
-      </div>
-
     </section>
   );
 };

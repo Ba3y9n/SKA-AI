@@ -6,9 +6,9 @@ import { SuggestedQuestions } from './components/SuggestedQuestions';
 import { FutureVisionBoard } from './components/FutureVisionBoard';
 import { AmbitionModal } from './components/AmbitionModal';
 import { Footer } from './components/Footer';
+import { AchievementsTimeline } from './components/AchievementsTimeline';
 import { useGeminiChat } from './hooks/useGeminiChat';
-import { INITIAL_DEMO_AMBITIONS } from './config/saudiKnowledge';
-import { AmbitionCard } from './types/ambition';
+import { Ambition } from './types/ambition';
 import { Mic, MicOff, Sparkles, Flag, Volume2 } from 'lucide-react';
 
 export const App: React.FC = () => {
@@ -27,11 +27,19 @@ export const App: React.FC = () => {
     replayMessageVoice,
   } = useGeminiChat();
 
-  const [ambitions, setAmbitions] = useState<AmbitionCard[]>(INITIAL_DEMO_AMBITIONS);
+  const [ambitions, setAmbitions] = useState<Ambition[]>([]);
   const [isAmbitionModalOpen, setIsAmbitionModalOpen] = useState(false);
   const [inputText, setInputText] = useState('');
 
-  const handleAmbitionAdded = (newAmbition: AmbitionCard) => {
+  React.useEffect(() => {
+    import('./services/apiService').then(({ fetchAmbitions }) => {
+      fetchAmbitions().then(data => {
+        setAmbitions(data);
+      }).catch(err => console.error('Failed to fetch ambitions:', err));
+    });
+  }, []);
+
+  const handleAmbitionAdded = (newAmbition: Ambition) => {
     setAmbitions((prev) => [newAmbition, ...prev]);
   };
 
@@ -150,6 +158,15 @@ export const App: React.FC = () => {
             )}
           </button>
           
+          {/* Animated Arrow Pointing to Mic (Only in IDLE) */}
+          {!isListening && characterState === 'IDLE' && (
+            <div className="absolute -top-10 left-1/2 -translate-x-1/2 flex flex-col items-center animate-bounce text-emerald-500">
+              <span className="text-[10px] font-bold mb-1">اضغطي وتحدثي</span>
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+              </svg>
+            </div>
+          )}
           <span className={`text-sm font-bold ${
             isListening
               ? 'text-red-600 animate-pulse'
@@ -192,12 +209,14 @@ export const App: React.FC = () => {
       </main>
 
       {/* Future Vision Board (Independent Section) */}
-      <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 mb-16">
+      <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 mb-8">
         <FutureVisionBoard
           ambitions={ambitions}
           onOpenAddModal={() => setIsAmbitionModalOpen(true)}
         />
       </div>
+
+      <AchievementsTimeline />
 
       <AmbitionModal
         isOpen={isAmbitionModalOpen}

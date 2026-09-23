@@ -10,7 +10,7 @@ interface CharacterAvatarProps {
 
 export const CharacterAvatar: React.FC<CharacterAvatarProps> = ({ state }) => {
   return (
-    <div className="relative flex flex-col items-center justify-center select-none w-64 h-64 sm:w-72 sm:h-72 md:w-80 md:h-80 mx-auto">
+    <div className="relative flex flex-col items-center justify-center select-none w-72 h-72 sm:w-80 sm:h-80 md:w-96 md:h-96 mx-auto mt-4 mb-4">
       
       {/* Outer Glow / Aura */}
       <div
