@@ -13,16 +13,18 @@ import {
   CheckCircle2, 
   Eye, 
   FolderHeart,
-  Lock
+  Lock,
+  Loader2
 } from 'lucide-react';
 import { GallerySubmission } from '../types/gallery';
 import { 
   fetchPublicApprovedPhotos, 
   fetchMySubmissions, 
   submitPhotoForReview, 
-  deletePhotoSubmission, 
-  getUserToken 
+  deletePhotoSubmission,
+  subscribeToGalleryChanges
 } from '../services/galleryService';
+import { optimizeImageFile } from '../utils/imageOptimizer';
 
 interface UserGalleryProps {
   onOpenAdmin?: () => void;
@@ -33,37 +35,62 @@ export const UserGallery: React.FC<UserGalleryProps> = ({ onOpenAdmin }) => {
   const [myPhotos, setMyPhotos] = useState<GallerySubmission[]>([]);
   const [activeFilter, setActiveFilter] = useState<string>('الكل');
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const [isLoadingGallery, setIsLoadingGallery] = useState(true);
   
   // Upload modal state
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [photoDescription, setPhotoDescription] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<'فعاليات' | 'أجواء الكلية' | 'لحظات وطنية'>('أجواء الكلية');
+  const [isOptimizing, setIsOptimizing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submissionSuccessMsg, setSubmissionSuccessMsg] = useState<string | null>(null);
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
   // My Submissions Modal
   const [isMySubmissionsOpen, setIsMySubmissionsOpen] = useState(false);
 
-  const loadPhotos = async () => {
-    const approved = await fetchPublicApprovedPhotos();
-    setApprovedPhotos(approved);
-    const mine = await fetchMySubmissions();
-    setMyPhotos(mine);
+  const loadData = async () => {
+    try {
+      const [approved, mine] = await Promise.all([
+        fetchPublicApprovedPhotos(),
+        fetchMySubmissions()
+      ]);
+      setApprovedPhotos(approved);
+      setMyPhotos(mine);
+    } catch (e) {
+      console.error('Failed to load gallery photos', e);
+    } finally {
+      setIsLoadingGallery(false);
+    }
   };
 
   useEffect(() => {
-    loadPhotos();
+    loadData();
+
+    // Polling every 5 seconds for cross-device live sync
+    const interval = setInterval(loadData, 5000);
+    const unsubscribe = subscribeToGalleryChanges(loadData);
+
+    return () => {
+      clearInterval(interval);
+      unsubscribe();
+    };
   }, []);
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreviewUrl(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+      setUploadError(null);
+      setIsOptimizing(true);
+      try {
+        const optimized = await optimizeImageFile(file, 1440, 0.85);
+        setPreviewUrl(optimized);
+      } catch (err: any) {
+        setUploadError('تعذر معالجة الصورة، يرجى اختيار ملف صورة صالح.');
+      } finally {
+        setIsOptimizing(false);
+      }
     }
   };
 
@@ -71,6 +98,7 @@ export const UserGallery: React.FC<UserGalleryProps> = ({ onOpenAdmin }) => {
   const handleCancelPreview = () => {
     setPreviewUrl(null);
     setPhotoDescription('');
+    setUploadError(null);
   };
 
   // Submit for Review
@@ -79,6 +107,8 @@ export const UserGallery: React.FC<UserGalleryProps> = ({ onOpenAdmin }) => {
     if (!previewUrl) return;
 
     setIsSubmitting(true);
+    setUploadError(null);
+
     try {
       await submitPhotoForReview({
         imageUrl: previewUrl,
@@ -86,18 +116,19 @@ export const UserGallery: React.FC<UserGalleryProps> = ({ onOpenAdmin }) => {
         category: selectedCategory,
       });
 
-      setIsSubmitting(false);
       setSubmissionSuccessMsg('تم استلام الصورة وستتم مراجعتها قبل نشرها.');
-      await loadPhotos();
+      await loadData();
 
       setTimeout(() => {
         setSubmissionSuccessMsg(null);
         setPreviewUrl(null);
         setPhotoDescription('');
         setIsUploadModalOpen(false);
-      }, 2500);
-    } catch (err) {
+        setIsSubmitting(false);
+      }, 2400);
+    } catch (err: any) {
       console.error(err);
+      setUploadError(err.message || 'حدث خطأ أثناء رفع الصورة، يرجى المحاولة مرة أخرى.');
       setIsSubmitting(false);
     }
   };
@@ -107,7 +138,7 @@ export const UserGallery: React.FC<UserGalleryProps> = ({ onOpenAdmin }) => {
     if (window.confirm('هل أنت متأكد من حذف هذه المشاركة؟')) {
       const res = await deletePhotoSubmission(id);
       if (res.success) {
-        await loadPhotos();
+        await loadData();
       } else {
         alert(res.message);
       }
@@ -123,7 +154,7 @@ export const UserGallery: React.FC<UserGalleryProps> = ({ onOpenAdmin }) => {
       {/* Background Decor */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[350px] bg-emerald-100/30 rounded-full blur-[120px] pointer-events-none" />
 
-      <div className="max-w-7xl mx-auto px-6 relative z-10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10">
         
         {/* Section Header */}
         <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8 mb-14 text-right">
@@ -166,7 +197,7 @@ export const UserGallery: React.FC<UserGalleryProps> = ({ onOpenAdmin }) => {
 
         {/* Filter Tabs & Admin Gateway */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 mb-8 border-b border-gray-200/70">
-          <div className="flex items-center gap-2 overflow-x-auto pb-2 sm:pb-0">
+          <div className="flex items-center gap-2 overflow-x-auto pb-2 sm:pb-0 w-full sm:w-auto">
             {['الكل', 'فعاليات', 'أجواء الكلية', 'لحظات وطنية'].map((cat) => (
               <button
                 key={cat}
@@ -186,7 +217,7 @@ export const UserGallery: React.FC<UserGalleryProps> = ({ onOpenAdmin }) => {
           {onOpenAdmin && (
             <button
               onClick={onOpenAdmin}
-              className="text-xs text-gray-400 hover:text-[#008F68] flex items-center gap-1.5 self-end sm:self-auto font-medium transition-colors"
+              className="text-xs text-gray-400 hover:text-[#008F68] flex items-center gap-1.5 self-end sm:self-auto font-medium transition-colors p-1"
             >
               <Lock className="w-3.5 h-3.5" />
               <span>لوحة مراجعة المشرف</span>
@@ -195,7 +226,13 @@ export const UserGallery: React.FC<UserGalleryProps> = ({ onOpenAdmin }) => {
         </div>
 
         {/* Masonry / Editorial Public Gallery (Approved Only) */}
-        {filteredApprovedPhotos.length === 0 ? (
+        {isLoadingGallery ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[1, 2, 3].map(n => (
+              <div key={n} className="aspect-[4/3] rounded-3xl bg-gray-100 animate-pulse" />
+            ))}
+          </div>
+        ) : filteredApprovedPhotos.length === 0 ? (
           <div className="py-20 text-center rounded-3xl bg-white border-2 border-dashed border-gray-200 p-8">
             <UploadCloud className="w-12 h-12 text-gray-300 mx-auto mb-3" />
             <p className="text-lg font-bold text-gray-700">لا توجد صور معتمدة في المعرض حالياً</p>
@@ -274,18 +311,18 @@ export const UserGallery: React.FC<UserGalleryProps> = ({ onOpenAdmin }) => {
                     e.stopPropagation();
                     setLightboxIndex((lightboxIndex - 1 + filteredApprovedPhotos.length) % filteredApprovedPhotos.length);
                   }}
-                  className="absolute right-6 top-1/2 -translate-y-1/2 z-30 p-4 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
+                  className="absolute right-4 sm:right-6 top-1/2 -translate-y-1/2 z-30 p-3 sm:p-4 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
                 >
-                  <ChevronRight className="w-7 h-7" />
+                  <ChevronRight className="w-6 h-6 sm:w-7 sm:h-7" />
                 </button>
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     setLightboxIndex((lightboxIndex + 1) % filteredApprovedPhotos.length);
                   }}
-                  className="absolute left-6 top-1/2 -translate-y-1/2 z-30 p-4 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
+                  className="absolute left-4 sm:left-6 top-1/2 -translate-y-1/2 z-30 p-3 sm:p-4 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
                 >
-                  <ChevronLeft className="w-7 h-7" />
+                  <ChevronLeft className="w-6 h-6 sm:w-7 sm:h-7" />
                 </button>
               </>
             )}
@@ -303,7 +340,7 @@ export const UserGallery: React.FC<UserGalleryProps> = ({ onOpenAdmin }) => {
               />
               <div className="mt-4 text-center text-white">
                 {filteredApprovedPhotos[lightboxIndex].description && (
-                  <p className="text-lg font-bold">{filteredApprovedPhotos[lightboxIndex].description}</p>
+                  <p className="text-base sm:text-lg font-bold">{filteredApprovedPhotos[lightboxIndex].description}</p>
                 )}
                 <span className="text-xs text-emerald-400 font-bold">{filteredApprovedPhotos[lightboxIndex].category}</span>
               </div>
@@ -321,7 +358,7 @@ export const UserGallery: React.FC<UserGalleryProps> = ({ onOpenAdmin }) => {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               className="absolute inset-0 bg-black/70 backdrop-blur-md"
-              onClick={() => setIsUploadModalOpen(false)}
+              onClick={() => !isSubmitting && setIsUploadModalOpen(false)}
             />
 
             <motion.div
@@ -331,7 +368,7 @@ export const UserGallery: React.FC<UserGalleryProps> = ({ onOpenAdmin }) => {
               className="relative bg-white w-full max-w-xl rounded-[2rem] p-6 sm:p-8 shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto z-10 text-right"
             >
               <button
-                onClick={() => setIsUploadModalOpen(false)}
+                onClick={() => !isSubmitting && setIsUploadModalOpen(false)}
                 className="absolute top-5 left-5 text-gray-400 hover:text-gray-700 p-2 rounded-full hover:bg-gray-100 transition-colors"
               >
                 <X className="w-5 h-5" />
@@ -350,13 +387,19 @@ export const UserGallery: React.FC<UserGalleryProps> = ({ onOpenAdmin }) => {
                 <p>• تخضع الصور للمراجعة قبل ظهورها في المعرض العام.</p>
               </div>
 
+              {uploadError && (
+                <div className="mb-4 p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-bold">
+                  {uploadError}
+                </div>
+              )}
+
               {submissionSuccessMsg ? (
                 <div className="py-10 text-center">
                   <div className="w-14 h-14 bg-emerald-100 text-[#008F68] rounded-full flex items-center justify-center mx-auto mb-3">
                     <CheckCircle2 className="w-7 h-7" />
                   </div>
                   <h4 className="text-xl font-black text-[#064C3B] mb-2">{submissionSuccessMsg}</h4>
-                  <p className="text-gray-500 text-xs">يمكنكِ متابعة حالة الصورة عبر زر مشاركاتي.</p>
+                  <p className="text-gray-500 text-xs">يمكنكِ متابعة حالة الصورة وحذفها عبر زر مشاركاتي.</p>
                 </div>
               ) : (
                 <form onSubmit={handleSubmitForReview} className="space-y-5">
@@ -364,10 +407,19 @@ export const UserGallery: React.FC<UserGalleryProps> = ({ onOpenAdmin }) => {
                   {/* Image Picker OR Preview Section */}
                   {!previewUrl ? (
                     <label className="flex flex-col items-center justify-center w-full h-52 border-2 border-dashed border-emerald-300 rounded-2xl cursor-pointer hover:bg-emerald-50/50 transition-colors text-center p-4">
-                      <UploadCloud className="w-10 h-10 text-[#008F68] mb-2" />
-                      <span className="font-bold text-[#064C3B] text-base mb-1">اختر صورة من جهازك</span>
-                      <span className="text-xs text-gray-400">JPG / PNG / WebP</span>
-                      <input type="file" accept="image/*" onChange={handleFileSelect} className="hidden" />
+                      {isOptimizing ? (
+                        <div className="flex flex-col items-center">
+                          <Loader2 className="w-8 h-8 text-[#008F68] animate-spin mb-2" />
+                          <span className="text-xs text-gray-500 font-bold">جاري معالجة وتحسين الصورة...</span>
+                        </div>
+                      ) : (
+                        <>
+                          <UploadCloud className="w-10 h-10 text-[#008F68] mb-2" />
+                          <span className="font-bold text-[#064C3B] text-base mb-1">اختر صورة من جهازك</span>
+                          <span className="text-xs text-gray-400 font-medium">JPG / PNG / WebP</span>
+                          <input type="file" accept="image/jpeg,image/png,image/webp" onChange={handleFileSelect} className="hidden" />
+                        </>
+                      )}
                     </label>
                   ) : (
                     <div className="space-y-3">
@@ -381,7 +433,7 @@ export const UserGallery: React.FC<UserGalleryProps> = ({ onOpenAdmin }) => {
                         <label className="flex-1 py-2.5 px-3 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-xl text-xs font-bold cursor-pointer flex items-center justify-center gap-1.5 transition-colors">
                           <RefreshCw className="w-3.5 h-3.5" />
                           <span>استبدال الصورة</span>
-                          <input type="file" accept="image/*" onChange={handleFileSelect} className="hidden" />
+                          <input type="file" accept="image/jpeg,image/png,image/webp" onChange={handleFileSelect} className="hidden" />
                         </label>
                         <button
                           type="button"
@@ -432,10 +484,17 @@ export const UserGallery: React.FC<UserGalleryProps> = ({ onOpenAdmin }) => {
                   <div className="pt-2">
                     <button
                       type="submit"
-                      disabled={!previewUrl || isSubmitting}
+                      disabled={!previewUrl || isSubmitting || isOptimizing}
                       className="w-full py-4 rounded-xl bg-[#008F68] hover:bg-[#064C3B] disabled:opacity-50 text-white font-black text-base shadow-lg transition-colors flex items-center justify-center gap-2"
                     >
-                      {isSubmitting ? 'جاري الإرسال...' : 'إرسال للمراجعة'}
+                      {isSubmitting ? (
+                        <>
+                          <Loader2 className="w-5 h-5 animate-spin" />
+                          <span>جاري الإرسال إلى قاعدة البيانات...</span>
+                        </>
+                      ) : (
+                        <span>إرسال للمراجعة</span>
+                      )}
                     </button>
                   </div>
 
@@ -489,7 +548,7 @@ export const UserGallery: React.FC<UserGalleryProps> = ({ onOpenAdmin }) => {
                     return (
                       <div
                         key={item.id}
-                        className="p-4 rounded-2xl bg-gray-50 border border-gray-200 flex items-center justify-between gap-4"
+                        className="p-4 rounded-2xl bg-gray-50 border border-gray-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
                       >
                         <div className="flex items-center gap-4">
                           <img
@@ -511,7 +570,7 @@ export const UserGallery: React.FC<UserGalleryProps> = ({ onOpenAdmin }) => {
                         {item.status === 'pending' && (
                           <button
                             onClick={() => handleDeleteMySubmission(item.id)}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 text-xs font-bold transition-colors shrink-0"
+                            className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 text-xs font-bold transition-colors self-end sm:self-auto"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                             <span>حذف مشاركتي</span>

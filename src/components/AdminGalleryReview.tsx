@@ -11,56 +11,98 @@ import {
   Bell, 
   ShieldCheck, 
   Filter,
-  Image as ImageIcon
+  Image as ImageIcon,
+  KeyRound,
+  RefreshCw,
+  Eye
 } from 'lucide-react';
 import { GallerySubmission, GallerySubmissionStatus } from '../types/gallery';
 import { 
   fetchAllAdminSubmissions, 
   updatePhotoStatus, 
-  deletePhotoSubmission, 
-  getAdminNotifications, 
-  markNotificationsAsRead 
+  deletePhotoSubmission,
+  subscribeToGalleryChanges
 } from '../services/galleryService';
 
 interface AdminGalleryReviewProps {
   onBackToSite: () => void;
 }
 
+// Supervisor Passcode (Can be customized)
+const SUPERVISOR_PIN = '9696';
+
 export const AdminGalleryReview: React.FC<AdminGalleryReviewProps> = ({ onBackToSite }) => {
+  // Authentication State
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
+    return sessionStorage.getItem('cbe_admin_auth') === 'true';
+  });
+  const [pinInput, setPinInput] = useState('');
+  const [authError, setAuthError] = useState(false);
+
   const [submissions, setSubmissions] = useState<GallerySubmission[]>([]);
   const [activeTab, setActiveTab] = useState<'pending' | 'approved' | 'rejected' | 'all'>('pending');
-  const [notifications, setNotifications] = useState<Array<{ id: string; message: string; timestamp: string; read: boolean }>>([]);
-  const [showNotifications, setShowNotifications] = useState(false);
   const [selectedImage, setSelectedImage] = useState<GallerySubmission | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [lastPendingCount, setLastPendingCount] = useState(0);
+  const [newArrivalAlert, setNewArrivalAlert] = useState(false);
 
-  const loadData = async () => {
-    setIsLoading(true);
-    const data = await fetchAllAdminSubmissions();
-    setSubmissions(data);
-    const notifs = getAdminNotifications();
-    setNotifications(notifs);
-    setIsLoading(false);
+  const loadData = async (showSpinner = false) => {
+    if (showSpinner) setIsRefreshing(true);
+    try {
+      const data = await fetchAllAdminSubmissions();
+      const currentPending = data.filter(s => s.status === 'pending').length;
+      
+      if (lastPendingCount > 0 && currentPending > lastPendingCount) {
+        setNewArrivalAlert(true);
+      }
+      setLastPendingCount(currentPending);
+      setSubmissions(data);
+    } catch (e) {
+      console.error('Failed to load admin submissions', e);
+    } finally {
+      setIsLoading(false);
+      setIsRefreshing(false);
+    }
   };
 
   useEffect(() => {
-    loadData();
-  }, []);
+    if (isAuthenticated) {
+      loadData(true);
+      const interval = setInterval(() => loadData(false), 4000);
+      const unsubscribe = subscribeToGalleryChanges(() => loadData(false));
+      return () => {
+        clearInterval(interval);
+        unsubscribe();
+      };
+    }
+  }, [isAuthenticated]);
+
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (pinInput.trim() === SUPERVISOR_PIN) {
+      setIsAuthenticated(true);
+      sessionStorage.setItem('cbe_admin_auth', 'true');
+      setAuthError(false);
+    } else {
+      setAuthError(true);
+    }
+  };
 
   const handleApprove = async (id: string) => {
     await updatePhotoStatus(id, 'approved', 'مشرف الكلية');
-    loadData();
+    loadData(false);
   };
 
   const handleReject = async (id: string) => {
     await updatePhotoStatus(id, 'rejected', 'مشرف الكلية');
-    loadData();
+    loadData(false);
   };
 
   const handleDelete = async (id: string) => {
     if (window.confirm('هل أنت متأكد من حذف هذه الصورة نهائياً من قاعدة البيانات والتخزين؟')) {
-      await deletePhotoSubmission(id, undefined, true);
-      loadData();
+      await deletePhotoSubmission(id, true);
+      loadData(false);
     }
   };
 
@@ -73,122 +115,133 @@ export const AdminGalleryReview: React.FC<AdminGalleryReviewProps> = ({ onBackTo
   const approvedCount = submissions.filter(s => s.status === 'approved').length;
   const rejectedCount = submissions.filter(s => s.status === 'rejected').length;
 
-  const unreadNotifs = notifications.filter(n => !n.read).length;
+  // Render Authentication Pin Gate if not logged in
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-[#F8FBF8] text-[#064C3B] font-arabic antialiased flex items-center justify-center p-4">
+        <div className="bg-white rounded-3xl p-8 sm:p-10 border border-gray-200 shadow-2xl max-w-md w-full text-right relative overflow-hidden">
+          <div className="w-14 h-14 bg-emerald-50 text-[#008F68] rounded-2xl flex items-center justify-center mb-6 mx-auto">
+            <KeyRound className="w-7 h-7" />
+          </div>
+
+          <h2 className="text-2xl font-black text-[#064C3B] text-center mb-2">لوحة مراجعة المشرف</h2>
+          <p className="text-xs text-gray-500 text-center mb-8">يرجى إدخال رمز التحقق الخاص بمشرف المعرض للمتابعة</p>
+
+          <form onSubmit={handleLogin} className="space-y-4">
+            <div>
+              <label className="block text-xs font-bold text-gray-700 mb-1.5">رمز الدخول (PIN)</label>
+              <input
+                type="password"
+                maxLength={6}
+                value={pinInput}
+                onChange={(e) => setPinInput(e.target.value)}
+                placeholder="أدخل الرمز (الافتراضي 9696)"
+                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-center text-lg tracking-widest font-mono text-gray-900 focus:border-[#008F68] outline-none"
+                autoFocus
+              />
+            </div>
+
+            {authError && (
+              <p className="text-xs text-red-600 font-bold text-center">رمز الدخول غير صحيح، يرجى المحاولة مرة أخرى.</p>
+            )}
+
+            <button
+              type="submit"
+              className="w-full py-3.5 rounded-xl bg-[#008F68] hover:bg-[#064C3B] text-white font-black text-sm shadow-md transition-colors"
+            >
+              تسجيل الدخول للوحة
+            </button>
+          </form>
+
+          <div className="mt-6 pt-6 border-t border-gray-100 text-center">
+            <button
+              onClick={onBackToSite}
+              className="text-xs font-bold text-gray-500 hover:text-[#008F68] transition-colors"
+            >
+              العودة إلى الموقع الرئيسي
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#F8FBF8] text-[#064C3B] font-arabic antialiased selection:bg-[#008F68] selection:text-white pb-24">
       
       {/* Top Navbar */}
-      <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-gray-200 shadow-sm">
-        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-gray-200 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-20 flex items-center justify-between">
           
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3 sm:gap-4">
             <button
               onClick={onBackToSite}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold text-sm transition-colors"
+              className="inline-flex items-center gap-2 px-3.5 sm:px-4 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold text-xs sm:text-sm transition-colors"
             >
               <ArrowRight className="w-4 h-4" />
-              <span>العودة للموقع الرئيسي</span>
+              <span>العودة للموقع</span>
             </button>
 
             <div className="h-6 w-px bg-gray-200 hidden sm:block" />
 
             <div className="flex items-center gap-2">
               <ShieldCheck className="w-5 h-5 text-[#008F68]" />
-              <h1 className="text-xl font-black text-[#064C3B]">لوحة مراجعة معرض اليوم الوطني</h1>
+              <h1 className="text-base sm:text-lg font-black text-[#064C3B]">لوحة مراجعة معرض اليوم الوطني</h1>
             </div>
           </div>
 
-          {/* Notifications Button */}
-          <div className="relative">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => loadData(true)}
+              className={`p-2.5 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 transition-all ${isRefreshing ? 'animate-spin' : ''}`}
+              title="تحديث البيانات"
+            >
+              <RefreshCw className="w-4 h-4" />
+            </button>
             <button
               onClick={() => {
-                setShowNotifications(!showNotifications);
-                if (!showNotifications) markNotificationsAsRead();
+                sessionStorage.removeItem('cbe_admin_auth');
+                setIsAuthenticated(false);
               }}
-              className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-700 relative transition-colors"
-              title="الإشعارات"
+              className="px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 text-xs font-bold hover:bg-gray-100 transition-colors"
             >
-              <Bell className="w-5 h-5" />
-              {unreadNotifs > 0 && (
-                <span className="absolute top-1 right-1 w-5 h-5 rounded-full bg-red-600 text-white text-[10px] font-black flex items-center justify-center animate-pulse">
-                  {unreadNotifs}
-                </span>
-              )}
+              خروج
             </button>
-
-            {/* Notifications Dropdown */}
-            <AnimatePresence>
-              {showNotifications && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                  className="absolute left-0 mt-3 w-80 sm:w-96 bg-white rounded-2xl shadow-2xl border border-gray-100 p-4 z-50 text-right"
-                >
-                  <div className="flex items-center justify-between border-b border-gray-100 pb-3 mb-3">
-                    <span className="text-sm font-bold text-[#064C3B]">سجل التنبيهات</span>
-                    <button
-                      onClick={() => setShowNotifications(false)}
-                      className="text-gray-400 hover:text-gray-600"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
-                  </div>
-
-                  <div className="space-y-2 max-h-72 overflow-y-auto">
-                    {notifications.length === 0 ? (
-                      <p className="text-xs text-gray-400 text-center py-6">لا توجد إشعارات جديدة</p>
-                    ) : (
-                      notifications.map(notif => (
-                        <div
-                          key={notif.id}
-                          className="p-3 rounded-xl bg-emerald-50/50 border border-emerald-100/60 text-xs"
-                        >
-                          <p className="font-bold text-[#064C3B] mb-1">{notif.message}</p>
-                          <p className="text-[10px] text-gray-400">{new Date(notif.timestamp).toLocaleString('ar-SA')}</p>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
           </div>
 
         </div>
       </header>
 
       {/* Main Container */}
-      <main className="max-w-7xl mx-auto px-6 pt-10">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 pt-8">
         
         {/* Supervisor Notification Banner */}
         {pendingCount > 0 && (
-          <div className="mb-8 p-4 sm:p-5 rounded-2xl bg-emerald-800 text-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-lg">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center shrink-0">
-                <Bell className="w-5 h-5 text-white" />
+          <div className="mb-8 p-5 rounded-2xl bg-[#064C3B] text-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xl">
+            <div className="flex items-center gap-3.5">
+              <div className="w-11 h-11 rounded-full bg-emerald-500/20 border border-emerald-400/30 flex items-center justify-center shrink-0">
+                <Bell className="w-5 h-5 text-emerald-300" />
               </div>
               <div>
-                <h2 className="text-base font-bold">وصلت صورة جديدة للمراجعة في معرض اليوم الوطني.</h2>
-                <p className="text-xs text-emerald-200 mt-0.5">يوجد حالياً {pendingCount} صورة بانتظار الاعتماد قبل النشر للعامة.</p>
+                <h2 className="text-base font-bold text-white">وصلت صورة جديدة للمراجعة في معرض اليوم الوطني.</h2>
+                <p className="text-xs text-emerald-200 mt-0.5">يوجد حالياً {pendingCount} صورة بانتظار الاعتماد من قِبلك.</p>
               </div>
             </div>
             <button
               onClick={() => setActiveTab('pending')}
-              className="px-5 py-2 rounded-xl bg-white text-[#064C3B] font-bold text-xs hover:bg-emerald-50 transition-colors shrink-0"
+              className="px-5 py-2.5 rounded-xl bg-white text-[#064C3B] font-bold text-xs hover:bg-emerald-50 transition-colors shrink-0 shadow-sm"
             >
-              عرض الصور المعلقة
+              عرض الصور المنتظرة ({pendingCount})
             </button>
           </div>
         )}
 
         {/* Status Filter Tabs */}
         <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2 w-full sm:w-auto">
             <button
               onClick={() => setActiveTab('pending')}
-              className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all ${
+              className={`flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all ${
                 activeTab === 'pending'
                   ? 'bg-[#008F68] text-white shadow-md'
                   : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
@@ -197,7 +250,7 @@ export const AdminGalleryReview: React.FC<AdminGalleryReviewProps> = ({ onBackTo
               <Clock className="w-4 h-4" />
               <span>الصور بانتظار المراجعة</span>
               {pendingCount > 0 && (
-                <span className="px-2 py-0.5 rounded-full bg-white/20 text-white text-xs font-black">
+                <span className="px-2 py-0.5 rounded-full bg-white/25 text-white text-xs font-black">
                   {pendingCount}
                 </span>
               )}
@@ -205,37 +258,31 @@ export const AdminGalleryReview: React.FC<AdminGalleryReviewProps> = ({ onBackTo
 
             <button
               onClick={() => setActiveTab('approved')}
-              className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all ${
+              className={`flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all ${
                 activeTab === 'approved'
                   ? 'bg-[#064C3B] text-white shadow-md'
                   : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
               }`}
             >
               <CheckCircle className="w-4 h-4" />
-              <span>الصور المعتمدة</span>
-              <span className="px-2 py-0.5 rounded-full bg-gray-100 text-gray-700 text-xs font-bold">
-                {approvedCount}
-              </span>
+              <span>الصور المعتمدة ({approvedCount})</span>
             </button>
 
             <button
               onClick={() => setActiveTab('rejected')}
-              className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all ${
+              className={`flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all ${
                 activeTab === 'rejected'
                   ? 'bg-amber-700 text-white shadow-md'
                   : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
               }`}
             >
               <XCircle className="w-4 h-4" />
-              <span>الصور المرفوضة</span>
-              <span className="px-2 py-0.5 rounded-full bg-gray-100 text-gray-700 text-xs font-bold">
-                {rejectedCount}
-              </span>
+              <span>الصور المرفوضة ({rejectedCount})</span>
             </button>
 
             <button
               onClick={() => setActiveTab('all')}
-              className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all ${
+              className={`flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all ${
                 activeTab === 'all'
                   ? 'bg-gray-800 text-white shadow-md'
                   : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
@@ -249,12 +296,12 @@ export const AdminGalleryReview: React.FC<AdminGalleryReviewProps> = ({ onBackTo
 
         {/* Submissions Grid */}
         {isLoading ? (
-          <div className="py-24 text-center text-gray-400 font-bold">جاري تحميل الصور...</div>
+          <div className="py-24 text-center text-gray-400 font-bold">جاري جلب الصور من قاعدة البيانات...</div>
         ) : filteredSubmissions.length === 0 ? (
           <div className="py-24 text-center rounded-3xl bg-white border border-gray-200 shadow-sm p-8">
             <ImageIcon className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-            <p className="text-base font-bold text-gray-700">لا توجد صور في هذا القسم حالياً</p>
-            <p className="text-xs text-gray-400 mt-1">الصور المرسلة من الطالبات ستظهر هنا للمراجعة والاعتماد.</p>
+            <p className="text-base font-bold text-gray-700">لا توجد صور في هذا التصنيف حالياً</p>
+            <p className="text-xs text-gray-400 mt-1">الصور المرسلة من مختلف الأجهزة ستظهر هنا للمراجعة والاعتماد.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -290,6 +337,10 @@ export const AdminGalleryReview: React.FC<AdminGalleryReviewProps> = ({ onBackTo
                       <span className="px-2.5 py-1 rounded-lg bg-black/60 text-white text-[11px] font-bold backdrop-blur-sm">
                         {sub.category}
                       </span>
+                    </div>
+                    <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-bold gap-1.5">
+                      <Eye className="w-4 h-4" />
+                      <span>معاينة مكبرة</span>
                     </div>
                   </div>
 
@@ -352,7 +403,7 @@ export const AdminGalleryReview: React.FC<AdminGalleryReviewProps> = ({ onBackTo
                       <button
                         onClick={() => handleDelete(sub.id)}
                         className="p-2.5 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 transition-colors"
-                        title="حذف نهائي"
+                        title="حذف نهائي من قاعدة البيانات"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -366,7 +417,7 @@ export const AdminGalleryReview: React.FC<AdminGalleryReviewProps> = ({ onBackTo
 
       </main>
 
-      {/* Lightbox */}
+      {/* Lightbox Modal */}
       <AnimatePresence>
         {selectedImage && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md">

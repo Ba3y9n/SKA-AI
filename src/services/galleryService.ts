@@ -1,10 +1,9 @@
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { GallerySubmission, GallerySubmissionStatus } from '../types/gallery';
 
-const STORAGE_KEY = 'cbe_gallery_all_submissions';
-const NOTIFICATIONS_KEY = 'cbe_admin_gallery_notifications';
+const DEPARTMENT_TAG = 'CBE_GALLERY_ITEM';
 
-// Helper to get or generate persistent user token
+// Helper to get or generate persistent user token in browser
 export function getUserToken(): { uploaderId: string; submissionToken: string } {
   let uploaderId = localStorage.getItem('rewaa_uploader_id');
   let submissionToken = localStorage.getItem('rewaa_submission_token');
@@ -19,249 +18,308 @@ export function getUserToken(): { uploaderId: string; submissionToken: string } 
   return { uploaderId, submissionToken };
 }
 
-// Local storage operations
-function getLocalSubmissions(): GallerySubmission[] {
+// Parse database record into typed GallerySubmission
+function parseGalleryRow(row: any): GallerySubmission | null {
+  if (!row || !row.text) return null;
+
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : [];
+    const payload = JSON.parse(row.text);
+    if (payload.kind !== 'CBE_GALLERY') return null;
+
+    return {
+      id: row.id,
+      image_url: payload.image_url,
+      uploader_id: payload.uploader_id,
+      submission_token: payload.submission_token,
+      description: payload.description,
+      category: payload.category || 'أجواء الكلية',
+      status: (row.major as GallerySubmissionStatus) || payload.status || 'pending',
+      created_at: payload.created_at || row.created_at,
+      reviewed_at: payload.reviewed_at,
+      reviewed_by: payload.reviewed_by
+    };
   } catch (e) {
-    console.error('Failed to read local gallery submissions', e);
+    return null;
+  }
+}
+
+// 1. Fetch only Approved Photos for Public Gallery
+export async function fetchPublicApprovedPhotos(): Promise<GallerySubmission[]> {
+  if (!isSupabaseConfigured() || !supabase) {
+    return [];
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from('ambitions')
+      .select('*')
+      .eq('department', DEPARTMENT_TAG)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Supabase fetch public approved error:', error);
+      return [];
+    }
+
+    const parsed: GallerySubmission[] = [];
+    (data || []).forEach(row => {
+      const item = parseGalleryRow(row);
+      if (item && item.status === 'approved') {
+        parsed.push(item);
+      }
+    });
+
+    return parsed;
+  } catch (err) {
+    console.error('Error in fetchPublicApprovedPhotos:', err);
     return [];
   }
 }
 
-function saveLocalSubmissions(submissions: GallerySubmission[]) {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(submissions));
-  } catch (e) {
-    console.warn('Storage full for local gallery');
-  }
-}
-
-// Public: Fetch only approved photos
-export async function fetchPublicApprovedPhotos(): Promise<GallerySubmission[]> {
-  if (isSupabaseConfigured() && supabase) {
-    try {
-      const { data, error } = await supabase
-        .from('gallery_submissions')
-        .select('*')
-        .eq('status', 'approved')
-        .order('created_at', { ascending: false });
-
-      if (!error && data) {
-        return data as GallerySubmission[];
-      }
-    } catch (err) {
-      console.warn('Supabase fetch approved failed, fallback to local', err);
-    }
-  }
-
-  const local = getLocalSubmissions();
-  return local.filter(s => s.status === 'approved');
-}
-
-// User: Fetch submissions belonging to this user
+// 2. Fetch User's Own Submissions (using persistent submission_token)
 export async function fetchMySubmissions(): Promise<GallerySubmission[]> {
-  const { uploaderId, submissionToken } = getUserToken();
+  const { submissionToken } = getUserToken();
 
-  if (isSupabaseConfigured() && supabase) {
-    try {
-      const { data, error } = await supabase
-        .from('gallery_submissions')
-        .select('*')
-        .eq('submission_token', submissionToken)
-        .neq('status', 'deleted')
-        .order('created_at', { ascending: false });
-
-      if (!error && data) {
-        return data as GallerySubmission[];
-      }
-    } catch (err) {
-      console.warn('Supabase fetch user submissions failed', err);
-    }
+  if (!isSupabaseConfigured() || !supabase) {
+    return [];
   }
 
-  const local = getLocalSubmissions();
-  return local.filter(s => s.submission_token === submissionToken && s.status !== 'deleted');
+  try {
+    const { data, error } = await supabase
+      .from('ambitions')
+      .select('*')
+      .eq('department', DEPARTMENT_TAG)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Supabase fetch user submissions error:', error);
+      return [];
+    }
+
+    const mine: GallerySubmission[] = [];
+    (data || []).forEach(row => {
+      const item = parseGalleryRow(row);
+      if (item && item.submission_token === submissionToken && item.status !== 'deleted') {
+        mine.push(item);
+      }
+    });
+
+    return mine;
+  } catch (err) {
+    console.error('Error in fetchMySubmissions:', err);
+    return [];
+  }
 }
 
-// Admin: Fetch all submissions
+// 3. Admin: Fetch All Submissions for Supervisor Review
 export async function fetchAllAdminSubmissions(): Promise<GallerySubmission[]> {
-  if (isSupabaseConfigured() && supabase) {
-    try {
-      const { data, error } = await supabase
-        .from('gallery_submissions')
-        .select('*')
-        .neq('status', 'deleted')
-        .order('created_at', { ascending: false });
-
-      if (!error && data) {
-        return data as GallerySubmission[];
-      }
-    } catch (err) {
-      console.warn('Supabase fetch all admin failed', err);
-    }
+  if (!isSupabaseConfigured() || !supabase) {
+    return [];
   }
 
-  const local = getLocalSubmissions();
-  return local.filter(s => s.status !== 'deleted');
+  try {
+    const { data, error } = await supabase
+      .from('ambitions')
+      .select('*')
+      .eq('department', DEPARTMENT_TAG)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Supabase fetch admin submissions error:', error);
+      return [];
+    }
+
+    const list: GallerySubmission[] = [];
+    (data || []).forEach(row => {
+      const item = parseGalleryRow(row);
+      if (item && item.status !== 'deleted') {
+        list.push(item);
+      }
+    });
+
+    return list;
+  } catch (err) {
+    console.error('Error in fetchAllAdminSubmissions:', err);
+    return [];
+  }
 }
 
-// Submit a new photo for review
+// 4. Submit Photo For Review (Cross-Device Database Save)
 export async function submitPhotoForReview(params: {
   imageUrl: string;
   description?: string;
   category: 'فعاليات' | 'أجواء الكلية' | 'لحظات وطنية';
 }): Promise<GallerySubmission> {
   const { uploaderId, submissionToken } = getUserToken();
+  const createdAt = new Date().toISOString();
 
-  const newSubmission: GallerySubmission = {
-    id: 'sub_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7),
+  const payload = {
+    kind: 'CBE_GALLERY',
     image_url: params.imageUrl,
     uploader_id: uploaderId,
     submission_token: submissionToken,
     description: params.description?.trim() || undefined,
     category: params.category,
     status: 'pending',
-    created_at: new Date().toISOString(),
+    created_at: createdAt,
   };
 
-  // 1. Try Supabase
-  if (isSupabaseConfigured() && supabase) {
-    try {
-      const { data, error } = await supabase
-        .from('gallery_submissions')
-        .insert([newSubmission])
-        .select()
-        .single();
-
-      if (!error && data) {
-        logAdminNotification(newSubmission);
-        return data as GallerySubmission;
-      }
-    } catch (err) {
-      console.warn('Supabase insert failed, saving to local store', err);
-    }
+  if (!isSupabaseConfigured() || !supabase) {
+    throw new Error('قاعدة البيانات غير متصلة.');
   }
 
-  // 2. Save locally
-  const current = getLocalSubmissions();
-  const updated = [newSubmission, ...current];
-  saveLocalSubmissions(updated);
-  logAdminNotification(newSubmission);
+  const { data, error } = await supabase
+    .from('ambitions')
+    .insert([
+      {
+        text: JSON.stringify(payload),
+        department: DEPARTMENT_TAG,
+        major: 'pending',
+        is_approved: true,
+      },
+    ])
+    .select()
+    .single();
 
-  return newSubmission;
+  if (error || !data) {
+    console.error('Supabase gallery insert failed:', error);
+    throw new Error('فشل إرسال الصورة إلى قاعدة البيانات.');
+  }
+
+  const parsed = parseGalleryRow(data);
+  if (!parsed) {
+    throw new Error('فشل قراءة السجل المسجل.');
+  }
+
+  return parsed;
 }
 
-// Admin: Update status ('approved' | 'rejected')
+// 5. Admin: Update Status ('approved' | 'rejected')
 export async function updatePhotoStatus(
   id: string,
   newStatus: 'approved' | 'rejected',
-  reviewedBy: string = 'المشرف'
+  reviewedBy: string = 'مشرف الكلية'
 ): Promise<boolean> {
-  const reviewedAt = new Date().toISOString();
-
-  if (isSupabaseConfigured() && supabase) {
-    try {
-      const { error } = await supabase
-        .from('gallery_submissions')
-        .update({
-          status: newStatus,
-          reviewed_at: reviewedAt,
-          reviewed_by: reviewedBy,
-        })
-        .eq('id', id);
-
-      if (!error) {
-        // Also update local copy
-        const current = getLocalSubmissions();
-        const updated = current.map(item =>
-          item.id === id ? { ...item, status: newStatus, reviewed_at: reviewedAt, reviewed_by: reviewedBy } : item
-        );
-        saveLocalSubmissions(updated);
-        return true;
-      }
-    } catch (err) {
-      console.warn('Supabase update status failed', err);
-    }
+  if (!isSupabaseConfigured() || !supabase) {
+    return false;
   }
 
-  const current = getLocalSubmissions();
-  const updated = current.map(item =>
-    item.id === id ? { ...item, status: newStatus, reviewed_at: reviewedAt, reviewed_by: reviewedBy } : item
-  );
-  saveLocalSubmissions(updated);
-  return true;
+  try {
+    // 1. Fetch current row to update its JSON payload
+    const { data: row, error: fetchErr } = await supabase
+      .from('ambitions')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (fetchErr || !row) {
+      console.error('Fetch before update failed:', fetchErr);
+      return false;
+    }
+
+    let payload = JSON.parse(row.text);
+    payload.status = newStatus;
+    payload.reviewed_at = new Date().toISOString();
+    payload.reviewed_by = reviewedBy;
+
+    // 2. Update record in Supabase
+    const { error: updateErr } = await supabase
+      .from('ambitions')
+      .update({
+        text: JSON.stringify(payload),
+        major: newStatus,
+        is_approved: newStatus === 'approved',
+      })
+      .eq('id', id);
+
+    if (updateErr) {
+      console.error('Supabase update status failed:', updateErr);
+      return false;
+    }
+
+    return true;
+  } catch (err) {
+    console.error('Exception in updatePhotoStatus:', err);
+    return false;
+  }
 }
 
-// User or Admin: Delete submission
+// 6. Delete Submission (Permanent Database & Storage Delete)
 export async function deletePhotoSubmission(
   id: string,
-  token?: string,
   isAdmin: boolean = false
 ): Promise<{ success: boolean; message: string }> {
-  const current = getLocalSubmissions();
-  const target = current.find(item => item.id === id);
-
-  if (!target) {
-    return { success: false, message: 'الصورة غير موجودة.' };
+  if (!isSupabaseConfigured() || !supabase) {
+    return { success: false, message: 'قاعدة البيانات غير متصلة.' };
   }
 
-  // Permission check
-  if (!isAdmin) {
-    const { submissionToken } = getUserToken();
-    if (target.submission_token !== submissionToken) {
-      return { success: false, message: 'غير مصرح لك بحذف هذه الصورة.' };
-    }
-    if (target.status !== 'pending') {
-      return { success: false, message: 'لا يمكن حذف الصورة بعد اعتمادها. يرجى مراجعة إدارة الكلية.' };
-    }
-  }
-
-  // Execute deletion in Supabase if configured
-  if (isSupabaseConfigured() && supabase) {
-    try {
-      await supabase.from('gallery_submissions').delete().eq('id', id);
-    } catch (err) {
-      console.warn('Supabase delete failed', err);
-    }
-  }
-
-  // Update local store
-  const updated = current.filter(item => item.id !== id);
-  saveLocalSubmissions(updated);
-
-  return { success: true, message: 'تم حذف الصورة بنجاح.' };
-}
-
-// Admin notification logger
-function logAdminNotification(submission: GallerySubmission) {
   try {
-    const notifs = JSON.parse(localStorage.getItem(NOTIFICATIONS_KEY) || '[]');
-    const newNotif = {
-      id: 'notif_' + Date.now(),
-      message: 'وصلت صورة جديدة للمراجعة في معرض اليوم الوطني.',
-      submissionId: submission.id,
-      timestamp: new Date().toISOString(),
-      read: false,
-    };
-    localStorage.setItem(NOTIFICATIONS_KEY, JSON.stringify([newNotif, ...notifs]));
-  } catch (e) {
-    console.warn('Notification log error', e);
-  }
-}
+    const { data: row, error: fetchErr } = await supabase
+      .from('ambitions')
+      .select('*')
+      .eq('id', id)
+      .single();
 
-export function getAdminNotifications(): Array<{ id: string; message: string; timestamp: string; read: boolean }> {
-  try {
-    return JSON.parse(localStorage.getItem(NOTIFICATIONS_KEY) || '[]');
-  } catch {
-    return [];
+    if (fetchErr || !row) {
+      return { success: false, message: 'السجل غير موجود.' };
+    }
+
+    const item = parseGalleryRow(row);
+    if (!item) {
+      return { success: false, message: 'بيانات غير صالحة.' };
+    }
+
+    // Permission Verification
+    if (!isAdmin) {
+      const { submissionToken } = getUserToken();
+      if (item.submission_token !== submissionToken) {
+        return { success: false, message: 'غير مصرح لك بحذف هذه الصورة.' };
+      }
+      if (item.status !== 'pending') {
+        return { success: false, message: 'لا يمكن حذف الصورة بعد اعتمادها.' };
+      }
+    }
+
+    // Delete record from Supabase database
+    const { error: delErr } = await supabase
+      .from('ambitions')
+      .delete()
+      .eq('id', id);
+
+    if (delErr) {
+      console.error('Supabase delete error:', delErr);
+      return { success: false, message: 'فشل حذف الصورة من قاعدة البيانات.' };
+    }
+
+    return { success: true, message: 'تم حذف الصورة بنجاح من قاعدة البيانات.' };
+  } catch (err: any) {
+    console.error('Delete exception:', err);
+    return { success: false, message: err.message || 'حدث خطأ أثناء الحذف.' };
   }
 }
 
-export function markNotificationsAsRead() {
-  try {
-    const notifs = getAdminNotifications().map(n => ({ ...n, read: true }));
-    localStorage.setItem(NOTIFICATIONS_KEY, JSON.stringify(notifs));
-  } catch {}
+// 7. Subscribe to real-time changes
+export function subscribeToGalleryChanges(onUpdate: () => void) {
+  if (!isSupabaseConfigured() || !supabase) {
+    return () => {};
+  }
+
+  const channel = supabase
+    .channel('cbe_gallery_realtime')
+    .on(
+      'postgres_changes',
+      { event: '*', schema: 'public', table: 'ambitions' },
+      (payload) => {
+        if ((payload.new as any)?.department === DEPARTMENT_TAG || (payload.old as any)?.department === DEPARTMENT_TAG) {
+          onUpdate();
+        }
+      }
+    )
+    .subscribe();
+
+  return () => {
+    if (supabase) {
+      supabase.removeChannel(channel);
+    }
+  };
 }

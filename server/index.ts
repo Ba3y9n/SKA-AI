@@ -114,6 +114,47 @@ app.post('/api/ambition', async (req: Request, res: Response) => {
   }
 });
 
+// Gallery API Routes (Cross-device database sync)
+app.get('/api/gallery/approved', async (req: Request, res: Response) => {
+  try {
+    const { createClient } = await import('@supabase/supabase-js');
+    const supabaseUrl = process.env.VITE_SUPABASE_URL || 'https://slvfevnvyoijibohlsbr.supabase.co';
+    const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY || 'sb_publishable_NfTbURVVcZQ1GD7BKPS1pA_P4oP4LgJ';
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    const { data, error } = await supabase
+      .from('ambitions')
+      .select('*')
+      .eq('department', 'CBE_GALLERY_ITEM')
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+
+    const approved: any[] = [];
+    (data || []).forEach((row: any) => {
+      try {
+        const parsed = JSON.parse(row.text);
+        if (parsed.kind === 'CBE_GALLERY' && (row.major === 'approved' || parsed.status === 'approved')) {
+          approved.push({
+            id: row.id,
+            image_url: parsed.image_url,
+            uploader_id: parsed.uploader_id,
+            submission_token: parsed.submission_token,
+            description: parsed.description,
+            category: parsed.category,
+            status: 'approved',
+            created_at: parsed.created_at || row.created_at,
+          });
+        }
+      } catch {}
+    });
+
+    res.json({ success: true, data: approved });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 // Serve frontend static build files if in production
 const distPath = path.join(__dirname, '..', 'dist');
 app.use(express.static(distPath));
