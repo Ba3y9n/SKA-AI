@@ -169,6 +169,31 @@ export const App: React.FC = () => {
         </div>
       </main>
 
+      {/* National Quote Section (96 & Emblem) */}
+      <section className="relative w-full py-16 sm:py-24 bg-gradient-to-b from-white to-emerald-50/30 overflow-hidden border-t border-emerald-50/50">
+        
+        {/* Subtle Watermarks (96 & Emblem) */}
+        <div className="absolute inset-0 z-0 flex items-center justify-center opacity-[0.03] pointer-events-none">
+          <img src="/nd96_logo.webp" alt="" className="w-[800px] h-[800px] object-contain rotate-12 scale-150" />
+        </div>
+        
+        <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 text-center">
+          <div className="inline-block mb-6">
+            <span className="text-4xl sm:text-5xl font-serif text-emerald-800">"</span>
+          </div>
+          <h3 className="text-xl sm:text-2xl md:text-3xl font-bold leading-loose text-gray-800">
+            عزّنا برؤيتنا، وشجاعتنا، وهمتنا، وأصالتنا، وكرمنا، وجودنا..
+            <br className="hidden sm:block" />
+            <span className="text-emerald-700">96 عاماً</span> من المجد والتاريخ والشموخ.
+            <br className="hidden sm:block" />
+            دمت يا وطني عزيزاً شامخاً، ودام عزك بطبعك الأصيل الذي لا يتغير!
+          </h3>
+          <div className="inline-block mt-6">
+            <span className="text-4xl sm:text-5xl font-serif text-emerald-800">"</span>
+          </div>
+        </div>
+      </section>
+
       {/* Future Vision Board (Independent Section) */}
       <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 mb-8">
         <FutureVisionBoard

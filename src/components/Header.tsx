@@ -18,24 +18,13 @@ export const Header: React.FC<HeaderProps> = ({
     <header className="sticky top-0 z-40 w-full border-b border-emerald-50 bg-white/80 backdrop-blur-xl transition-all">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between">
         
-        {/* Brand & Project Identity */}
+        {/* Brand & Project Identity - Simplified with ND96 Logo */}
         <div className="flex items-center gap-3">
-          <RewaaLogo className="w-10 h-10 sm:w-12 sm:h-12 shadow-sm rounded-2xl" />
-
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-lg sm:text-xl font-bold tracking-tight text-gray-900 flex items-center gap-1.5">
-                رِواء <span className="text-emerald-700 font-mono text-sm sm:text-base">AI</span>
-              </h1>
-              <span className="hidden sm:inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
-                <Flag className="w-3 h-3 text-emerald-600" />
-                اليوم الوطني السعودي 96
-              </span>
-            </div>
-            <p className="text-xs text-gray-500 hidden sm:block">
-              صوت سعودي من جيل المستقبل | كلية الأعمال والاقتصاد
-            </p>
-          </div>
+          <img 
+            src="/nd96_logo.webp" 
+            alt="عزنا بطبعنا - اليوم الوطني 96" 
+            className="h-10 sm:h-12 object-contain" 
+          />
         </div>
 
         {/* Actions & Toggles */}
