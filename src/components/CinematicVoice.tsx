@@ -27,11 +27,11 @@ export const CinematicVoice: React.FC = () => {
       />
 
       {/* Decorative Traditional Diamond Motifs */}
-      <div className="absolute top-1/2 left-10 -translate-y-1/2 w-48 h-48 border border-emerald-400/10 rotate-45 pointer-events-none hidden lg:block" />
-      <div className="absolute top-1/2 right-10 -translate-y-1/2 w-48 h-48 border border-emerald-400/10 rotate-45 pointer-events-none hidden lg:block" />
+      <div className="absolute top-1/2 left-10 -translate-y-1/2 w-48 h-48 border border-gold-light/10 rotate-45 pointer-events-none hidden lg:block" />
+      <div className="absolute top-1/2 right-10 -translate-y-1/2 w-48 h-48 border border-gold-light/10 rotate-45 pointer-events-none hidden lg:block" />
 
       {/* Glowing Ambiance */}
-      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[700px] h-[400px] bg-emerald-500/15 rounded-full blur-[140px] pointer-events-none" />
+      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[700px] h-[400px] bg-saudi-500/15 rounded-full blur-[140px] pointer-events-none" />
 
       {/* 1. Main Voice Cinematic Heading */}
       <div className="max-w-5xl mx-auto px-6 text-center relative z-10">
@@ -42,9 +42,9 @@ export const CinematicVoice: React.FC = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8 }}
-          className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-emerald-200 text-sm font-bold mb-8 shadow-inner"
+          className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-saudi-200 text-sm font-bold mb-8 shadow-inner"
         >
-          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+          <span className="w-2 h-2 rounded-full bg-gold-light animate-ping" />
           رِواء تجربة صوتية ورقمية
         </motion.div>
 
@@ -82,7 +82,7 @@ export const CinematicVoice: React.FC = () => {
               <motion.div
                 key={i}
                 className={`w-1 md:w-1.5 rounded-full ${
-                  isCenter ? 'bg-gradient-to-t from-emerald-400 to-teal-200' : 'bg-emerald-500/60'
+                  isCenter ? 'bg-gradient-to-t from-gold-light to-teal-200' : 'bg-saudi-500/60'
                 }`}
                 animate={{
                   height: [
@@ -115,16 +115,16 @@ export const CinematicVoice: React.FC = () => {
           transition={{ duration: 0.8 }}
           className="text-center z-10 px-6 max-w-4xl"
         >
-          <span className="text-emerald-400 text-sm md:text-base font-bold tracking-widest uppercase mb-3 block">
+          <span className="text-gold-light text-sm md:text-base font-bold tracking-widest uppercase mb-3 block">
             رؤية المشروع
           </span>
           <h3 className="text-4xl md:text-6xl font-black text-white mb-8 drop-shadow-lg">
             فكرة
           </h3>
-          <p className="text-xl md:text-3xl text-emerald-100 font-medium leading-loose md:leading-relaxed">
+          <p className="text-xl md:text-3xl text-saudi-100 font-medium leading-loose md:leading-relaxed">
             رِواء ليست مجرد مساعد افتراضي،<br />
             بل مساحة رقمية تُروى فيها قصص الإنجاز،<br />
-            <span className="text-emerald-300 font-bold">وتُسمع فيها أصوات الطموح.</span>
+            <span className="text-gold-light font-bold">وتُسمع فيها أصوات الطموح.</span>
           </p>
         </motion.div>
 
@@ -134,7 +134,7 @@ export const CinematicVoice: React.FC = () => {
             <span className="text-7xl md:text-9xl font-black text-white uppercase tracking-widest px-6">الهوية • الأثر • الطموح • المستقبل</span>
           </motion.div>
           <motion.div style={{ x: typographyXReverse }} className="whitespace-nowrap">
-            <span className="text-7xl md:text-9xl font-black text-emerald-400 uppercase tracking-widest px-6">كلية الأعمال والاقتصاد • اليوم الوطني 96</span>
+            <span className="text-7xl md:text-9xl font-black text-gold-light uppercase tracking-widest px-6">كلية الأعمال والاقتصاد • اليوم الوطني 96</span>
           </motion.div>
         </div>
       </div>

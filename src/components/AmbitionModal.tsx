@@ -92,7 +92,7 @@ export const AmbitionModal: React.FC<AmbitionModalProps> = ({ isOpen, onClose, o
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="absolute inset-0 bg-[#064C3B]/60 backdrop-blur-md"
+            className="absolute inset-0 bg-saudi-700/60 backdrop-blur-md"
             onClick={onClose}
           />
           
@@ -107,13 +107,13 @@ export const AmbitionModal: React.FC<AmbitionModalProps> = ({ isOpen, onClose, o
 
             <button 
               onClick={onClose}
-              className="absolute top-5 left-5 text-gray-400 hover:text-[#064C3B] p-2 rounded-full hover:bg-gray-100 transition-colors"
+              className="absolute top-5 left-5 text-gray-400 hover:text-saudi-700 p-2 rounded-full hover:bg-gray-100 transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
 
-            <h3 className="text-2xl font-black text-[#064C3B] mb-1">أضف طموحك للسعودية</h3>
-            <p className="text-[#008F68] font-bold text-sm mb-6">صوتنا يصنع المستقبل في اليوم الوطني 96</p>
+            <h3 className="text-2xl font-black text-saudi-700 mb-1">أضف طموحك للسعودية</h3>
+            <p className="text-saudi-600 font-bold text-sm mb-6">صوتنا يصنع المستقبل في اليوم الوطني 96</p>
 
             {isSuccess ? (
               <motion.div 
@@ -121,31 +121,31 @@ export const AmbitionModal: React.FC<AmbitionModalProps> = ({ isOpen, onClose, o
                 className="flex flex-col items-center justify-center py-10 text-center"
               >
                 <div className="w-16 h-16 bg-[#DDF5EA] rounded-full flex items-center justify-center mb-4">
-                  <Sparkles className="w-8 h-8 text-[#008F68]" />
+                  <Sparkles className="w-8 h-8 text-saudi-600" />
                 </div>
-                <h4 className="text-2xl font-black text-[#064C3B] mb-2">تم تسجيل طموحكِ بنجاح!</h4>
+                <h4 className="text-2xl font-black text-saudi-700 mb-2">تم تسجيل طموحكِ بنجاح!</h4>
                 <p className="text-gray-500 text-sm">طموحكِ يضيء جدار المستقبل ويخلد بصمتكِ.</p>
               </motion.div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-4 relative z-10">
                 <div>
-                  <label className="block text-xs font-bold text-[#064C3B] mb-1.5">الاسم (اختياري)</label>
+                  <label className="block text-xs font-bold text-saudi-700 mb-1.5">الاسم (اختياري)</label>
                   <input
                     type="text"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="اكتبي اسمك هنا..."
-                    className="w-full bg-[#F8FBF8] border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#008F68] transition-colors"
+                    className="w-full bg-saudi-100 border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-saudi-600 transition-colors"
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs font-bold text-[#064C3B] mb-1.5">الصفة</label>
+                    <label className="block text-xs font-bold text-saudi-700 mb-1.5">الصفة</label>
                     <select
                       value={role}
                       onChange={(e) => setRole(e.target.value)}
-                      className="w-full bg-[#F8FBF8] border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-[#008F68] transition-colors"
+                      className="w-full bg-saudi-100 border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-saudi-600 transition-colors"
                     >
                       <option value="طالبة">طالبة</option>
                       <option value="خريجة">خريجة</option>
@@ -155,35 +155,35 @@ export const AmbitionModal: React.FC<AmbitionModalProps> = ({ isOpen, onClose, o
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-[#064C3B] mb-1.5">التخصص / القسم</label>
+                    <label className="block text-xs font-bold text-saudi-700 mb-1.5">التخصص / القسم</label>
                     <input
                       type="text"
                       value={major}
                       onChange={(e) => setMajor(e.target.value)}
                       placeholder="مثال: إدارة أعمال، نظم معلومات..."
-                      className="w-full bg-[#F8FBF8] border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#008F68] transition-colors"
+                      className="w-full bg-saudi-100 border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-saudi-600 transition-colors"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-[#064C3B] mb-1.5">طموحك أو فكرتك للوطن</label>
+                  <label className="block text-xs font-bold text-saudi-700 mb-1.5">طموحك أو فكرتك للوطن</label>
                   <textarea
                     value={text}
                     onChange={(e) => setText(e.target.value)}
                     placeholder="ما هو طموحك ورؤيتك للمستقبل؟"
                     rows={3}
                     required
-                    className="w-full bg-[#F8FBF8] border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#008F68] transition-colors resize-none"
+                    className="w-full bg-saudi-100 border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-saudi-600 transition-colors resize-none"
                   />
                 </div>
 
                 {/* Optional Image for Ambition */}
                 <div>
-                  <label className="block text-xs font-bold text-[#064C3B] mb-1.5">صورة داعمة لطموحك (اختياري)</label>
+                  <label className="block text-xs font-bold text-saudi-700 mb-1.5">صورة داعمة لطموحك (اختياري)</label>
                   {!ambitionImage ? (
-                    <label className="flex items-center justify-center gap-2 w-full py-3 px-4 border border-dashed border-emerald-300 rounded-xl bg-emerald-50/40 text-emerald-800 text-xs font-bold cursor-pointer hover:bg-emerald-50 transition-colors">
-                      <ImagePlus className="w-4 h-4 text-[#008F68]" />
+                    <label className="flex items-center justify-center gap-2 w-full py-3 px-4 border border-dashed border-gold-light rounded-xl bg-saudi-50/40 text-emerald-800 text-xs font-bold cursor-pointer hover:bg-saudi-50 transition-colors">
+                      <ImagePlus className="w-4 h-4 text-saudi-600" />
                       <span>إضافة صورة (اختياري)</span>
                       <input type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
                     </label>
@@ -213,7 +213,7 @@ export const AmbitionModal: React.FC<AmbitionModalProps> = ({ isOpen, onClose, o
                   <button
                     type="submit"
                     disabled={!text.trim() || isSubmitting}
-                    className="w-full flex items-center justify-center gap-2 bg-[#008F68] hover:bg-[#064C3B] disabled:opacity-50 text-white font-black py-3.5 rounded-xl transition-colors shadow-lg text-sm"
+                    className="w-full flex items-center justify-center gap-2 bg-saudi-600 hover:bg-saudi-700 disabled:opacity-50 text-white font-black py-3.5 rounded-xl transition-colors shadow-lg text-sm"
                   >
                     {isSubmitting ? 'جاري الحفظ...' : (
                       <>

@@ -28,7 +28,7 @@ export const CharacterAvatar: React.FC<CharacterAvatarProps> = ({ state, isListe
           opacity: isThinking ? 0.3 : 0.6
         }}
         transition={{ duration: isSpeaking ? 0.4 : 1.5, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute inset-0 rounded-full bg-emerald-300/30 blur-3xl"
+        className="absolute inset-0 rounded-full bg-gold-light/30 blur-3xl"
       />
 
       {/* 2. Interactive AI Orbits (SVG) */}

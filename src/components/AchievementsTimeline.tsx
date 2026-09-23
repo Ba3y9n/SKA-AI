@@ -120,19 +120,19 @@ export const AchievementsTimeline: React.FC = () => {
     <section className="relative w-full py-32 bg-white overflow-hidden z-20 border-t border-gray-100" id="achievements">
       
       {/* Background Decor */}
-      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-emerald-50/60 rounded-full blur-[140px] pointer-events-none" />
+      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-saudi-50/60 rounded-full blur-[140px] pointer-events-none" />
 
       {/* Header */}
       <div className="max-w-4xl mx-auto px-6 mb-16 text-center relative z-10">
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#008F68]/10 text-[#006C4F] text-sm font-bold mb-4">
-          <Award className="w-4 h-4 text-[#008F68]" />
+        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-saudi-600/10 text-saudi-700 text-sm font-bold mb-4">
+          <Award className="w-4 h-4 text-saudi-600" />
           طالبات كلية الأعمال والاقتصاد ودكتوراتها
         </div>
         <motion.h2 
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-3xl sm:text-5xl font-black text-[#064C3B] mb-4 leading-tight"
+          className="text-3xl sm:text-5xl font-black text-saudi-700 mb-4 leading-tight"
         >
           أصوات صنعت أثرًا... وإنجازات تستحق أن تُروى
         </motion.h2>
@@ -149,7 +149,7 @@ export const AchievementsTimeline: React.FC = () => {
 
       {/* Interactive Stats */}
       <div className="max-w-5xl mx-auto px-6 mb-16 relative z-10">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 p-6 sm:p-8 rounded-[2rem] bg-[#F8FBF8] border border-emerald-100/80 shadow-sm">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 p-6 sm:p-8 rounded-[2rem] bg-saudi-100 border border-saudi-100/80 shadow-sm">
           {[
             { label: 'طالبة وخريجة', value: students.length, icon: GraduationCap },
             { label: 'دكتورة وعضوة هيئة تدريس', value: faculty.length, icon: Briefcase },
@@ -166,10 +166,10 @@ export const AchievementsTimeline: React.FC = () => {
                 key={i} 
                 className="text-center flex flex-col items-center justify-center p-2"
               >
-                <div className="w-10 h-10 rounded-full bg-emerald-100/60 text-[#008F68] flex items-center justify-center mb-2">
+                <div className="w-10 h-10 rounded-full bg-saudi-100/60 text-saudi-600 flex items-center justify-center mb-2">
                   <Icon className="w-5 h-5" />
                 </div>
-                <span className="text-3xl sm:text-4xl font-black text-[#064C3B] mb-1">{stat.value}</span>
+                <span className="text-3xl sm:text-4xl font-black text-saudi-700 mb-1">{stat.value}</span>
                 <span className="text-xs sm:text-sm font-bold text-gray-500">{stat.label}</span>
               </motion.div>
             );
@@ -185,7 +185,7 @@ export const AchievementsTimeline: React.FC = () => {
             onClick={() => setActiveTab('students')}
             className={`flex-1 sm:flex-none px-6 sm:px-8 py-3 rounded-full text-base sm:text-lg font-bold transition-all duration-300 ${
               activeTab === 'students' 
-                ? 'bg-white text-[#064C3B] shadow-sm' 
+                ? 'bg-white text-saudi-700 shadow-sm' 
                 : 'text-gray-500 hover:text-gray-900'
             }`}
           >
@@ -195,7 +195,7 @@ export const AchievementsTimeline: React.FC = () => {
             onClick={() => setActiveTab('faculty')}
             className={`flex-1 sm:flex-none px-6 sm:px-8 py-3 rounded-full text-base sm:text-lg font-bold transition-all duration-300 ${
               activeTab === 'faculty' 
-                ? 'bg-white text-[#064C3B] shadow-sm' 
+                ? 'bg-white text-saudi-700 shadow-sm' 
                 : 'text-gray-500 hover:text-gray-900'
             }`}
           >
@@ -205,7 +205,7 @@ export const AchievementsTimeline: React.FC = () => {
 
         <button 
           onClick={() => setIsAddModalOpen(true)}
-          className="inline-flex items-center gap-2 px-6 py-3 bg-[#008F68] hover:bg-[#064C3B] text-white rounded-full font-bold text-sm transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 whitespace-nowrap"
+          className="inline-flex items-center gap-2 px-6 py-3 bg-saudi-600 hover:bg-saudi-700 text-white rounded-full font-bold text-sm transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 whitespace-nowrap"
         >
           <Plus className="w-4 h-4" />
           <span>+ إضافة إنجاز جديد</span>
@@ -239,34 +239,34 @@ export const AchievementsTimeline: React.FC = () => {
                   onClick={() => setExpandedId(isExpanded ? null : person.id)}
                   className={`group rounded-[2rem] border transition-all duration-300 cursor-pointer overflow-hidden ${
                     isExpanded 
-                      ? 'bg-[#F8FBF8] border-[#008F68] shadow-lg ring-1 ring-[#008F68]/20' 
-                      : 'bg-white border-gray-100 shadow-[0_4px_20px_rgba(0,0,0,0.02)] hover:shadow-md hover:border-emerald-200'
+                      ? 'bg-saudi-100 border-saudi-600 shadow-lg ring-1 ring-[#008F68]/20' 
+                      : 'bg-white border-gray-100 shadow-[0_4px_20px_rgba(0,0,0,0.02)] hover:shadow-md hover:border-saudi-200'
                   }`}
                 >
                   <div className="p-6 sm:p-7 flex items-center justify-between gap-4">
                     <div className="flex items-center gap-5">
                       {/* Avatar / Photo */}
-                      <div className="w-14 h-14 shrink-0 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center overflow-hidden">
+                      <div className="w-14 h-14 shrink-0 rounded-full bg-saudi-50 border border-saudi-100 flex items-center justify-center overflow-hidden">
                         {person.userImage ? (
                           <img src={person.userImage} alt={person.nameAr} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
                         ) : (
-                          <span className="text-[#008F68] font-black text-xl">{person.nameAr.charAt(0)}</span>
+                          <span className="text-saudi-600 font-black text-xl">{person.nameAr.charAt(0)}</span>
                         )}
                       </div>
 
                       <div className="text-right">
                         <div className="flex items-center gap-2 mb-1">
-                          <h3 className={`font-black text-lg sm:text-xl transition-colors ${isExpanded ? 'text-[#064C3B]' : 'text-gray-900 group-hover:text-[#008F68]'}`}>
+                          <h3 className={`font-black text-lg sm:text-xl transition-colors ${isExpanded ? 'text-saudi-700' : 'text-gray-900 group-hover:text-saudi-600'}`}>
                             {person.nameAr}
                           </h3>
                           {person.isUserAdded && (
-                            <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-[#006C4F] text-[10px] font-bold">
+                            <span className="px-2 py-0.5 rounded-full bg-saudi-100 text-saudi-700 text-[10px] font-bold">
                               مضاف حديثاً
                             </span>
                           )}
                         </div>
                         <div className="flex flex-wrap gap-2 items-center text-xs text-gray-500 font-medium">
-                          <span className="text-[#008F68] font-bold">{person.major}</span>
+                          <span className="text-saudi-600 font-bold">{person.major}</span>
                           <span className="w-1 h-1 rounded-full bg-gray-300" />
                           <span>{person.type || person.achievementTitle}</span>
                         </div>
@@ -298,7 +298,7 @@ export const AchievementsTimeline: React.FC = () => {
                         className="px-6 sm:px-7 pb-7 overflow-hidden text-right"
                       >
                         <div className="pt-5 border-t border-gray-200/80">
-                          <h4 className="text-base font-bold text-[#064C3B] mb-2">{person.achievementTitle}</h4>
+                          <h4 className="text-base font-bold text-saudi-700 mb-2">{person.achievementTitle}</h4>
                           <p className="text-gray-700 leading-relaxed text-sm sm:text-base font-medium mb-4">
                             {person.description}
                           </p>
@@ -310,7 +310,7 @@ export const AchievementsTimeline: React.FC = () => {
                               </a>
                             )}
                             {person.officialSource && (
-                              <a href={person.officialSource} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-emerald-50 text-[#008F68] hover:bg-emerald-100 text-xs font-bold transition-colors">
+                              <a href={person.officialSource} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-saudi-50 text-saudi-600 hover:bg-saudi-100 text-xs font-bold transition-colors">
                                 <Link2 className="w-3.5 h-3.5" /> المصدر الرسمي
                               </a>
                             )}
@@ -338,7 +338,7 @@ export const AchievementsTimeline: React.FC = () => {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-2xl sm:text-3xl font-black text-[#064C3B] leading-relaxed"
+          className="text-2xl sm:text-3xl font-black text-saudi-700 leading-relaxed"
         >
           «كل إنجاز حكاية، وكل حكاية صوت يستحق أن يُسمع.»
         </motion.p>
@@ -350,7 +350,7 @@ export const AchievementsTimeline: React.FC = () => {
           <div className="fixed inset-0 z-[125] flex items-center justify-center p-4">
             <motion.div 
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              className="absolute inset-0 bg-[#064C3B]/60 backdrop-blur-md"
+              className="absolute inset-0 bg-saudi-700/60 backdrop-blur-md"
               onClick={() => setIsAddModalOpen(false)}
             />
             
@@ -365,7 +365,7 @@ export const AchievementsTimeline: React.FC = () => {
                 <X className="w-5 h-5" />
               </button>
               
-              <h3 className="text-2xl font-black text-[#064C3B] mb-1">إضافة إنجاز جديد</h3>
+              <h3 className="text-2xl font-black text-saudi-700 mb-1">إضافة إنجاز جديد</h3>
               <p className="text-xs text-gray-500 mb-6">
                 {activeTab === 'students' ? 'توثيق إنجاز لطالبة أو خريجة' : 'توثيق إنجاز لدكتورة أو عضوة هيئة تدريس'}
               </p>
@@ -379,7 +379,7 @@ export const AchievementsTimeline: React.FC = () => {
                     placeholder="مثال: نورة المحمد"
                     value={newName} 
                     onChange={e => setNewName(e.target.value)} 
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-900 focus:border-[#008F68] outline-none" 
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-900 focus:border-saudi-600 outline-none" 
                   />
                 </div>
 
@@ -392,7 +392,7 @@ export const AchievementsTimeline: React.FC = () => {
                       placeholder="مثال: المحاسبة"
                       value={newMajor} 
                       onChange={e => setNewMajor(e.target.value)} 
-                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-900 focus:border-[#008F68] outline-none" 
+                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-900 focus:border-saudi-600 outline-none" 
                     />
                   </div>
                   <div>
@@ -402,7 +402,7 @@ export const AchievementsTimeline: React.FC = () => {
                       placeholder="بحث، جائزة، ابتكار..." 
                       value={newType} 
                       onChange={e => setNewType(e.target.value)} 
-                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-900 focus:border-[#008F68] outline-none" 
+                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-900 focus:border-saudi-600 outline-none" 
                     />
                   </div>
                 </div>
@@ -415,7 +415,7 @@ export const AchievementsTimeline: React.FC = () => {
                     placeholder="تفاصيل الإسهام أو الجائزة أو المشروع المتميز..."
                     value={newDesc} 
                     onChange={e => setNewDesc(e.target.value)} 
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-900 focus:border-[#008F68] outline-none resize-none" 
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-900 focus:border-saudi-600 outline-none resize-none" 
                   />
                 </div>
 
@@ -423,9 +423,9 @@ export const AchievementsTimeline: React.FC = () => {
                 <div>
                   <label className="block text-xs font-bold text-gray-700 mb-1.5">صورة شخصية أو صورة الإنجاز (اختياري)</label>
                   {!newImage ? (
-                    <label className="flex flex-col items-center justify-center w-full h-28 border-2 border-dashed border-emerald-300 rounded-xl cursor-pointer hover:bg-emerald-50/40 transition-colors">
-                      <ImagePlus className="w-6 h-6 text-[#008F68] mb-1.5" />
-                      <span className="text-xs font-bold text-[#006C4F]">اضغط لرفع صورة</span>
+                    <label className="flex flex-col items-center justify-center w-full h-28 border-2 border-dashed border-gold-light rounded-xl cursor-pointer hover:bg-saudi-50/40 transition-colors">
+                      <ImagePlus className="w-6 h-6 text-saudi-600 mb-1.5" />
+                      <span className="text-xs font-bold text-saudi-700">اضغط لرفع صورة</span>
                       <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
                     </label>
                   ) : (
@@ -454,7 +454,7 @@ export const AchievementsTimeline: React.FC = () => {
                   <button 
                     type="submit" 
                     disabled={isSubmitting}
-                    className="w-full bg-[#008F68] hover:bg-[#064C3B] disabled:opacity-50 text-white font-black py-3.5 rounded-xl shadow-lg transition-colors text-sm"
+                    className="w-full bg-saudi-600 hover:bg-saudi-700 disabled:opacity-50 text-white font-black py-3.5 rounded-xl shadow-lg transition-colors text-sm"
                   >
                     {isSubmitting ? 'جاري الإضافة...' : 'حفظ ونشر الإنجاز'}
                   </button>

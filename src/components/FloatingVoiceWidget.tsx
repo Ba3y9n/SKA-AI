@@ -28,12 +28,12 @@ export const FloatingVoiceWidget: React.FC<FloatingVoiceWidgetProps> = ({
             initial={{ opacity: 0, y: 15, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 10, scale: 0.9 }}
-            className="bg-white/95 backdrop-blur-xl border border-emerald-200/80 p-4 rounded-2xl shadow-[0_10px_30px_rgba(0,108,79,0.15)] max-w-xs text-right mb-1"
+            className="bg-white/95 backdrop-blur-xl border border-saudi-200/80 p-4 rounded-2xl shadow-[0_10px_30px_rgba(0,108,79,0.15)] max-w-xs text-right mb-1"
           >
             <div className="flex items-center justify-between gap-2 border-b border-gray-100 pb-2 mb-2">
               <div className="flex items-center gap-2">
-                <span className={`w-2 h-2 rounded-full ${isListening ? 'bg-red-500 animate-ping' : 'bg-[#008F68]'}`} />
-                <span className="text-xs font-bold text-[#064C3B]">
+                <span className={`w-2 h-2 rounded-full ${isListening ? 'bg-red-500 animate-ping' : 'bg-saudi-600'}`} />
+                <span className="text-xs font-bold text-saudi-700">
                   {isListening ? 'أستمع إليك...' : 'رِواء AI'}
                 </span>
               </div>
@@ -65,7 +65,7 @@ export const FloatingVoiceWidget: React.FC<FloatingVoiceWidgetProps> = ({
         className={`w-14 h-14 rounded-full flex items-center justify-center shadow-[0_8px_25px_rgba(0,108,79,0.25)] border transition-all duration-300 relative ${
           isListening
             ? 'bg-red-500 text-white border-red-300 ring-4 ring-red-400/30'
-            : 'bg-[#008F68] hover:bg-[#064C3B] text-white border-emerald-300/40'
+            : 'bg-saudi-600 hover:bg-saudi-700 text-white border-gold-light/40'
         }`}
         title={isListening ? 'إيقاف الاستماع' : 'تحدث مع رِواء'}
       >
@@ -77,7 +77,7 @@ export const FloatingVoiceWidget: React.FC<FloatingVoiceWidgetProps> = ({
 
         {/* Pulsing ring for aesthetic badge */}
         {!isListening && (
-          <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-emerald-400 border-2 border-white rounded-full" />
+          <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-gold-light border-2 border-white rounded-full" />
         )}
       </motion.button>
 

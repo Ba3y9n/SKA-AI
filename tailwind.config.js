@@ -8,22 +8,27 @@ export default {
     extend: {
       colors: {
         saudi: {
-          50: '#f0fdf4',
-          100: '#dcfce7',
-          200: '#bbf7d0',
-          300: '#86efac',
-          400: '#4ade80',
-          500: '#22c55e',
-          600: '#006C35', // Authentic Saudi Green
-          700: '#0c522b',
-          800: '#0c3d22',
-          900: '#062615',
-          950: '#03140b',
+          50: '#F2EEE5', // Light Beige
+          100: '#FAF9F5', // Warm White
+          200: '#e5e7eb',
+          300: '#d1d5db',
+          400: '#9ca3af',
+          500: '#6b7280',
+          600: '#0B3D2E', // Deep Saudi Green
+          700: '#062A20', // Dark Green
+          800: '#041f17',
+          900: '#02120d',
+          950: '#010a07',
+        },
+        gold: {
+          light: '#E2C47A', // Light Gold Glow
+          DEFAULT: '#C6A15B', // Luxury Gold
+          dark: '#b39050',
         },
         surface: {
-          dark: '#080e0a',
-          card: '#0f1812',
-          border: 'rgba(34, 197, 94, 0.15)',
+          dark: '#062A20',
+          card: '#0B3D2E',
+          border: 'rgba(198, 161, 91, 0.15)', // Gold border
         }
       },
       fontFamily: {

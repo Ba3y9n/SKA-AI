@@ -54,7 +54,7 @@ export const ScrollQuote: React.FC = () => {
             <motion.span 
               key={index} 
               variants={child}
-              className={`${word.includes("96") ? 'text-emerald-500 font-black' : ''}`}
+              className={`${word.includes("96") ? 'text-gold font-black' : ''}`}
             >
               {word}
             </motion.span>
@@ -68,7 +68,7 @@ export const ScrollQuote: React.FC = () => {
         whileInView={{ height: 120 }}
         viewport={{ once: false }}
         transition={{ duration: 1, delay: 0.5 }}
-        className="absolute bottom-0 left-1/2 -translate-x-1/2 w-px bg-gradient-to-b from-transparent via-emerald-600 to-transparent"
+        className="absolute bottom-0 left-1/2 -translate-x-1/2 w-px bg-gradient-to-b from-transparent via-saudi-600 to-transparent"
       />
     </section>
   );

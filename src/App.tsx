@@ -96,7 +96,7 @@ const App: React.FC = () => {
   }
 
   return (
-    <div className="relative w-full bg-[#F8FBF8] text-[#064C3B] font-arabic selection:bg-[#008F68] selection:text-white overflow-hidden">
+    <div className="relative w-full bg-saudi-100 text-saudi-700 font-arabic selection:bg-saudi-600 selection:text-white overflow-hidden">
       
       {/* 1. Header */}
       <Header 

@@ -109,21 +109,21 @@ export const FutureVisionBoard: React.FC<FutureVisionBoardProps> = ({ ambitions,
   };
 
   return (
-    <section className="relative w-full py-32 bg-[#F8FBF8] overflow-hidden z-20 border-t border-gray-100" id="ambitions">
+    <section className="relative w-full py-32 bg-saudi-700 text-saudi-50 overflow-hidden z-20 border-t border-saudi-600" id="ambitions">
       
       {/* Background Subtle Gradient */}
-      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-emerald-100/30 rounded-full blur-[140px] pointer-events-none" />
+      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-saudi-100/30 rounded-full blur-[140px] pointer-events-none" />
 
       <div className="max-w-7xl mx-auto px-6 relative z-10">
         
         {/* Section Header */}
         <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8 mb-16 text-right">
           <div>
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#008F68]/10 text-[#006C4F] text-sm font-bold mb-4">
-              <Sparkles className="w-4 h-4 text-[#008F68]" />
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-saudi-600/10 text-saudi-700 text-sm font-bold mb-4">
+              <Sparkles className="w-4 h-4 text-saudi-600" />
               جدار المستقبل
             </div>
-            <h2 className="text-3xl sm:text-5xl font-black text-[#064C3B] leading-tight mb-4">
+            <h2 className="text-3xl sm:text-5xl font-black text-saudi-700 leading-tight mb-4">
               صوتنا يصنع المستقبل
             </h2>
             <p className="text-lg md:text-xl text-gray-600 font-medium max-w-2xl leading-relaxed">
@@ -133,7 +133,7 @@ export const FutureVisionBoard: React.FC<FutureVisionBoardProps> = ({ ambitions,
 
           <button
             onClick={onAddClick}
-            className="self-start lg:self-auto inline-flex items-center gap-3 px-8 py-4 rounded-full bg-[#008F68] hover:bg-[#064C3B] text-white font-bold text-lg shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300"
+            className="self-start lg:self-auto inline-flex items-center gap-3 px-8 py-4 rounded-full bg-saudi-600 hover:bg-saudi-700 text-white font-bold text-lg shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300"
           >
             <Plus className="w-5 h-5" />
             <span>+ أضف طموحك</span>
@@ -157,20 +157,20 @@ export const FutureVisionBoard: React.FC<FutureVisionBoardProps> = ({ ambitions,
                   viewport={{ once: true, margin: "-5%" }}
                   transition={{ duration: 0.5, delay: (i % 6) * 0.08 }}
                   key={ambition.id || `amb-${i}`}
-                  className="group bg-white rounded-[2rem] p-7 border border-emerald-100/80 shadow-[0_10px_30px_rgba(0,108,79,0.04)] hover:shadow-xl hover:border-emerald-300 transition-all duration-300 flex flex-col justify-between relative overflow-hidden"
+                  className="group bg-white rounded-[2rem] p-7 border border-saudi-100/80 shadow-[0_10px_30px_rgba(0,108,79,0.04)] hover:shadow-xl hover:border-gold-light transition-all duration-300 flex flex-col justify-between relative overflow-hidden"
                 >
                   {/* Decorative corner accent */}
-                  <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-emerald-50 to-transparent rounded-bl-[3rem] -z-0 group-hover:scale-110 transition-transform" />
+                  <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-saudi-50 to-transparent rounded-bl-[3rem] -z-0 group-hover:scale-110 transition-transform" />
 
                   <div className="relative z-10">
                     {/* Header: Author Info & Actions */}
                     <div className="flex items-center justify-between gap-3 mb-5">
                       <div className="flex items-center gap-3">
-                        <div className="w-11 h-11 rounded-full bg-[#F8FBF8] border border-emerald-200 flex items-center justify-center text-[#008F68] font-black text-base shadow-sm">
+                        <div className="w-11 h-11 rounded-full bg-saudi-100 border border-saudi-200 flex items-center justify-center text-saudi-600 font-black text-base shadow-sm">
                           {authorName.charAt(0) || <User className="w-5 h-5" />}
                         </div>
                         <div>
-                          <h4 className="font-bold text-[#064C3B] text-base leading-snug">{authorName}</h4>
+                          <h4 className="font-bold text-saudi-700 text-base leading-snug">{authorName}</h4>
                           <p className="text-xs text-gray-500 font-medium">{authorRole}</p>
                         </div>
                       </div>
@@ -187,7 +187,7 @@ export const FutureVisionBoard: React.FC<FutureVisionBoardProps> = ({ ambitions,
                         )}
                         <button
                           onClick={() => setSelectedAmbitionForShare(ambition)}
-                          className="p-2 text-gray-400 hover:text-[#008F68] hover:bg-emerald-50 rounded-full transition-colors flex items-center gap-1"
+                          className="p-2 text-gray-400 hover:text-saudi-600 hover:bg-saudi-50 rounded-full transition-colors flex items-center gap-1"
                           title="مشاركة الطموح"
                         >
                           <Share2 className="w-4 h-4" />
@@ -210,10 +210,10 @@ export const FutureVisionBoard: React.FC<FutureVisionBoardProps> = ({ ambitions,
 
                   {/* Card Bottom Footer */}
                   <div className="relative z-10 pt-4 border-t border-gray-100 flex items-center justify-between text-xs text-gray-400 font-medium">
-                    <span className="text-[#008F68] font-bold">اليوم الوطني 96</span>
+                    <span className="text-saudi-600 font-bold">اليوم الوطني 96</span>
                     <button
                       onClick={() => setSelectedAmbitionForShare(ambition)}
-                      className="inline-flex items-center gap-1 text-[#006C4F] hover:text-[#008F68] font-bold text-xs group-hover:translate-x-[-2px] transition-transform"
+                      className="inline-flex items-center gap-1 text-saudi-700 hover:text-saudi-600 font-bold text-xs group-hover:translate-x-[-2px] transition-transform"
                     >
                       <Share2 className="w-3.5 h-3.5" />
                       <span>مشاركة كبطاقة</span>

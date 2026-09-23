@@ -42,12 +42,12 @@ export const Visualizer: React.FC<VisualizerProps> = ({ state }) => {
             }}
             className={`w-1 rounded-full transition-all duration-300 ${
               isActive
-                ? `bg-emerald-600 animate-pulse ${barHeight}`
+                ? `bg-saudi-600 animate-pulse ${barHeight}`
                 : isThinking
                 ? 'bg-teal-500/70 animate-bounce h-2'
                 : state === 'ERROR'
                 ? 'bg-red-500/60 h-1.5'
-                : 'bg-emerald-200 h-1'
+                : 'bg-saudi-200 h-1'
             }`}
           />
         );

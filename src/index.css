@@ -42,3 +42,33 @@
 .animate-fadeIn {
   animation: fadeIn 0.25s ease-out forwards;
 }
+
+/* Gold Interactions */
+.btn-gold-hover {
+  @apply transition-all duration-300;
+}
+.btn-gold-hover:hover {
+  @apply bg-saudi-700 border-gold-light text-saudi-50;
+  box-shadow: 0 0 10px rgba(226, 196, 122, 0.4);
+}
+
+.card-gold-hover {
+  @apply transition-all duration-500;
+}
+.card-gold-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 30px -10px rgba(198, 161, 91, 0.2), 0 0 15px rgba(198, 161, 91, 0.1);
+  @apply border-gold/30;
+}
+
+.title-gold-line {
+  @apply relative inline-block;
+}
+.title-gold-line::after {
+  content: '';
+  @apply absolute -bottom-3 left-1/2 -translate-x-1/2 w-0 h-1 bg-gold rounded-full transition-all duration-700 ease-out;
+}
+.title-gold-line.is-visible::after, .title-gold-line:hover::after {
+  @apply w-3/4;
+}
+

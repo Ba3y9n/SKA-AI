@@ -149,17 +149,17 @@ export const UserGallery: React.FC<UserGalleryProps> = ({ onOpenAdmin }) => {
   const pendingCount = myPhotos.filter(p => p.status === 'pending').length;
 
   return (
-    <section className="relative w-full py-28 bg-[#F8FBF8] overflow-hidden z-20 border-t border-gray-100" id="gallery">
+    <section className="relative w-full py-28 bg-saudi-100 overflow-hidden z-20 border-t border-gray-100" id="gallery">
       
       {/* Background Decor */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[350px] bg-emerald-100/30 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[350px] bg-saudi-100/30 rounded-full blur-[120px] pointer-events-none" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10">
         
         {/* Section Header */}
         <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8 mb-14 text-right">
           <div>
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-[#064C3B] leading-tight mb-4 tracking-tight">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-saudi-700 leading-tight mb-4 tracking-tight">
               شاركنا لحظات اليوم الوطني في كلية الأعمال والاقتصاد
             </h2>
             <p className="text-base sm:text-lg text-gray-600 font-medium max-w-2xl leading-relaxed">
@@ -172,9 +172,9 @@ export const UserGallery: React.FC<UserGalleryProps> = ({ onOpenAdmin }) => {
             {myPhotos.length > 0 && (
               <button
                 onClick={() => setIsMySubmissionsOpen(true)}
-                className="inline-flex items-center gap-2 px-5 py-3.5 rounded-full bg-white hover:bg-emerald-50 border border-emerald-200 text-[#006C4F] font-bold text-sm shadow-sm transition-all"
+                className="inline-flex items-center gap-2 px-5 py-3.5 rounded-full bg-white hover:bg-saudi-50 border border-saudi-200 text-saudi-700 font-bold text-sm shadow-sm transition-all card-gold-hover"
               >
-                <FolderHeart className="w-4 h-4 text-[#008F68]" />
+                <FolderHeart className="w-4 h-4 text-saudi-600" />
                 <span>مشاركاتي ({myPhotos.length})</span>
                 {pendingCount > 0 && (
                   <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 text-xs font-bold">
@@ -187,7 +187,7 @@ export const UserGallery: React.FC<UserGalleryProps> = ({ onOpenAdmin }) => {
             {/* Primary Add Photo Button */}
             <button
               onClick={() => setIsUploadModalOpen(true)}
-              className="inline-flex items-center gap-2.5 px-8 py-4 rounded-full bg-[#008F68] hover:bg-[#064C3B] text-white font-black text-base sm:text-lg shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300"
+              className="inline-flex items-center gap-2.5 px-8 py-4 rounded-full bg-saudi-600 hover:bg-saudi-700 text-white font-black text-base sm:text-lg shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300"
             >
               <ImagePlus className="w-5 h-5" />
               <span>أضف صورتك</span>
@@ -204,8 +204,8 @@ export const UserGallery: React.FC<UserGalleryProps> = ({ onOpenAdmin }) => {
                 onClick={() => setActiveFilter(cat)}
                 className={`px-5 py-2 rounded-full text-sm font-bold whitespace-nowrap transition-all duration-300 ${
                   activeFilter === cat
-                    ? 'bg-[#064C3B] text-white shadow-sm'
-                    : 'bg-white text-gray-600 hover:bg-emerald-50 hover:text-[#008F68] border border-gray-200/80'
+                    ? 'bg-saudi-700 text-white shadow-sm'
+                    : 'bg-white text-gray-600 hover:bg-saudi-50 hover:text-saudi-600 border border-gray-200/80'
                 }`}
               >
                 {cat}
@@ -217,7 +217,7 @@ export const UserGallery: React.FC<UserGalleryProps> = ({ onOpenAdmin }) => {
           {onOpenAdmin && (
             <button
               onClick={onOpenAdmin}
-              className="text-xs text-gray-400 hover:text-[#008F68] flex items-center gap-1.5 self-end sm:self-auto font-medium transition-colors p-1"
+              className="text-xs text-gray-400 hover:text-saudi-600 flex items-center gap-1.5 self-end sm:self-auto font-medium transition-colors p-1"
             >
               <Lock className="w-3.5 h-3.5" />
               <span>لوحة مراجعة المشرف</span>
@@ -239,7 +239,7 @@ export const UserGallery: React.FC<UserGalleryProps> = ({ onOpenAdmin }) => {
             <p className="text-sm text-gray-400 mt-1">شاركي صورتك من بهو الكلية لتكوني أول من يظهر بعد اعتماد المشرف.</p>
             <button
               onClick={() => setIsUploadModalOpen(true)}
-              className="mt-6 inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-[#008F68] text-white text-sm font-bold shadow-md hover:bg-[#064C3B] transition-colors"
+              className="mt-6 inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-saudi-600 text-white text-sm font-bold shadow-md hover:bg-saudi-700 transition-colors"
             >
               <ImagePlus className="w-4 h-4" />
               <span>أضف صورتك الآن</span>
@@ -257,7 +257,7 @@ export const UserGallery: React.FC<UserGalleryProps> = ({ onOpenAdmin }) => {
                   transition={{ duration: 0.35, delay: idx * 0.05 }}
                   key={photo.id}
                   onClick={() => setLightboxIndex(idx)}
-                  className="group relative rounded-3xl overflow-hidden bg-white border border-emerald-100 shadow-sm hover:shadow-xl transition-all duration-500 cursor-pointer aspect-[4/3]"
+                  className="group relative rounded-3xl overflow-hidden bg-white border border-saudi-100 shadow-sm hover:shadow-xl transition-all duration-500 cursor-pointer aspect-[4/3]"
                 >
                   <img
                     src={photo.image_url}
@@ -267,7 +267,7 @@ export const UserGallery: React.FC<UserGalleryProps> = ({ onOpenAdmin }) => {
                   />
 
                   {/* Clean Hover Overlay with "عرض الصورة" */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-between p-6">
+                  <div className="absolute inset-0 bg-saudi-700/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-between p-6 border-2 border-transparent group-hover:border-gold rounded-3xl pointer-events-none">
                     <div className="flex justify-end">
                       <span className="px-3 py-1 bg-white/20 backdrop-blur-md rounded-full text-xs font-bold text-white border border-white/20">
                         {photo.category}
@@ -278,9 +278,11 @@ export const UserGallery: React.FC<UserGalleryProps> = ({ onOpenAdmin }) => {
                       {photo.description && (
                         <p className="text-white font-bold text-base mb-2 line-clamp-2">{photo.description}</p>
                       )}
-                      <div className="inline-flex items-center gap-1.5 text-emerald-300 text-xs font-bold bg-white/10 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/10">
-                        <Eye className="w-3.5 h-3.5" />
-                        <span>عرض الصورة</span>
+                      <div className="flex gap-2 justify-end">
+                        <div className="inline-flex items-center gap-1.5 text-saudi-50 text-xs font-bold bg-gold/80 backdrop-blur-md px-3 py-1.5 rounded-lg border border-gold-light pointer-events-auto">
+                          <Eye className="w-3.5 h-3.5" />
+                          <span>عرض الصورة</span>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -328,10 +330,11 @@ export const UserGallery: React.FC<UserGalleryProps> = ({ onOpenAdmin }) => {
             )}
 
             <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
+              initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              className="relative max-w-5xl max-h-[85vh] rounded-3xl overflow-hidden shadow-2xl flex flex-col items-center"
+              exit={{ scale: 0.9, opacity: 0 }}
+              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+              className="relative max-w-5xl max-h-[85vh] rounded-3xl overflow-hidden shadow-[0_0_40px_rgba(198,161,91,0.2)] flex flex-col items-center border-2 border-gold/50 bg-saudi-700 p-2"
             >
               <img
                 src={filteredApprovedPhotos[lightboxIndex].image_url}
@@ -342,7 +345,7 @@ export const UserGallery: React.FC<UserGalleryProps> = ({ onOpenAdmin }) => {
                 {filteredApprovedPhotos[lightboxIndex].description && (
                   <p className="text-base sm:text-lg font-bold">{filteredApprovedPhotos[lightboxIndex].description}</p>
                 )}
-                <span className="text-xs text-emerald-400 font-bold">{filteredApprovedPhotos[lightboxIndex].category}</span>
+                <span className="text-xs text-gold-light font-bold">{filteredApprovedPhotos[lightboxIndex].category}</span>
               </div>
             </motion.div>
           </div>
@@ -374,7 +377,7 @@ export const UserGallery: React.FC<UserGalleryProps> = ({ onOpenAdmin }) => {
                 <X className="w-5 h-5" />
               </button>
 
-              <h3 className="text-2xl font-black text-[#064C3B] mb-1">أضف صورة من أجواء اليوم الوطني</h3>
+              <h3 className="text-2xl font-black text-saudi-700 mb-1">أضف صورة من أجواء اليوم الوطني</h3>
               <p className="text-sm text-gray-500 mb-6">شاركنا لحظة التقطتها داخل بهو كلية الأعمال والاقتصاد.</p>
 
               {/* Privacy Notices */}
@@ -395,10 +398,10 @@ export const UserGallery: React.FC<UserGalleryProps> = ({ onOpenAdmin }) => {
 
               {submissionSuccessMsg ? (
                 <div className="py-10 text-center">
-                  <div className="w-14 h-14 bg-emerald-100 text-[#008F68] rounded-full flex items-center justify-center mx-auto mb-3">
+                  <div className="w-14 h-14 bg-saudi-100 text-saudi-600 rounded-full flex items-center justify-center mx-auto mb-3">
                     <CheckCircle2 className="w-7 h-7" />
                   </div>
-                  <h4 className="text-xl font-black text-[#064C3B] mb-2">{submissionSuccessMsg}</h4>
+                  <h4 className="text-xl font-black text-saudi-700 mb-2">{submissionSuccessMsg}</h4>
                   <p className="text-gray-500 text-xs">يمكنكِ متابعة حالة الصورة وحذفها عبر زر مشاركاتي.</p>
                 </div>
               ) : (
@@ -406,16 +409,16 @@ export const UserGallery: React.FC<UserGalleryProps> = ({ onOpenAdmin }) => {
                   
                   {/* Image Picker OR Preview Section */}
                   {!previewUrl ? (
-                    <label className="flex flex-col items-center justify-center w-full h-52 border-2 border-dashed border-emerald-300 rounded-2xl cursor-pointer hover:bg-emerald-50/50 transition-colors text-center p-4">
+                    <label className="flex flex-col items-center justify-center w-full h-52 border-2 border-dashed border-gold-light rounded-2xl cursor-pointer hover:bg-saudi-50/50 transition-colors text-center p-4">
                       {isOptimizing ? (
                         <div className="flex flex-col items-center">
-                          <Loader2 className="w-8 h-8 text-[#008F68] animate-spin mb-2" />
+                          <Loader2 className="w-8 h-8 text-saudi-600 animate-spin mb-2" />
                           <span className="text-xs text-gray-500 font-bold">جاري معالجة وتحسين الصورة...</span>
                         </div>
                       ) : (
                         <>
-                          <UploadCloud className="w-10 h-10 text-[#008F68] mb-2" />
-                          <span className="font-bold text-[#064C3B] text-base mb-1">اختر صورة من جهازك</span>
+                          <UploadCloud className="w-10 h-10 text-saudi-600 mb-2" />
+                          <span className="font-bold text-saudi-700 text-base mb-1">اختر صورة من جهازك</span>
                           <span className="text-xs text-gray-400 font-medium">JPG / PNG / WebP</span>
                           <input type="file" accept="image/jpeg,image/png,image/webp" onChange={handleFileSelect} className="hidden" />
                         </>
@@ -455,7 +458,7 @@ export const UserGallery: React.FC<UserGalleryProps> = ({ onOpenAdmin }) => {
                       placeholder="مثال: جانب من ركن القهوة السعودية في بهو الكلية"
                       value={photoDescription}
                       onChange={(e) => setPhotoDescription(e.target.value)}
-                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-900 focus:border-[#008F68] outline-none"
+                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-900 focus:border-saudi-600 outline-none"
                     />
                   </div>
 
@@ -470,7 +473,7 @@ export const UserGallery: React.FC<UserGalleryProps> = ({ onOpenAdmin }) => {
                           onClick={() => setSelectedCategory(cat)}
                           className={`py-2.5 rounded-xl text-xs font-bold border transition-colors ${
                             selectedCategory === cat
-                              ? 'bg-emerald-50 border-[#008F68] text-[#006C4F]'
+                              ? 'bg-saudi-50 border-saudi-600 text-saudi-700'
                               : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100'
                           }`}
                         >
@@ -485,7 +488,7 @@ export const UserGallery: React.FC<UserGalleryProps> = ({ onOpenAdmin }) => {
                     <button
                       type="submit"
                       disabled={!previewUrl || isSubmitting || isOptimizing}
-                      className="w-full py-4 rounded-xl bg-[#008F68] hover:bg-[#064C3B] disabled:opacity-50 text-white font-black text-base shadow-lg transition-colors flex items-center justify-center gap-2"
+                      className="w-full py-4 rounded-xl bg-saudi-600 hover:bg-saudi-700 disabled:opacity-50 text-white font-black text-base shadow-lg transition-colors flex items-center justify-center gap-2"
                     >
                       {isSubmitting ? (
                         <>
@@ -530,7 +533,7 @@ export const UserGallery: React.FC<UserGalleryProps> = ({ onOpenAdmin }) => {
                 <X className="w-5 h-5" />
               </button>
 
-              <h3 className="text-2xl font-black text-[#064C3B] mb-1">مشاركاتي</h3>
+              <h3 className="text-2xl font-black text-saudi-700 mb-1">مشاركاتي</h3>
               <p className="text-xs text-gray-500 mb-6">متابعة حالة الصور التي قمتِ برفعها</p>
 
               {myPhotos.length === 0 ? (
@@ -540,7 +543,7 @@ export const UserGallery: React.FC<UserGalleryProps> = ({ onOpenAdmin }) => {
                   {myPhotos.map((item) => {
                     const statusConfig = {
                       pending: { label: 'قيد المراجعة', class: 'bg-amber-100 text-amber-900 border-amber-200' },
-                      approved: { label: 'تم اعتماد الصورة', class: 'bg-emerald-100 text-emerald-900 border-emerald-200' },
+                      approved: { label: 'تم اعتماد الصورة', class: 'bg-saudi-100 text-saudi-900 border-saudi-200' },
                       rejected: { label: 'تم رفض الصورة', class: 'bg-red-100 text-red-900 border-red-200' },
                       deleted: { label: 'محذوفة', class: 'bg-gray-100 text-gray-700 border-gray-200' },
                     }[item.status];
@@ -557,7 +560,7 @@ export const UserGallery: React.FC<UserGalleryProps> = ({ onOpenAdmin }) => {
                             className="w-16 h-16 rounded-xl object-cover border border-gray-200 shrink-0"
                           />
                           <div>
-                            <p className="text-sm font-bold text-[#064C3B] mb-1">{item.description || 'بدون وصف'}</p>
+                            <p className="text-sm font-bold text-saudi-700 mb-1">{item.description || 'بدون وصف'}</p>
                             <div className="flex items-center gap-2">
                               <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${statusConfig.class}`}>
                                 {statusConfig.label}

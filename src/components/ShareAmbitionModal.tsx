@@ -74,16 +74,16 @@ export const ShareAmbitionModal: React.FC<ShareAmbitionModalProps> = ({ isOpen, 
               <X className="w-5 h-5" />
             </button>
 
-            <div className="flex items-center gap-2 text-[#008F68] font-bold text-sm mb-2">
+            <div className="flex items-center gap-2 text-saudi-600 font-bold text-sm mb-2">
               <Sparkles className="w-4 h-4" />
               <span>مشاركة الطموح الوطني</span>
             </div>
-            <h3 className="text-2xl font-black text-[#064C3B] mb-6">بطاقة الطموح الوطنية</h3>
+            <h3 className="text-2xl font-black text-saudi-700 mb-6">بطاقة الطموح الوطنية</h3>
 
             {/* Generated Saudi 96 Digital Card */}
             <div
               ref={cardRef}
-              className="relative rounded-3xl p-6 sm:p-8 bg-gradient-to-br from-[#064C3B] via-[#043328] to-[#011c15] text-white shadow-xl border border-emerald-500/30 overflow-hidden mb-6"
+              className="relative rounded-3xl p-6 sm:p-8 bg-gradient-to-br from-[#064C3B] via-[#043328] to-[#011c15] text-white shadow-xl border border-gold/30 overflow-hidden mb-6"
             >
               {/* Pattern Texture */}
               <div 
@@ -97,15 +97,15 @@ export const ShareAmbitionModal: React.FC<ShareAmbitionModalProps> = ({ isOpen, 
               {/* Card Header with Logos */}
               <div className="flex items-center justify-between border-b border-white/15 pb-4 mb-6 relative z-10">
                 <div className="flex items-center gap-2.5">
-                  <RewaaLogo className="w-8 h-8 text-emerald-400" />
+                  <RewaaLogo className="w-8 h-8 text-gold-light" />
                   <div>
                     <p className="font-black text-white text-base leading-none">رِواء AI</p>
-                    <p className="text-[10px] text-emerald-300">صوت الجيل الرقمي</p>
+                    <p className="text-[10px] text-gold-light">صوت الجيل الرقمي</p>
                   </div>
                 </div>
 
                 <div className="text-left">
-                  <span className="px-3 py-1 bg-white/10 rounded-full text-[11px] font-bold text-emerald-200 border border-white/10">
+                  <span className="px-3 py-1 bg-white/10 rounded-full text-[11px] font-bold text-saudi-200 border border-white/10">
                     اليوم الوطني 96
                   </span>
                 </div>
@@ -113,25 +113,25 @@ export const ShareAmbitionModal: React.FC<ShareAmbitionModalProps> = ({ isOpen, 
 
               {/* Card Body - Ambition Text */}
               <div className="my-6 relative z-10">
-                <p className="text-lg sm:text-xl font-bold leading-relaxed text-emerald-50 mb-6">
+                <p className="text-lg sm:text-xl font-bold leading-relaxed text-saudi-50 mb-6">
                   "{ambition.text}"
                 </p>
 
                 <div className="flex items-center gap-3 pt-4 border-t border-white/10">
-                  <div className="w-10 h-10 rounded-full bg-emerald-700/80 border border-emerald-400/40 flex items-center justify-center font-black text-emerald-200">
+                  <div className="w-10 h-10 rounded-full bg-saudi-700/80 border border-gold-light/40 flex items-center justify-center font-black text-saudi-200">
                     {authorName.charAt(0)}
                   </div>
                   <div>
                     <h4 className="font-black text-white text-sm">{authorName}</h4>
-                    <p className="text-xs text-emerald-300">{authorRole}</p>
+                    <p className="text-xs text-gold-light">{authorRole}</p>
                   </div>
                 </div>
               </div>
 
               {/* Card Footer */}
-              <div className="pt-4 border-t border-white/15 flex items-center justify-between text-[11px] text-emerald-300/80 font-medium relative z-10">
+              <div className="pt-4 border-t border-white/15 flex items-center justify-between text-[11px] text-gold-light/80 font-medium relative z-10">
                 <span>كلية الأعمال والاقتصاد — جامعة القصيم</span>
-                <span className="font-mono text-emerald-400 font-bold">#صوتنا_يصنع_المستقبل</span>
+                <span className="font-mono text-gold-light font-bold">#صوتنا_يصنع_المستقبل</span>
               </div>
             </div>
 
@@ -139,7 +139,7 @@ export const ShareAmbitionModal: React.FC<ShareAmbitionModalProps> = ({ isOpen, 
             <div className="grid grid-cols-2 gap-3">
               <button
                 onClick={handleWhatsAppShare}
-                className="flex items-center justify-center gap-2 py-3.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-md transition-colors"
+                className="flex items-center justify-center gap-2 py-3.5 px-4 rounded-xl bg-saudi-600 hover:bg-saudi-700 text-white font-bold text-sm shadow-md transition-colors"
               >
                 <MessageCircle className="w-4 h-4" />
                 <span>واتساب</span>
@@ -149,7 +149,7 @@ export const ShareAmbitionModal: React.FC<ShareAmbitionModalProps> = ({ isOpen, 
                 onClick={handleCopyLink}
                 className="flex items-center justify-center gap-2 py-3.5 px-4 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold text-sm transition-colors"
               >
-                {copied ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
+                {copied ? <Check className="w-4 h-4 text-saudi-600" /> : <Copy className="w-4 h-4" />}
                 <span>{copied ? 'تم النسخ!' : 'نسخ النص'}</span>
               </button>
             </div>
@@ -158,7 +158,7 @@ export const ShareAmbitionModal: React.FC<ShareAmbitionModalProps> = ({ isOpen, 
             <div className="mt-3">
               <button
                 onClick={handleNativeShare}
-                className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-[#006C4F] font-bold text-sm transition-colors"
+                className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-saudi-50 hover:bg-saudi-100 text-saudi-700 font-bold text-sm transition-colors"
               >
                 <Share2 className="w-4 h-4" />
                 <span>خيارات مشاركة أخرى</span>

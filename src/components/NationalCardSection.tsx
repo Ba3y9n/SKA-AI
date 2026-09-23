@@ -3,10 +3,10 @@ import { motion } from 'framer-motion';
 
 export const NationalCardSection: React.FC = () => {
   return (
-    <section className="relative w-full py-28 bg-[#F8FBF8] overflow-hidden z-20">
+    <section className="relative w-full py-28 bg-saudi-100 overflow-hidden z-20">
       
       {/* Background Subtle Accent */}
-      <div className="absolute top-1/2 right-0 w-[500px] h-[500px] bg-emerald-100/40 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute top-1/2 right-0 w-[500px] h-[500px] bg-saudi-100/40 rounded-full blur-[120px] pointer-events-none" />
 
       <div className="max-w-7xl mx-auto px-6 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
@@ -19,15 +19,15 @@ export const NationalCardSection: React.FC = () => {
             transition={{ duration: 0.9, ease: "easeOut" }}
             className="lg:col-span-6 text-right"
           >
-            <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-emerald-50 border border-emerald-200/60 text-[#006C4F] text-sm font-bold mb-6">
-              <span className="w-2 h-2 rounded-full bg-[#008F68]" />
+            <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-saudi-50 border border-saudi-200/60 text-saudi-700 text-sm font-bold mb-6">
+              <span className="w-2 h-2 rounded-full bg-saudi-600" />
               اليوم الوطني السعودي 96
             </div>
 
-            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-black text-[#064C3B] leading-[1.25] mb-6 tracking-tight">
+            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-black text-saudi-700 leading-[1.25] mb-6 tracking-tight">
               عزّنا برؤيتنا،<br />
               وهمّتنا،<br />
-              <span className="text-[#008F68]">وأصالتنا التي لا تتغير.</span>
+              <span className="text-saudi-600">وأصالتنا التي لا تتغير.</span>
             </h2>
 
             <p className="text-lg md:text-xl text-gray-600 font-medium leading-relaxed max-w-xl">
@@ -36,12 +36,12 @@ export const NationalCardSection: React.FC = () => {
 
             <div className="mt-8 pt-8 border-t border-gray-200/70 flex items-center gap-6">
               <div>
-                <p className="text-2xl font-black text-[#064C3B]">96 عاماً</p>
+                <p className="text-2xl font-black text-saudi-700">96 عاماً</p>
                 <p className="text-sm font-bold text-gray-500">من المجد والنماء</p>
               </div>
               <div className="w-[1px] h-10 bg-gray-200" />
               <div>
-                <p className="text-2xl font-black text-[#008F68]">طموح 2030</p>
+                <p className="text-2xl font-black text-saudi-600">طموح 2030</p>
                 <p className="text-sm font-bold text-gray-500">بأيدي أبناء وبنات الوطن</p>
               </div>
             </div>
@@ -55,7 +55,7 @@ export const NationalCardSection: React.FC = () => {
             transition={{ duration: 1, ease: "easeOut" }}
             className="lg:col-span-6 w-full"
           >
-            <div className="relative rounded-[2.5rem] overflow-hidden shadow-[0_20px_50px_rgba(0,108,79,0.12)] border border-emerald-100 group">
+            <div className="relative rounded-[2.5rem] overflow-hidden shadow-[0_20px_50px_rgba(0,108,79,0.12)] border border-saudi-100 group">
               <img 
                 src="/media_1790129786646.jpg" 
                 alt="الهوية الوطنية السعودية 96" 

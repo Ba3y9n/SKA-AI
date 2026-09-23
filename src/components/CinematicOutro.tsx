@@ -4,7 +4,7 @@ import { RewaaLogo } from './RewaaLogo';
 
 export const CinematicOutro: React.FC = () => {
   return (
-    <section className="relative w-full py-40 bg-[#064C3B] overflow-hidden flex flex-col items-center justify-center text-center px-4 z-20">
+    <section className="relative w-full py-40 bg-saudi-700 overflow-hidden flex flex-col items-center justify-center text-center px-4 z-20">
       
       {/* Rewaa Final Appearance */}
       <motion.div 

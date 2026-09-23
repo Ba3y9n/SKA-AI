@@ -16,12 +16,12 @@ export const Header: React.FC<HeaderProps> = ({
     <header className="absolute top-0 left-0 w-full z-50 bg-transparent">
       <div className="max-w-6xl mx-auto px-6 py-6 flex items-center justify-between">
         
-        {/* Brand & Project Identity - Simplified with ND96 Logo */}
-        <div className="flex items-center gap-3">
+        {/* Brand & Project Identity */}
+        <div className="flex items-center gap-3 cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
           <img 
-            src="/nd96_logo.webp" 
-            alt="عزنا بطبعنا - اليوم الوطني 96" 
-            className="h-10 sm:h-12 object-contain drop-shadow-md" 
+            src="/logo.png" 
+            alt="شعار المنصة" 
+            className="h-10 sm:h-12 object-contain" 
           />
         </div>
 
@@ -32,7 +32,7 @@ export const Header: React.FC<HeaderProps> = ({
             onClick={onToggleVoice}
             className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-bold transition-all ${
               isAutoVoiceEnabled
-                ? 'bg-emerald-500/20 text-emerald-100 hover:bg-emerald-500/30'
+                ? 'bg-saudi-500/20 text-saudi-100 hover:bg-saudi-500/30'
                 : 'bg-white/10 text-gray-300 hover:bg-white/20'
             }`}
           >
@@ -42,7 +42,7 @@ export const Header: React.FC<HeaderProps> = ({
 
           <button
             onClick={onOpenAmbitionModal}
-            className="flex items-center gap-1.5 px-3 sm:px-5 py-1.5 sm:py-2.5 rounded-full text-xs sm:text-sm font-bold bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg transition-all transform hover:-translate-y-0.5"
+            className="flex items-center gap-1.5 px-3 sm:px-5 py-1.5 sm:py-2.5 rounded-full text-xs sm:text-sm font-bold bg-saudi-600 border border-gold hover:bg-saudi-700 hover:border-gold-light text-white shadow-lg transition-all transform hover:-translate-y-0.5"
           >
             <span className="hidden sm:inline">أضف طموحك</span>
             <span className="sm:hidden">طموحك</span>

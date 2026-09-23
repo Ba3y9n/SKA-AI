@@ -68,7 +68,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
   };
 
   return (
-    <div className="flex flex-col h-[460px] sm:h-[520px] w-full rounded-3xl bg-white border border-emerald-100 shadow-lg overflow-hidden">
+    <div className="flex flex-col h-[460px] sm:h-[520px] w-full rounded-3xl bg-white border border-saudi-100 shadow-lg overflow-hidden">
       
       {/* Audio Notice Banner if audio failed */}
       {audioNotice && (
@@ -109,8 +109,8 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
               <div
                 className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 border ${
                   isUser
-                    ? 'bg-emerald-700 border-emerald-800 text-white'
-                    : 'bg-white border-emerald-200 text-emerald-700 shadow-sm'
+                    ? 'bg-saudi-700 border-emerald-800 text-white'
+                    : 'bg-white border-saudi-200 text-saudi-700 shadow-sm'
                 }`}
               >
                 {isUser ? <User className="w-4 h-4" /> : <Sparkles className="w-4 h-4" />}
@@ -120,8 +120,8 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
               <div
                 className={`group relative max-w-[85%] sm:max-w-[75%] rounded-2xl px-4 py-3 text-sm leading-relaxed transition-all shadow-sm ${
                   isUser
-                    ? 'bg-emerald-700 text-white rounded-bl-sm'
-                    : 'bg-white border border-emerald-100 text-gray-800 rounded-br-sm'
+                    ? 'bg-saudi-700 text-white rounded-bl-sm'
+                    : 'bg-white border border-saudi-100 text-gray-800 rounded-br-sm'
                 }`}
               >
                 <div className="whitespace-pre-wrap">{msg.text}</div>
@@ -141,22 +141,22 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
                     {!isUser && (
                       <button
                         onClick={() => onReplayVoice(msg.text)}
-                        className="p-1 hover:text-emerald-700 rounded transition flex items-center gap-1"
+                        className="p-1 hover:text-saudi-700 rounded transition flex items-center gap-1"
                         title="استماع للرد صوتياً"
                         aria-label="استمع للرد صوتياً"
                       >
-                        <Volume2 className="w-3.5 h-3.5 text-emerald-700" />
+                        <Volume2 className="w-3.5 h-3.5 text-saudi-700" />
                         <span className="text-[10px]">استماع</span>
                       </button>
                     )}
                     <button
                       onClick={() => handleCopy(msg.text, msg.id)}
-                      className="p-1 hover:text-emerald-700 rounded transition"
+                      className="p-1 hover:text-saudi-700 rounded transition"
                       title="نسخ النص"
                       aria-label="نسخ نص الرسالة"
                     >
                       {copiedId === msg.id ? (
-                        <Check className="w-3.5 h-3.5 text-emerald-700" />
+                        <Check className="w-3.5 h-3.5 text-saudi-700" />
                       ) : (
                         <Copy className="w-3.5 h-3.5" />
                       )}
@@ -171,10 +171,10 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
         {/* Real-time speech transcript preview while listening */}
         {isListening && transcript && (
           <div className="flex items-end gap-2.5 flex-row-reverse animate-pulse">
-            <div className="w-8 h-8 rounded-full bg-emerald-700 border border-emerald-800 text-white flex items-center justify-center shrink-0">
-              <Mic className="w-4 h-4 text-emerald-200" />
+            <div className="w-8 h-8 rounded-full bg-saudi-700 border border-emerald-800 text-white flex items-center justify-center shrink-0">
+              <Mic className="w-4 h-4 text-saudi-200" />
             </div>
-            <div className="max-w-[80%] rounded-2xl px-4 py-2.5 text-sm bg-emerald-50 border border-emerald-200 text-emerald-900 italic">
+            <div className="max-w-[80%] rounded-2xl px-4 py-2.5 text-sm bg-saudi-50 border border-saudi-200 text-saudi-900 italic">
               {transcript}...
             </div>
           </div>
@@ -183,18 +183,18 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
         {/* Thinking Indicator */}
         {characterState === 'THINKING' && (
           <div className="flex items-center gap-2.5 flex-row">
-            <div className="w-8 h-8 rounded-full bg-white border border-emerald-200 text-emerald-700 flex items-center justify-center shrink-0 shadow-sm">
-              <Sparkles className="w-4 h-4 animate-spin text-emerald-700" />
+            <div className="w-8 h-8 rounded-full bg-white border border-saudi-200 text-saudi-700 flex items-center justify-center shrink-0 shadow-sm">
+              <Sparkles className="w-4 h-4 animate-spin text-saudi-700" />
             </div>
-            <div className="rounded-2xl px-4 py-3 bg-white border border-emerald-100 flex items-center gap-2 shadow-sm">
+            <div className="rounded-2xl px-4 py-3 bg-white border border-saudi-100 flex items-center gap-2 shadow-sm">
               <span className="text-xs text-emerald-800 font-semibold ml-1">رِواء تفكر وتستحضر الرد</span>
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-bounce" />
+              <span className="w-1.5 h-1.5 rounded-full bg-saudi-600 animate-bounce" />
               <span
-                className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-bounce"
+                className="w-1.5 h-1.5 rounded-full bg-saudi-600 animate-bounce"
                 style={{ animationDelay: '0.2s' }}
               />
               <span
-                className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-bounce"
+                className="w-1.5 h-1.5 rounded-full bg-saudi-600 animate-bounce"
                 style={{ animationDelay: '0.4s' }}
               />
             </div>
@@ -205,7 +205,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
       {/* Input Bar Form */}
       <form
         onSubmit={handleSubmit}
-        className="p-3 sm:p-4 bg-white border-t border-emerald-100 flex items-center gap-2.5"
+        className="p-3 sm:p-4 bg-white border-t border-saudi-100 flex items-center gap-2.5"
       >
         {/* Voice Microphone Button */}
         <button
@@ -215,7 +215,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
           className={`relative p-3.5 rounded-2xl flex items-center justify-center transition-all transform active:scale-95 disabled:opacity-50 ${
             isListening
               ? 'bg-red-600 hover:bg-red-700 text-white shadow-lg shadow-red-200 ring-4 ring-red-100'
-              : 'bg-emerald-700 hover:bg-emerald-800 text-white shadow-md shadow-emerald-100'
+              : 'bg-saudi-700 hover:bg-emerald-800 text-white shadow-md shadow-saudi-100'
           }`}
           title={isListening ? 'إيقاف الاستماع' : 'تحدث صوتياً بالميكروفون'}
           aria-label={isListening ? 'إيقاف الاستماع الصوتي' : 'بدء التحدث بالصوت'}
@@ -243,7 +243,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
                 ? 'جاري الاستماع لصوتك...'
                 : 'اكتب سؤالك أو تحدث صوتياً بالميكروفون...'
             }
-            className="w-full bg-slate-50 border border-emerald-100 focus:border-emerald-600 focus:bg-white focus:ring-2 focus:ring-emerald-100 rounded-2xl px-4 py-3 text-sm text-gray-800 placeholder-gray-400 outline-none transition-all disabled:opacity-50"
+            className="w-full bg-slate-50 border border-saudi-100 focus:border-saudi-600 focus:bg-white focus:ring-2 focus:ring-saudi-100 rounded-2xl px-4 py-3 text-sm text-gray-800 placeholder-gray-400 outline-none transition-all disabled:opacity-50"
             aria-label="اكتب سؤالك للشخصية الافتراضية"
           />
         </div>
@@ -252,7 +252,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
         <button
           type="submit"
           disabled={!inputText.trim() || characterState === 'THINKING'}
-          className="p-3.5 rounded-2xl bg-emerald-700 hover:bg-emerald-800 disabled:bg-gray-100 disabled:text-gray-400 text-white transition-all transform active:scale-95 shadow-sm"
+          className="p-3.5 rounded-2xl bg-saudi-700 hover:bg-emerald-800 disabled:bg-gray-100 disabled:text-gray-400 text-white transition-all transform active:scale-95 shadow-sm"
           title="إرسال الرسالة"
           aria-label="إرسال الرسالة"
         >

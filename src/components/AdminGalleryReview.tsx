@@ -121,13 +121,13 @@ export const AdminGalleryReview: React.FC<AdminGalleryReviewProps> = ({ onBackTo
   // Render Authentication Pin Gate if not logged in
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-[#F8FBF8] text-[#064C3B] font-arabic antialiased flex items-center justify-center p-4">
+      <div className="min-h-screen bg-saudi-100 text-saudi-700 font-arabic antialiased flex items-center justify-center p-4">
         <div className="bg-white rounded-3xl p-8 sm:p-10 border border-gray-200 shadow-2xl max-w-md w-full text-right relative overflow-hidden">
-          <div className="w-14 h-14 bg-emerald-50 text-[#008F68] rounded-2xl flex items-center justify-center mb-6 mx-auto">
+          <div className="w-14 h-14 bg-saudi-50 text-saudi-600 rounded-2xl flex items-center justify-center mb-6 mx-auto">
             <KeyRound className="w-7 h-7" />
           </div>
 
-          <h2 className="text-2xl font-black text-[#064C3B] text-center mb-2">لوحة مراجعة المشرف</h2>
+          <h2 className="text-2xl font-black text-saudi-700 text-center mb-2">لوحة مراجعة المشرف</h2>
           <p className="text-xs text-gray-500 text-center mb-8">يرجى إدخال رمز التحقق الخاص بمشرف المعرض للمتابعة</p>
 
           <form onSubmit={handleLogin} className="space-y-4">
@@ -138,7 +138,7 @@ export const AdminGalleryReview: React.FC<AdminGalleryReviewProps> = ({ onBackTo
                 value={pinInput}
                 onChange={(e) => setPinInput(e.target.value)}
                 placeholder="أدخل كلمة المرور الخاصة بالمشرف"
-                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-center text-base font-mono text-gray-900 focus:border-[#008F68] outline-none"
+                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-center text-base font-mono text-gray-900 focus:border-saudi-600 outline-none"
                 autoFocus
               />
             </div>
@@ -149,7 +149,7 @@ export const AdminGalleryReview: React.FC<AdminGalleryReviewProps> = ({ onBackTo
 
             <button
               type="submit"
-              className="w-full py-3.5 rounded-xl bg-[#008F68] hover:bg-[#064C3B] text-white font-black text-sm shadow-md transition-colors"
+              className="w-full py-3.5 rounded-xl bg-saudi-600 hover:bg-saudi-700 text-white font-black text-sm shadow-md transition-colors"
             >
               تسجيل الدخول للوحة
             </button>
@@ -158,7 +158,7 @@ export const AdminGalleryReview: React.FC<AdminGalleryReviewProps> = ({ onBackTo
           <div className="mt-6 pt-6 border-t border-gray-100 text-center">
             <button
               onClick={onBackToSite}
-              className="text-xs font-bold text-gray-500 hover:text-[#008F68] transition-colors"
+              className="text-xs font-bold text-gray-500 hover:text-saudi-600 transition-colors"
             >
               العودة إلى الموقع الرئيسي
             </button>
@@ -169,7 +169,7 @@ export const AdminGalleryReview: React.FC<AdminGalleryReviewProps> = ({ onBackTo
   }
 
   return (
-    <div className="min-h-screen bg-[#F8FBF8] text-[#064C3B] font-arabic antialiased selection:bg-[#008F68] selection:text-white pb-24">
+    <div className="min-h-screen bg-saudi-100 text-saudi-700 font-arabic antialiased selection:bg-saudi-600 selection:text-white pb-24">
       
       {/* Top Navbar */}
       <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-gray-200 shadow-sm">
@@ -187,8 +187,8 @@ export const AdminGalleryReview: React.FC<AdminGalleryReviewProps> = ({ onBackTo
             <div className="h-6 w-px bg-gray-200 hidden sm:block" />
 
             <div className="flex items-center gap-2">
-              <ShieldCheck className="w-5 h-5 text-[#008F68]" />
-              <h1 className="text-base sm:text-lg font-black text-[#064C3B]">لوحة مراجعة معرض اليوم الوطني</h1>
+              <ShieldCheck className="w-5 h-5 text-saudi-600" />
+              <h1 className="text-base sm:text-lg font-black text-saudi-700">لوحة مراجعة معرض اليوم الوطني</h1>
             </div>
           </div>
 
@@ -219,19 +219,19 @@ export const AdminGalleryReview: React.FC<AdminGalleryReviewProps> = ({ onBackTo
         
         {/* Supervisor Notification Banner */}
         {pendingCount > 0 && (
-          <div className="mb-8 p-5 rounded-2xl bg-[#064C3B] text-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xl">
+          <div className="mb-8 p-5 rounded-2xl bg-saudi-700 text-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xl">
             <div className="flex items-center gap-3.5">
-              <div className="w-11 h-11 rounded-full bg-emerald-500/20 border border-emerald-400/30 flex items-center justify-center shrink-0">
-                <Bell className="w-5 h-5 text-emerald-300" />
+              <div className="w-11 h-11 rounded-full bg-saudi-500/20 border border-gold-light/30 flex items-center justify-center shrink-0">
+                <Bell className="w-5 h-5 text-gold-light" />
               </div>
               <div>
                 <h2 className="text-base font-bold text-white">وصلت صورة جديدة للمراجعة في معرض اليوم الوطني.</h2>
-                <p className="text-xs text-emerald-200 mt-0.5">يوجد حالياً {pendingCount} صورة بانتظار الاعتماد من قِبلك.</p>
+                <p className="text-xs text-saudi-200 mt-0.5">يوجد حالياً {pendingCount} صورة بانتظار الاعتماد من قِبلك.</p>
               </div>
             </div>
             <button
               onClick={() => setActiveTab('pending')}
-              className="px-5 py-2.5 rounded-xl bg-white text-[#064C3B] font-bold text-xs hover:bg-emerald-50 transition-colors shrink-0 shadow-sm"
+              className="px-5 py-2.5 rounded-xl bg-white text-saudi-700 font-bold text-xs hover:bg-saudi-50 transition-colors shrink-0 shadow-sm"
             >
               عرض الصور المنتظرة ({pendingCount})
             </button>
@@ -245,7 +245,7 @@ export const AdminGalleryReview: React.FC<AdminGalleryReviewProps> = ({ onBackTo
               onClick={() => setActiveTab('pending')}
               className={`flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all ${
                 activeTab === 'pending'
-                  ? 'bg-[#008F68] text-white shadow-md'
+                  ? 'bg-saudi-600 text-white shadow-md'
                   : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
               }`}
             >
@@ -262,7 +262,7 @@ export const AdminGalleryReview: React.FC<AdminGalleryReviewProps> = ({ onBackTo
               onClick={() => setActiveTab('approved')}
               className={`flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all ${
                 activeTab === 'approved'
-                  ? 'bg-[#064C3B] text-white shadow-md'
+                  ? 'bg-saudi-700 text-white shadow-md'
                   : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
               }`}
             >
@@ -310,7 +310,7 @@ export const AdminGalleryReview: React.FC<AdminGalleryReviewProps> = ({ onBackTo
             {filteredSubmissions.map((sub) => {
               const statusLabels: Record<GallerySubmissionStatus, { label: string; class: string }> = {
                 pending: { label: 'قيد المراجعة', class: 'bg-amber-100 text-amber-900 border-amber-200' },
-                approved: { label: 'تم اعتماد الصورة', class: 'bg-emerald-100 text-emerald-900 border-emerald-200' },
+                approved: { label: 'تم اعتماد الصورة', class: 'bg-saudi-100 text-saudi-900 border-saudi-200' },
                 rejected: { label: 'تم رفض الصورة', class: 'bg-red-100 text-red-900 border-red-200' },
                 deleted: { label: 'محذوفة', class: 'bg-gray-100 text-gray-700 border-gray-200' }
               };
@@ -349,7 +349,7 @@ export const AdminGalleryReview: React.FC<AdminGalleryReviewProps> = ({ onBackTo
                   {/* Details */}
                   <div className="p-5 text-right flex-1 flex flex-col justify-between">
                     <div>
-                      <p className="text-sm font-bold text-[#064C3B] mb-2 leading-relaxed">
+                      <p className="text-sm font-bold text-saudi-700 mb-2 leading-relaxed">
                         {sub.description || 'بدون وصف إضافي'}
                       </p>
                       
@@ -367,7 +367,7 @@ export const AdminGalleryReview: React.FC<AdminGalleryReviewProps> = ({ onBackTo
                         <>
                           <button
                             onClick={() => handleApprove(sub.id)}
-                            className="flex-1 inline-flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-[#008F68] hover:bg-[#064C3B] text-white font-bold text-xs transition-colors shadow-sm"
+                            className="flex-1 inline-flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-saudi-600 hover:bg-saudi-700 text-white font-bold text-xs transition-colors shadow-sm"
                           >
                             <Check className="w-4 h-4" />
                             <span>موافقة</span>
@@ -385,7 +385,7 @@ export const AdminGalleryReview: React.FC<AdminGalleryReviewProps> = ({ onBackTo
                       {sub.status === 'rejected' && (
                         <button
                           onClick={() => handleApprove(sub.id)}
-                          className="flex-1 inline-flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-[#008F68] hover:bg-[#064C3B] text-white font-bold text-xs transition-colors"
+                          className="flex-1 inline-flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-saudi-600 hover:bg-saudi-700 text-white font-bold text-xs transition-colors"
                         >
                           <Check className="w-4 h-4" />
                           <span>إعادة اعتماد</span>
