@@ -1,197 +1,326 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { peopleData, PersonAchievement } from '../data/achievementsData';
-import { ChevronLeft, ExternalLink, Link2, X } from 'lucide-react';
+import { ChevronDown, Plus, Trash2, ImagePlus, X } from 'lucide-react';
+
+interface UserAchievement extends Omit<PersonAchievement, 'id'> {
+  id: string;
+  isUserAdded: boolean;
+  userImage?: string;
+}
 
 export const AchievementsTimeline: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'students' | 'faculty'>('students');
-  const [filterMajor, setFilterMajor] = useState<string>('الكل');
-  const [filterType, setFilterType] = useState<string>('الكل');
-  const [filterYear, setFilterYear] = useState<string>('الكل');
-  const [selectedPerson, setSelectedPerson] = useState<PersonAchievement | null>(null);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [userAchievements, setUserAchievements] = useState<UserAchievement[]>([]);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
-  const validPeople = useMemo(() => peopleData.filter(p => p.source.verified), []);
-  const students = useMemo(() => validPeople.filter(p => p.classification === 'طالبة' || p.classification === 'خريجة'), [validPeople]);
-  const faculty = useMemo(() => validPeople.filter(p => p.classification === 'دكتورة' || p.classification === 'عضو هيئة تدريس'), [validPeople]);
+  // New Achievement Form State
+  const [newName, setNewName] = useState('');
+  const [newMajor, setNewMajor] = useState('');
+  const [newType, setNewType] = useState('');
+  const [newDesc, setNewDesc] = useState('');
+  const [newImage, setNewImage] = useState<string | undefined>();
+
+  useEffect(() => {
+    const saved = localStorage.getItem('user_achievements');
+    if (saved) {
+      try {
+        setUserAchievements(JSON.parse(saved));
+      } catch (e) {
+        console.error('Failed to parse user achievements');
+      }
+    }
+  }, []);
+
+  const saveUserAchievements = (achievements: UserAchievement[]) => {
+    setUserAchievements(achievements);
+    try {
+      localStorage.setItem('user_achievements', JSON.stringify(achievements));
+    } catch (e) {
+      alert('مساحة التخزين ممتلئة.');
+    }
+  };
+
+  const allAchievements = useMemo(() => {
+    const base: UserAchievement[] = peopleData.filter(p => p.source.verified).map(p => ({ ...p, isUserAdded: false }));
+    return [...userAchievements, ...base];
+  }, [userAchievements]);
+
+  const students = useMemo(() => allAchievements.filter(p => p.classification === 'طالبة' || p.classification === 'خريجة'), [allAchievements]);
+  const faculty = useMemo(() => allAchievements.filter(p => p.classification === 'دكتورة' || p.classification === 'عضو هيئة تدريس'), [allAchievements]);
   
   const currentList = activeTab === 'students' ? students : faculty;
-  
-  const filteredList = useMemo(() => {
-    return currentList.filter(p => {
-      const matchMajor = filterMajor === 'الكل' || p.major === filterMajor;
-      const matchType = filterType === 'الكل' || p.type === filterType;
-      const matchYear = filterYear === 'الكل' || p.year === filterYear;
-      return matchMajor && matchType && matchYear;
-    });
-  }, [currentList, filterMajor, filterType, filterYear]);
 
-  const uniqueMajors = ['الكل', ...Array.from(new Set(currentList.map(p => p.major)))];
-  const uniqueTypes = ['الكل', ...Array.from(new Set(currentList.map(p => p.type)))];
-  const uniqueYears = ['الكل', '2026', '2025', '2024', '2023'];
+  const handleAddSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newName || !newMajor || !newDesc) return;
+
+    const newAch: UserAchievement = {
+      id: 'usr_' + Date.now(),
+      nameAr: newName,
+      nameEn: '',
+      classification: activeTab === 'students' ? 'طالبة' : 'عضو هيئة تدريس',
+      major: newMajor,
+      type: newType || 'إنجاز عام',
+      achievementTitle: newType || 'إنجاز',
+      year: new Date().getFullYear().toString(),
+      description: newDesc,
+      source: { 
+        sourceType: 'user', 
+        sourceName: 'User Added', 
+        verified: true, 
+        dateVerified: new Date().toISOString() 
+      },
+      isUserAdded: true,
+      userImage: newImage
+    };
+
+    saveUserAchievements([newAch, ...userAchievements]);
+    setIsAddModalOpen(false);
+    setNewName(''); setNewMajor(''); setNewType(''); setNewDesc(''); setNewImage(undefined);
+  };
+
+  const handleDelete = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    saveUserAchievements(userAchievements.filter(a => a.id !== id));
+  };
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => setNewImage(reader.result as string);
+      reader.readAsDataURL(file);
+    }
+  };
 
   return (
-    <section className="relative w-full py-32 bg-[#F8FBF8] overflow-hidden z-20 font-sans" id="achievements">
+    <section className="relative w-full py-32 bg-white overflow-hidden z-20 border-t border-gray-100" id="achievements">
       
-      {/* Background Decor */}
-      <div className="absolute top-0 right-0 w-full h-full opacity-50 pointer-events-none bg-[radial-gradient(ellipse_at_top_right,_#DDF5EA_0%,_transparent_50%)]" />
-
       {/* Header */}
-      <div className="max-w-7xl mx-auto px-6 mb-16 text-center lg:text-right relative z-10">
-        <h2 className="text-4xl md:text-6xl font-black text-[#064C3B] mb-4">طالبات ودكتورات كلية الأعمال والاقتصاد</h2>
-        <p className="text-xl md:text-2xl text-[#008F68] font-bold">وجوه صنعت أثرًا... وإنجازات تستحق أن تُروى.</p>
+      <div className="max-w-4xl mx-auto px-6 mb-16 text-center relative z-10">
+        <motion.h2 
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="text-4xl md:text-5xl font-black text-[#064C3B] mb-6 leading-tight"
+        >
+          أصوات صنعت أثرًا... وإنجازات تستحق أن تُروى
+        </motion.h2>
+        <motion.p 
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ delay: 0.1 }}
+          className="text-xl text-[#008F68] font-medium leading-relaxed"
+        >
+          مساحة تحتفي بإنجازات طالبات كلية الأعمال والاقتصاد، وتجارب عضوات هيئة التدريس وإسهاماتهن.
+        </motion.p>
       </div>
 
-      {/* Stats - Elegant */}
-      <div className="max-w-7xl mx-auto px-6 mb-16 relative z-10">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 bg-white rounded-[2rem] p-8 border border-[#DDF5EA] shadow-[0_10px_40px_rgba(0,143,104,0.05)]">
+      {/* Interactive Stats */}
+      <div className="max-w-5xl mx-auto px-6 mb-20 relative z-10">
+        <div className="flex flex-wrap justify-center gap-8 md:gap-16">
           {[
-            { label: 'الطالبات والخريجات', value: students.length },
-            { label: 'عضوات هيئة التدريس', value: faculty.length },
-            { label: 'إنجازات موثقة', value: validPeople.length },
-            { label: 'مجالات التخصص', value: new Set(validPeople.map(p => p.major)).size }
+            { label: 'طالبة وخريجة', value: students.length },
+            { label: 'دكتورة وعضوة هيئة تدريس', value: faculty.length },
+            { label: 'إجمالي الإنجازات', value: allAchievements.length },
+            { label: 'تخصصات', value: new Set(allAchievements.map(a => a.major)).size }
           ].map((stat, i) => (
-            <div key={i} className="flex flex-col items-center text-center border-l last:border-0 border-gray-100">
-              <span className="text-4xl font-black text-[#008F68] mb-1">{stat.value}</span>
-              <span className="text-sm font-bold text-gray-500">{stat.label}</span>
-            </div>
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.8 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true }}
+              transition={{ delay: i * 0.1, type: "spring" }}
+              key={i} 
+              className="text-center flex flex-col items-center"
+            >
+              <span className="text-5xl md:text-6xl font-black text-[#008F68] mb-2 drop-shadow-sm">{stat.value}</span>
+              <span className="text-sm md:text-base font-bold text-gray-500">{stat.label}</span>
+            </motion.div>
           ))}
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="max-w-7xl mx-auto px-6 mb-10 relative z-10">
-        <div className="flex flex-wrap gap-6 border-b border-gray-200 pb-4">
+      <div className="max-w-5xl mx-auto px-6 mb-12 relative z-10 flex justify-center">
+        <div className="flex bg-[#F8FBF8] p-2 rounded-full border border-gray-200 shadow-sm relative">
+          <div 
+            className="absolute top-2 bottom-2 w-[50%] bg-white rounded-full shadow-sm border border-gray-100 transition-all duration-500 ease-out"
+            style={{ left: activeTab === 'students' ? '2%' : '48%', width: '48%' }}
+          />
           <button
-            onClick={() => { setActiveTab('students'); setFilterMajor('الكل'); setFilterType('الكل'); setFilterYear('الكل'); }}
-            className={`text-2xl md:text-3xl font-black transition-all ${activeTab === 'students' ? 'text-[#064C3B]' : 'text-gray-400 hover:text-gray-600'}`}
+            onClick={() => setActiveTab('students')}
+            className={`relative z-10 px-8 py-3 rounded-full text-lg md:text-xl font-bold transition-colors duration-300 w-48 md:w-64 ${activeTab === 'students' ? 'text-[#064C3B]' : 'text-gray-400 hover:text-gray-600'}`}
           >
             الطالبات والخريجات
           </button>
-          <span className="text-2xl md:text-3xl text-gray-300 font-black">/</span>
           <button
-            onClick={() => { setActiveTab('faculty'); setFilterMajor('الكل'); setFilterType('الكل'); setFilterYear('الكل'); }}
-            className={`text-2xl md:text-3xl font-black transition-all ${activeTab === 'faculty' ? 'text-[#064C3B]' : 'text-gray-400 hover:text-gray-600'}`}
+            onClick={() => setActiveTab('faculty')}
+            className={`relative z-10 px-8 py-3 rounded-full text-lg md:text-xl font-bold transition-colors duration-300 w-48 md:w-64 ${activeTab === 'faculty' ? 'text-[#064C3B]' : 'text-gray-400 hover:text-gray-600'}`}
           >
             الدكتورات وعضوات هيئة التدريس
           </button>
         </div>
       </div>
 
-      {/* Grid Cards - Editorial */}
-      <div className="max-w-7xl mx-auto px-6 relative z-10">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          <AnimatePresence mode="popLayout">
-            {filteredList.map((person) => (
-              <motion.div
-                layout
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                key={person.id}
-                onClick={() => setSelectedPerson(person)}
-                className="group bg-white rounded-[2rem] p-8 border border-emerald-50 shadow-sm hover:shadow-xl hover:border-emerald-100 transition-all duration-300 cursor-pointer flex flex-col h-full hover:-translate-y-2 relative overflow-hidden"
-              >
-                {/* Decorative accent */}
-                <div className="absolute top-0 right-0 w-20 h-20 bg-emerald-50 rounded-bl-[4rem] -z-0 transition-transform group-hover:scale-125" />
-                
-                <div className="relative z-10 flex items-center justify-between mb-8">
-                  <div>
-                    <h4 className="font-black text-[#064C3B] text-2xl mb-1">{person.nameAr}</h4>
-                    <p className="text-sm text-[#008F68] font-bold">{person.major}</p>
-                  </div>
-                  <div className="w-14 h-14 rounded-full bg-[#F8FBF8] border border-[#DDF5EA] flex items-center justify-center text-[#008F68] font-black text-xl shadow-inner group-hover:scale-110 transition-transform">
-                    {person.nameAr.charAt(0)}
-                  </div>
-                </div>
-
-                <div className="relative z-10 flex-1">
-                  <span className="inline-block px-3 py-1 bg-emerald-50 text-[#006C4F] rounded-full text-[11px] font-black tracking-wide mb-4">
-                    {person.classification}
-                  </span>
-                  <h5 className="font-bold text-gray-800 text-lg leading-snug">
-                    {person.achievementTitle}
-                  </h5>
-                </div>
-
-                <div className="relative z-10 mt-8 pt-6 border-t border-gray-50 flex items-center justify-between">
-                  <span className="text-sm font-black text-gray-400">{person.year}</span>
-                  <span className="text-sm font-bold text-[#008F68] flex items-center gap-1 group-hover:translate-x-[-4px] transition-transform">
-                    عرض التفاصيل <ChevronLeft className="w-4 h-4" />
-                  </span>
-                </div>
-              </motion.div>
-            ))}
-          </AnimatePresence>
-        </div>
+      {/* Add Button */}
+      <div className="max-w-4xl mx-auto px-6 mb-10 text-left">
+        <button 
+          onClick={() => setIsAddModalOpen(true)}
+          className="inline-flex items-center gap-2 px-6 py-3 bg-[#008F68] hover:bg-[#064C3B] text-white rounded-full font-bold transition-colors shadow-md hover:shadow-lg"
+        >
+          <Plus className="w-5 h-5" />
+          إضافة إنجاز جديد
+        </button>
       </div>
 
-      {/* Modal / Story View */}
-      <AnimatePresence>
-        {selectedPerson && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-6 bg-black/40 backdrop-blur-sm"
-            onClick={() => setSelectedPerson(null)}
-          >
-            <motion.div
-              initial={{ scale: 0.95, y: 30 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.95, y: 30 }}
-              onClick={e => e.stopPropagation()}
-              className="bg-white w-full max-w-4xl rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col md:flex-row max-h-[90vh] relative"
-            >
-              <button 
-                onClick={() => setSelectedPerson(null)}
-                className="absolute top-6 left-6 z-20 w-10 h-10 flex items-center justify-center rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
+      {/* Interactive List */}
+      <div className="max-w-4xl mx-auto px-6 relative z-10 min-h-[400px]">
+        <AnimatePresence mode="popLayout">
+          {currentList.map((person, index) => {
+            const isExpanded = expandedId === person.id;
+            return (
+              <motion.div
+                layout
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-5%" }}
+                transition={{ duration: 0.5, delay: (index % 5) * 0.1 }}
+                key={person.id}
+                onClick={() => setExpandedId(isExpanded ? null : person.id)}
+                className={`group mb-4 rounded-3xl border transition-all duration-300 cursor-pointer overflow-hidden ${isExpanded ? 'bg-[#F8FBF8] border-[#008F68] shadow-lg' : 'bg-white border-gray-100 shadow-sm hover:shadow-md hover:border-[#DDF5EA]'}`}
               >
-                <X className="w-5 h-5" />
-              </button>
-
-              <div className="bg-[#F8FBF8] p-8 md:p-12 md:w-1/3 flex flex-col items-center text-center border-b md:border-b-0 md:border-l border-emerald-50">
-                <div className="w-32 h-32 rounded-full bg-white border border-[#DDF5EA] shadow-md flex items-center justify-center text-[#008F68] font-black text-5xl mb-6">
-                  {selectedPerson.nameAr.charAt(0)}
+                <div className="p-6 md:p-8 flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-6">
+                    {/* Avatar or Uploaded Image */}
+                    <div className="w-16 h-16 shrink-0 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center overflow-hidden">
+                      {person.userImage ? (
+                        <img src={person.userImage} alt={person.nameAr} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                      ) : (
+                        <span className="text-[#008F68] font-black text-2xl">{person.nameAr.charAt(0)}</span>
+                      )}
+                    </div>
+                    <div>
+                      <h3 className={`font-black transition-colors ${isExpanded ? 'text-[#064C3B] text-2xl' : 'text-gray-800 text-xl group-hover:text-[#008F68]'}`}>
+                        {person.nameAr}
+                      </h3>
+                      <div className="flex flex-wrap gap-2 mt-2 items-center">
+                        <span className="text-[#008F68] font-bold text-sm">{person.major}</span>
+                        <span className="w-1 h-1 rounded-full bg-gray-300" />
+                        <span className="text-gray-500 font-medium text-sm">{person.type || person.achievementTitle}</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-4">
+                    {person.isUserAdded && (
+                      <button 
+                        onClick={(e) => handleDelete(person.id, e)}
+                        className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors"
+                        title="حذف"
+                      >
+                        <Trash2 className="w-5 h-5" />
+                      </button>
+                    )}
+                    <motion.div animate={{ rotate: isExpanded ? 180 : 0 }} className="text-gray-400">
+                      <ChevronDown className="w-6 h-6" />
+                    </motion.div>
+                  </div>
                 </div>
-                <h3 className="text-3xl font-black text-[#064C3B] mb-2">{selectedPerson.nameAr}</h3>
-                {selectedPerson.nameEn && <p className="text-sm font-bold text-gray-400 mb-4">{selectedPerson.nameEn}</p>}
-                <span className="px-4 py-1.5 bg-emerald-100 text-[#006C4F] rounded-full text-sm font-bold mb-2">
-                  {selectedPerson.classification}
-                </span>
-                <p className="text-[#008F68] font-bold">{selectedPerson.major}</p>
-              </div>
 
-              <div className="p-8 md:p-12 md:w-2/3 overflow-y-auto">
-                <div className="flex items-center gap-3 mb-6">
-                  <span className="px-4 py-1.5 bg-gray-100 text-gray-600 rounded-full text-sm font-black border border-gray-200">
-                    {selectedPerson.year}
-                  </span>
-                  <span className="text-sm font-bold text-gray-400">{selectedPerson.type}</span>
-                </div>
-                
-                <h4 className="text-2xl md:text-3xl font-black text-gray-900 mb-6">{selectedPerson.achievementTitle}</h4>
-
-                <div className="mb-10">
-                  <p className="text-gray-600 leading-loose text-lg font-medium">
-                    {selectedPerson.description}
-                  </p>
-                </div>
-
-                <div className="flex flex-wrap gap-4 pt-8 border-t border-gray-100">
-                  {selectedPerson.linkedIn && (
-                    <a href={selectedPerson.linkedIn} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-blue-50 text-blue-700 hover:bg-blue-100 font-bold text-sm transition">
-                      <ExternalLink className="w-4 h-4" /> عرض في LinkedIn
-                    </a>
+                <AnimatePresence>
+                  {isExpanded && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      className="px-6 md:px-8 pb-8 overflow-hidden"
+                    >
+                      <div className="pt-6 border-t border-gray-200">
+                        <p className="text-gray-700 leading-loose text-lg font-medium">
+                          {person.description}
+                        </p>
+                      </div>
+                    </motion.div>
                   )}
-                  {selectedPerson.officialSource && (
-                    <a href={selectedPerson.officialSource} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-emerald-50 text-[#008F68] hover:bg-emerald-100 font-bold text-sm transition">
-                      <Link2 className="w-4 h-4" /> المصدر الرسمي
-                    </a>
-                  )}
+                </AnimatePresence>
+              </motion.div>
+            );
+          })}
+          
+          {currentList.length === 0 && (
+            <div className="text-center py-20 text-gray-400 font-bold">لا توجد إنجازات مضافة بعد.</div>
+          )}
+        </AnimatePresence>
+      </div>
+
+      {/* Outro Text */}
+      <div className="max-w-3xl mx-auto px-6 mt-32 text-center relative z-10">
+        <motion.p 
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="text-2xl md:text-4xl font-black text-[#064C3B] leading-relaxed drop-shadow-sm"
+        >
+          كل إنجاز حكاية،<br />
+          وكل حكاية صوت يستحق أن يُسمع.
+        </motion.p>
+      </div>
+
+      {/* Add Modal */}
+      <AnimatePresence>
+        {isAddModalOpen && (
+          <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-[#064C3B]/60 backdrop-blur-md"
+              onClick={() => setIsAddModalOpen(false)}
+            />
+            
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="relative bg-white w-full max-w-xl rounded-3xl p-8 shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto"
+            >
+              <button onClick={() => setIsAddModalOpen(false)} className="absolute top-6 left-6 text-gray-400 hover:text-[#064C3B]"><X className="w-6 h-6" /></button>
+              <h3 className="text-2xl font-black text-[#064C3B] mb-6">إضافة إنجاز جديد</h3>
+              
+              <form onSubmit={handleAddSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-1">الاسم</label>
+                  <input type="text" required value={newName} onChange={e => setNewName(e.target.value)} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-900 focus:border-[#008F68] outline-none" />
                 </div>
-              </div>
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-1">التخصص</label>
+                  <input type="text" required value={newMajor} onChange={e => setNewMajor(e.target.value)} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-900 focus:border-[#008F68] outline-none" />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-1">نوع الإنجاز (اختياري)</label>
+                  <input type="text" placeholder="مثال: بحث علمي، جائزة، مبادرة..." value={newType} onChange={e => setNewType(e.target.value)} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-900 focus:border-[#008F68] outline-none" />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-1">نبذة عن الإنجاز</label>
+                  <textarea required rows={3} value={newDesc} onChange={e => setNewDesc(e.target.value)} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-900 focus:border-[#008F68] outline-none resize-none" />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-1">صورة للإنجاز (اختياري)</label>
+                  <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:bg-gray-50 hover:border-[#008F68] transition-colors">
+                    {newImage ? (
+                      <img src={newImage} alt="Preview" className="h-full object-contain py-2" />
+                    ) : (
+                      <div className="flex flex-col items-center">
+                        <ImagePlus className="w-6 h-6 text-gray-400 mb-2" />
+                        <span className="text-sm text-gray-500">اضغط لرفع صورة</span>
+                      </div>
+                    )}
+                    <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
+                  </label>
+                </div>
+                <button type="submit" className="w-full bg-[#008F68] text-white font-black py-4 rounded-xl mt-4 hover:bg-[#064C3B] transition-colors shadow-lg">إضافة الإنجاز</button>
+              </form>
             </motion.div>
-          </motion.div>
+          </div>
         )}
       </AnimatePresence>
 

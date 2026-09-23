@@ -84,14 +84,14 @@ const App: React.FC = () => {
       {/* 5. User Uploaded Gallery */}
       <UserGallery />
 
-      {/* 6. Achievements Gallery */}
-      <AchievementsTimeline />
-
-      {/* 7. Future Ambitions Wall */}
+      {/* 6. Future Ambitions Wall */}
       <FutureVisionBoard 
         ambitions={ambitions} 
         onAddClick={() => setIsAmbitionModalOpen(true)} 
       />
+
+      {/* 7. Achievements Section (Interactive & Editable) */}
+      <AchievementsTimeline />
 
       {/* 8. Footer */}
       <Footer />
