@@ -109,9 +109,9 @@ const App: React.FC = () => {
       <CinematicHero />
 
       {/* Decorative Golden Divider */}
-      <div className="w-full flex justify-center py-4 bg-saudi-100 relative z-20">
+      <div className="w-full flex justify-center py-8 bg-saudi-100 relative z-20">
         <div 
-          className="w-11/12 max-w-4xl h-4 sm:h-5 opacity-90" 
+          className="w-11/12 max-w-4xl h-12 sm:h-20 opacity-90" 
           style={{ 
             backgroundImage: "url('/gold-border.png')", 
             backgroundRepeat: 'repeat-x', 
