@@ -195,7 +195,7 @@ export function useGeminiChat() {
     // Unlock AudioContext immediately upon user click
     audioPlayer.initAudioContext();
 
-    if (isListening || isVoiceSessionActive) {
+    if (isListening || isVoiceSessionActive || characterState === 'THINKING' || characterState === 'SPEAKING') {
       setIsVoiceSessionActive(false);
       stopListening();
       audioPlayer.stop();
@@ -208,7 +208,7 @@ export function useGeminiChat() {
       setCharacterState('LISTENING');
       startListening();
     }
-  }, [isListening, isVoiceSessionActive, startListening, stopListening]);
+  }, [isListening, isVoiceSessionActive, characterState, startListening, stopListening]);
 
   const replayMessageVoice = useCallback(
     async (text: string) => {

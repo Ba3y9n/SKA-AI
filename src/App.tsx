@@ -74,65 +74,112 @@ export const App: React.FC = () => {
         </div>
 
         {/* Interactive Status & Subtitles */}
-        <div className="w-full max-w-2xl text-center min-h-[80px] mb-8 flex flex-col items-center justify-center">
+        <div className="w-full max-w-2xl text-center min-h-[90px] mb-8 flex flex-col items-center justify-center">
           {characterState === 'THINKING' ? (
-            <div className="flex items-center gap-3 text-emerald-600 font-medium animate-pulse">
-              <Sparkles className="w-5 h-5" />
-              <span>لحظة، أفكر...</span>
+            <div className="flex flex-col items-center gap-2 text-emerald-600 animate-pulse">
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-5 h-5" />
+                <span className="text-sm font-semibold">لحظة، أفكر...</span>
+              </div>
+              <p className="text-xs text-gray-500">جاري صياغة الرد وتجهيز الصوت</p>
+            </div>
+          ) : characterState === 'SPEAKING' ? (
+            <div className="flex flex-col items-center gap-2">
+              <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
+                رِواء تتحدث...
+              </span>
+              <p className="text-base sm:text-lg md:text-xl font-medium leading-relaxed text-gray-800">
+                {displaySubtitle}
+              </p>
+            </div>
+          ) : characterState === 'LISTENING' ? (
+            <div className="flex flex-col items-center gap-2">
+              <span className="text-xs font-bold text-emerald-700 animate-pulse flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-emerald-600 animate-ping" />
+                أستمع إليك الآن...
+              </span>
+              <p className="text-base sm:text-lg md:text-xl font-medium leading-relaxed text-emerald-800">
+                {transcript || 'تفضل بالحديث...'}
+              </p>
+            </div>
+          ) : characterState === 'ERROR' ? (
+            <div className="text-center">
+              <p className="text-red-600 text-sm font-medium bg-red-50 px-4 py-2 rounded-full border border-red-200 inline-block">
+                {errorMessage || 'حدث خطأ في الاتصال، تفضل بإعادة المحاولة.'}
+              </p>
             </div>
           ) : (
-            <p className={`text-base sm:text-lg md:text-xl font-medium leading-relaxed transition-all duration-500 ${
-              isListening ? 'text-emerald-700' : 'text-gray-800'
-            }`}>
-              {displaySubtitle}
-            </p>
-          )}
-          
-          {errorMessage && (
-            <p className="text-red-500 text-sm mt-3 font-medium bg-red-50 px-4 py-2 rounded-full">
-              {errorMessage}
+            <p className="text-base sm:text-lg md:text-xl font-medium leading-relaxed text-gray-800">
+              {displaySubtitle || 'جاهزة أسمعك، تفضل بالضغط على الميكروفون.'}
             </p>
           )}
         </div>
 
         {/* Primary Voice Action Button */}
-        <div className="relative z-10 flex flex-col items-center gap-6 w-full max-w-md">
+        <div className="relative z-10 flex flex-col items-center gap-4 w-full max-w-md">
           <button
             onClick={handleToggleListening}
-            disabled={characterState === 'THINKING'}
-            className={`group relative flex items-center justify-center w-20 h-20 sm:w-24 sm:h-24 rounded-full transition-all duration-300 shadow-xl disabled:opacity-50 ${
+            className={`group relative flex items-center justify-center w-20 h-20 sm:w-24 sm:h-24 rounded-full transition-all duration-300 shadow-xl active:scale-95 ${
               isListening
                 ? 'bg-red-500 hover:bg-red-600 shadow-red-200/50 scale-105'
+                : characterState === 'THINKING'
+                ? 'bg-emerald-500 hover:bg-emerald-600 shadow-emerald-200/50 animate-pulse'
+                : characterState === 'SPEAKING'
+                ? 'bg-emerald-700 hover:bg-emerald-800 shadow-emerald-200/50 scale-105 ring-4 ring-emerald-100'
                 : 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-200/50 hover:scale-105'
             }`}
-            aria-label={isListening ? 'إيقاف التحدث' : 'تحدث مع رواء'}
+            aria-label={
+              isListening
+                ? 'إيقاف الاستماع'
+                : characterState === 'SPEAKING'
+                ? 'إيقاف صوت رِواء'
+                : 'تحدث مع رِواء'
+            }
           >
             {isListening ? (
               <>
                 <div className="absolute inset-0 rounded-full border-4 border-red-400 animate-ping opacity-20"></div>
                 <MicOff className="w-8 h-8 sm:w-10 sm:h-10 text-white animate-pulse" />
               </>
+            ) : characterState === 'THINKING' ? (
+              <Sparkles className="w-8 h-8 sm:w-10 sm:h-10 text-white animate-spin" />
+            ) : characterState === 'SPEAKING' ? (
+              <Volume2 className="w-8 h-8 sm:w-10 sm:h-10 text-white animate-bounce" />
             ) : (
               <Mic className="w-8 h-8 sm:w-10 sm:h-10 text-white group-hover:scale-110 transition-transform" />
             )}
           </button>
-          <span className={`text-sm font-bold ${isListening ? 'text-red-600 animate-pulse' : 'text-emerald-700'}`}>
-            {isListening ? 'أستمع لك...' : 'تحدث مع رواء'}
+          
+          <span className={`text-sm font-bold ${
+            isListening
+              ? 'text-red-600 animate-pulse'
+              : characterState === 'THINKING'
+              ? 'text-emerald-600'
+              : characterState === 'SPEAKING'
+              ? 'text-emerald-700'
+              : 'text-emerald-800'
+          }`}>
+            {isListening
+              ? 'أستمع لك... (اضغط للإيقاف)'
+              : characterState === 'THINKING'
+              ? 'أفكر في الرد... (اضغط للإلغاء)'
+              : characterState === 'SPEAKING'
+              ? 'رِواء تتحدث... (اضغط للإيقاف)'
+              : 'تحدث مع رواء'}
           </span>
 
           {/* Text Fallback Input */}
-          <form onSubmit={handleTextSubmit} className="w-full mt-4 flex items-center gap-2 bg-gray-50/80 p-2 rounded-2xl border border-gray-200 focus-within:border-emerald-400 focus-within:ring-2 focus-within:ring-emerald-50 transition-all">
+          <form onSubmit={handleTextSubmit} className="w-full mt-2 flex items-center gap-2 bg-gray-50/80 p-2 rounded-2xl border border-gray-200 focus-within:border-emerald-400 focus-within:ring-2 focus-within:ring-emerald-50 transition-all">
             <input
               type="text"
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
-              disabled={characterState === 'THINKING' || isListening}
               placeholder="أو اكتب رسالتك هنا..."
-              className="flex-1 bg-transparent px-4 py-2 text-sm text-gray-800 placeholder-gray-400 outline-none disabled:opacity-50"
+              className="flex-1 bg-transparent px-4 py-2 text-sm text-gray-800 placeholder-gray-400 outline-none"
             />
             <button
               type="submit"
-              disabled={!inputText.trim() || characterState === 'THINKING' || isListening}
+              disabled={!inputText.trim()}
               className="p-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white disabled:bg-gray-200 disabled:text-gray-400 transition-colors"
             >
               <svg className="w-4 h-4 rtl:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">

@@ -2,19 +2,24 @@ class AudioPlayerService {
   private audioCtx: AudioContext | null = null;
   private currentSource: AudioBufferSourceNode | null = null;
   private currentAudioElement: HTMLAudioElement | null = null;
+  private safetyTimer: any = null;
   private isPlayingAudio: boolean = false;
 
   public initAudioContext() {
-    if (!this.audioCtx && typeof window !== 'undefined') {
-      const AudioCtxClass = window.AudioContext || (window as any).webkitAudioContext;
-      if (AudioCtxClass) {
-        this.audioCtx = new AudioCtxClass();
+    try {
+      if (!this.audioCtx && typeof window !== 'undefined') {
+        const AudioCtxClass = window.AudioContext || (window as any).webkitAudioContext;
+        if (AudioCtxClass) {
+          this.audioCtx = new AudioCtxClass();
+        }
       }
-    }
-    if (this.audioCtx && this.audioCtx.state === 'suspended') {
-      this.audioCtx.resume().catch((err) => {
-        console.warn('AudioContext resume error:', err);
-      });
+      if (this.audioCtx && this.audioCtx.state === 'suspended') {
+        this.audioCtx.resume().catch((err) => {
+          console.warn('AudioContext resume warning:', err);
+        });
+      }
+    } catch (e) {
+      console.warn('AudioContext init error:', e);
     }
   }
 
@@ -22,6 +27,11 @@ class AudioPlayerService {
    * Stop any currently playing audio immediately
    */
   public stop() {
+    if (this.safetyTimer) {
+      clearTimeout(this.safetyTimer);
+      this.safetyTimer = null;
+    }
+
     if (this.currentSource) {
       try {
         this.currentSource.stop();
@@ -35,7 +45,7 @@ class AudioPlayerService {
     if (this.currentAudioElement) {
       try {
         this.currentAudioElement.pause();
-        this.currentAudioElement.currentTime = 0;
+        this.currentAudioElement.src = '';
       } catch {
         // ignore
       }
@@ -70,6 +80,20 @@ class AudioPlayerService {
     this.stop();
     this.initAudioContext();
 
+    let hasEnded = false;
+    const triggerEnd = () => {
+      if (hasEnded) return;
+      hasEnded = true;
+      if (this.safetyTimer) {
+        clearTimeout(this.safetyTimer);
+        this.safetyTimer = null;
+      }
+      this.isPlayingAudio = false;
+      this.currentSource = null;
+      this.currentAudioElement = null;
+      if (onEnd) onEnd();
+    };
+
     try {
       const binaryString = window.atob(base64Data);
       const len = binaryString.length;
@@ -78,9 +102,13 @@ class AudioPlayerService {
         bytes[i] = binaryString.charCodeAt(i);
       }
 
-      // Try AudioContext decode first
+      // Method 1: Web Audio API (AudioContext)
       if (this.audioCtx) {
         try {
+          if (this.audioCtx.state === 'suspended') {
+            await this.audioCtx.resume();
+          }
+
           const audioBuffer = await this.audioCtx.decodeAudioData(bytes.buffer.slice(0));
           const source = this.audioCtx.createBufferSource();
           source.buffer = audioBuffer;
@@ -89,23 +117,27 @@ class AudioPlayerService {
           this.currentSource = source;
           this.isPlayingAudio = true;
 
-          console.log('AUDIO_PLAYBACK_STARTED');
+          console.log('AUDIO_PLAYBACK_STARTED (AudioContext)');
           if (onStart) onStart();
 
           source.onended = () => {
-            this.isPlayingAudio = false;
-            this.currentSource = null;
-            if (onEnd) onEnd();
+            triggerEnd();
           };
+
+          // Safety timeout in case onended doesn't fire
+          const durationMs = Math.max(1000, (audioBuffer.duration + 0.4) * 1000);
+          this.safetyTimer = setTimeout(() => {
+            triggerEnd();
+          }, durationMs);
 
           source.start(0);
           return true;
         } catch (decodeErr) {
-          console.warn('AudioContext decode failed, falling back to Blob Audio Element:', decodeErr);
+          console.warn('AudioContext playback failed, trying HTML5 Audio fallback:', decodeErr);
         }
       }
 
-      // Fallback: HTML5 Audio with Blob URL
+      // Method 2: HTML5 Audio Element with Blob URL
       const blob = new Blob([bytes], { type: mimeType });
       const blobUrl = URL.createObjectURL(blob);
       const audio = new Audio(blobUrl);
@@ -113,26 +145,36 @@ class AudioPlayerService {
 
       audio.onplay = () => {
         this.isPlayingAudio = true;
-        console.log('AUDIO_PLAYBACK_STARTED');
+        console.log('AUDIO_PLAYBACK_STARTED (HTML5 Audio)');
         if (onStart) onStart();
       };
 
       audio.onended = () => {
-        this.isPlayingAudio = false;
-        this.currentAudioElement = null;
         URL.revokeObjectURL(blobUrl);
-        if (onEnd) onEnd();
+        triggerEnd();
       };
 
       audio.onerror = (e) => {
+        URL.revokeObjectURL(blobUrl);
         this.isPlayingAudio = false;
         this.currentAudioElement = null;
-        URL.revokeObjectURL(blobUrl);
-        console.error('AUDIO_PLAYBACK_ERROR', e);
+        console.error('AUDIO_PLAYBACK_ERROR (HTML5 Audio)', e);
         if (onError) onError(e);
       };
 
       await audio.play();
+
+      // Estimate safety timeout for HTML5 audio
+      audio.onloadedmetadata = () => {
+        if (audio.duration && !isNaN(audio.duration) && isFinite(audio.duration)) {
+          const durationMs = (audio.duration + 0.5) * 1000;
+          this.safetyTimer = setTimeout(() => {
+            URL.revokeObjectURL(blobUrl);
+            triggerEnd();
+          }, durationMs);
+        }
+      };
+
       return true;
     } catch (error: any) {
       this.isPlayingAudio = false;
@@ -158,19 +200,37 @@ class AudioPlayerService {
       return;
     }
 
+    let hasEnded = false;
+    const triggerEnd = () => {
+      if (hasEnded) return;
+      hasEnded = true;
+      if (this.safetyTimer) {
+        clearTimeout(this.safetyTimer);
+        this.safetyTimer = null;
+      }
+      this.isPlayingAudio = false;
+      if (onEnd) onEnd();
+    };
+
     try {
+      window.speechSynthesis.cancel();
+
       const cleanText = text
         .replace(/[*_#`~[\]()><{}|\\]/g, ' ')
         .replace(/https?:\/\/\S+/g, 'رابط')
+        .replace(/[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, '')
         .replace(/\s+/g, ' ')
         .trim();
 
-      if (!cleanText) return;
+      if (!cleanText) {
+        triggerEnd();
+        return;
+      }
 
       const utterance = new SpeechSynthesisUtterance(cleanText);
       utterance.lang = 'ar-SA';
       utterance.rate = 1.0;
-      utterance.pitch = 1.05;
+      utterance.pitch = 1.0;
 
       const voices = window.speechSynthesis.getVoices();
       const arabicVoice = voices.find(
@@ -182,30 +242,36 @@ class AudioPlayerService {
 
       utterance.onstart = () => {
         this.isPlayingAudio = true;
-        console.log('AUDIO_PLAYBACK_STARTED');
+        console.log('AUDIO_PLAYBACK_STARTED (SpeechSynthesis)');
         if (onStart) onStart();
       };
 
       utterance.onend = () => {
-        this.isPlayingAudio = false;
-        if (onEnd) onEnd();
+        triggerEnd();
       };
 
       utterance.onerror = (e) => {
-        this.isPlayingAudio = false;
-        console.error('AUDIO_PLAYBACK_ERROR', e);
-        if (onError) onError(e);
+        console.error('SpeechSynthesis error:', e);
+        triggerEnd();
       };
 
-      // Workaround for Chrome garbage collection bug
+      // Safety timer for SpeechSynthesis (approx 150ms per word + 2s baseline)
+      const estimatedWords = cleanText.split(' ').length;
+      const estimatedMs = Math.max(3000, estimatedWords * 350 + 2000);
+      this.safetyTimer = setTimeout(() => {
+        triggerEnd();
+      }, estimatedMs);
+
       window.speechSynthesis.resume();
       window.speechSynthesis.speak(utterance);
     } catch (err: any) {
       this.isPlayingAudio = false;
       console.error('AUDIO_PLAYBACK_ERROR', err);
       if (onError) onError(err);
+      triggerEnd();
     }
   }
 }
 
 export const audioPlayer = new AudioPlayerService();
+
