@@ -90,19 +90,22 @@ export const AdminGalleryReview: React.FC<AdminGalleryReviewProps> = ({ onBackTo
   };
 
   const handleApprove = async (id: string) => {
+    // Optimistic UI Update: immediately change status in local state
+    setSubmissions(prev => prev.map(s => s.id === id ? { ...s, status: 'approved' } : s));
     await updatePhotoStatus(id, 'approved', 'مشرف الكلية');
-    loadData(false);
   };
 
   const handleReject = async (id: string) => {
+    // Optimistic UI Update: immediately change status in local state
+    setSubmissions(prev => prev.map(s => s.id === id ? { ...s, status: 'rejected' } : s));
     await updatePhotoStatus(id, 'rejected', 'مشرف الكلية');
-    loadData(false);
   };
 
   const handleDelete = async (id: string) => {
     if (window.confirm('هل أنت متأكد من حذف هذه الصورة نهائياً من قاعدة البيانات والتخزين؟')) {
+      // Optimistic UI Update: immediately remove from local state
+      setSubmissions(prev => prev.filter(s => s.id !== id));
       await deletePhotoSubmission(id, true);
-      loadData(false);
     }
   };
 
