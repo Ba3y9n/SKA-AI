@@ -7,20 +7,20 @@ interface HeaderProps {
   onOpenAmbitionModal: () => void;
 }
 
+import { RewaaLogo } from './RewaaLogo';
+
 export const Header: React.FC<HeaderProps> = ({
   isAutoVoiceEnabled,
   onToggleVoice,
   onOpenAmbitionModal,
 }) => {
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-emerald-100 bg-white/90 backdrop-blur-xl transition-all shadow-sm">
+    <header className="sticky top-0 z-40 w-full border-b border-emerald-50 bg-white/80 backdrop-blur-xl transition-all">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between">
         
         {/* Brand & Project Identity */}
         <div className="flex items-center gap-3">
-          <div className="relative flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-emerald-50 p-1 border border-emerald-200 overflow-hidden">
-            <img src="/rewaa_logo.png" alt="رِواء AI" className="w-full h-full object-cover" />
-          </div>
+          <RewaaLogo className="w-10 h-10 sm:w-12 sm:h-12 shadow-sm rounded-2xl" />
 
           <div>
             <div className="flex items-center gap-2">
