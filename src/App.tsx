@@ -56,18 +56,34 @@ export const App: React.FC = () => {
   const displaySubtitle = transcript ? transcript : (characterState === 'SPEAKING' || characterState === 'IDLE' ? lastRewaaMessage?.text : '');
 
   return (
-    <div className="min-h-screen bg-white text-gray-900 flex flex-col selection:bg-emerald-700 selection:text-white font-arabic overflow-x-hidden">
-      <Header
-        isAutoVoiceEnabled={isAutoVoiceEnabled}
-        onToggleVoice={() => setIsAutoVoiceEnabled(!isAutoVoiceEnabled)}
-        onOpenAmbitionModal={() => setIsAmbitionModalOpen(true)}
-      />
+    <div className="flex flex-col min-h-screen font-sans selection:bg-emerald-200 selection:text-emerald-900 relative">
+      
+      {/* Dynamic Animated Gradient Background for the Entire App */}
+      <div 
+        className="fixed inset-0 z-0 pointer-events-none bg-gradient-to-br from-[#dcfce7] via-[#f1f8e9] to-[#c8e6c9] bg-[length:200%_200%]"
+        style={{
+          animation: 'gradientMove 15s ease infinite'
+        }}
+      ></div>
 
-      {/* Main Character Experience Area */}
-      <main className="flex-1 w-full max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-10 flex flex-col items-center justify-center min-h-[80vh] relative">
-        
-        {/* Soft Background Layer */}
-        <div className="absolute inset-0 z-0 bg-gradient-to-b from-[#e8f5e9] via-[#dcedc8]/30 to-[#f1f8e9] pointer-events-none"></div>
+      <style>{`
+        @keyframes gradientMove {
+          0% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
+      `}</style>
+
+      {/* Foreground Content */}
+      <div className="relative z-10 flex flex-col min-h-screen">
+        <Header 
+          isAutoVoiceEnabled={isAutoVoiceEnabled}
+          onToggleVoice={() => setIsAutoVoiceEnabled(!isAutoVoiceEnabled)}
+          onOpenAmbitionModal={() => setIsAmbitionModalOpen(true)}
+        />
+
+        {/* Main Character Experience Area */}
+        <main className="flex-1 w-full mx-auto px-4 sm:px-6 py-6 sm:py-10 flex flex-col items-center justify-center min-h-[85vh]">
 
         <div className="relative z-10 flex flex-col items-center w-full">
           {/* 1. Character Title */}
@@ -211,6 +227,7 @@ export const App: React.FC = () => {
       />
 
       <Footer />
+      </div>
     </div>
   );
 };

@@ -53,7 +53,7 @@ export const CharacterAvatar: React.FC<CharacterAvatarProps> = ({ state, isListe
           }
         `}</style>
         
-        {/* Avatar Image (Face + Neck Crop, mix-blend-multiply to remove white background) */}
+        {/* Avatar Image (True Transparent PNG) */}
         <div 
           className="relative w-full h-full bg-transparent"
           style={{
@@ -64,9 +64,9 @@ export const CharacterAvatar: React.FC<CharacterAvatarProps> = ({ state, isListe
           }}
         >
           <img
-            src="/rewaa_avatar_transparent.jpg"
+            src="/rewaa_avatar_real_transparent.png"
             alt="رِواء AI"
-            className="w-full h-full object-contain mix-blend-multiply drop-shadow-xl"
+            className="w-full h-full object-contain drop-shadow-2xl"
           />
         </div>
       </div>
