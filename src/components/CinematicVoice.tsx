@@ -24,12 +24,12 @@ export const CinematicVoice: React.FC = () => {
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gold/10 rounded-full blur-[120px] pointer-events-none" />
 
       {/* Ambient Moving Typography Behind Text */}
-      <div className="absolute inset-0 z-0 overflow-hidden opacity-[0.04] pointer-events-none flex flex-col justify-center gap-10 select-none">
+      <div className="absolute inset-0 z-0 overflow-hidden opacity-[0.08] pointer-events-none flex flex-col justify-center gap-16 select-none">
         <motion.div style={{ x: typographyX }} className="whitespace-nowrap">
-          <span className="text-7xl md:text-9xl font-black text-white uppercase tracking-widest px-6">الهوية • الأثر • الطموح • المستقبل</span>
+          <span className="text-8xl md:text-[12rem] font-black text-white uppercase tracking-widest px-6">الهوية • الأثر • الطموح • المستقبل</span>
         </motion.div>
         <motion.div style={{ x: typographyXReverse }} className="whitespace-nowrap">
-          <span className="text-7xl md:text-9xl font-black text-gold-light uppercase tracking-widest px-6">كلية الأعمال والاقتصاد • اليوم الوطني 96</span>
+          <span className="text-8xl md:text-[12rem] font-black text-gold-light uppercase tracking-widest px-6">كلية الأعمال والاقتصاد • اليوم الوطني 96</span>
         </motion.div>
       </div>
 
@@ -66,7 +66,7 @@ export const CinematicVoice: React.FC = () => {
         </motion.div>
 
         {/* Dynamic Voice Waveform Visualization */}
-        <div className="mt-16 flex items-center justify-center gap-1.5 md:gap-2 h-32 group cursor-pointer">
+        <div className="mt-16 flex items-center justify-center gap-1.5 md:gap-2 h-32 group cursor-pointer mb-20">
           {[...Array(28)].map((_, i) => {
             const isCenter = Math.abs(i - 14) < 6;
             return (
@@ -94,30 +94,28 @@ export const CinematicVoice: React.FC = () => {
             );
           })}
         </div>
-      </motion.div>
 
-      {/* Idea Section */}
-      <div className="w-full relative pt-24 mt-16 flex flex-col items-center justify-center z-10">
+        {/* Idea Section - No Box, Pure Typography */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8, delay: 0.2 }}
-          className="bg-saudi-50/5 backdrop-blur-xl border border-gold/20 rounded-[2.5rem] p-10 md:p-14 text-center max-w-4xl mx-4 shadow-2xl card-gold-hover"
+          className="pt-24 border-t border-gold/20 text-center max-w-4xl mx-auto"
         >
-          <span className="text-gold-light text-sm md:text-base font-bold tracking-widest uppercase mb-4 block">
+          <span className="text-gold-light text-lg md:text-xl font-bold tracking-widest mb-6 block">
             رؤية المشروع
           </span>
-          <h3 className="text-4xl md:text-5xl font-black text-white mb-6 drop-shadow-lg title-gold-line">
+          <h3 className="text-5xl md:text-7xl font-black text-white mb-10 drop-shadow-lg title-gold-line inline-block">
             فكرة
           </h3>
-          <p className="text-xl md:text-2xl text-saudi-100 font-medium leading-loose md:leading-relaxed mt-6">
+          <p className="text-2xl md:text-4xl text-saudi-100 font-medium leading-[1.8] md:leading-[1.8]">
             رِواء ليست مجرد مساعد افتراضي،<br />
             بل مساحة رقمية تُروى فيها قصص الإنجاز،<br />
-            <span className="text-gold-light font-bold">وتُسمع فيها أصوات الطموح.</span>
+            <span className="text-gold-light font-black mt-4 block text-3xl md:text-5xl drop-shadow-md">وتُسمع فيها أصوات الطموح.</span>
           </p>
         </motion.div>
-      </div>
+      </motion.div>
 
     </section>
   );
