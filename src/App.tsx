@@ -3,9 +3,10 @@ import { CinematicHero } from './components/CinematicHero';
 import { RewaaSection } from './components/RewaaSection';
 import { CinematicVoice } from './components/CinematicVoice';
 import { NationalCardSection } from './components/NationalCardSection';
+import { UserGallery } from './components/UserGallery';
 import { AchievementsTimeline } from './components/AchievementsTimeline';
 import { FutureVisionBoard } from './components/FutureVisionBoard';
-import { CinematicOutro } from './components/CinematicOutro';
+import { Footer } from './components/Footer';
 import { AmbitionModal } from './components/AmbitionModal';
 import { Header } from './components/Header';
 import { useGeminiChat } from './hooks/useGeminiChat';
@@ -80,31 +81,11 @@ const App: React.FC = () => {
       {/* 4. National Identity Card Section */}
       <NationalCardSection />
 
-      {/* 5. Achievements Gallery */}
-      <AchievementsTimeline />
+      {/* 5. User Uploaded Gallery */}
+      <UserGallery />
 
-      {/* 6. Impact Section */}
-      <section className="relative w-full py-40 bg-[#EEF8F2] text-center px-6 z-20">
-        <motion.h2 
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="text-4xl md:text-6xl font-black text-[#064C3B] mb-10"
-        >
-          الأثر لا يتوقف عند الإنجاز.
-        </motion.h2>
-        <motion.p 
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ delay: 0.2 }}
-          className="text-2xl md:text-4xl font-bold text-[#008F68] leading-relaxed"
-        >
-          خلف كل إنجاز معرفة،<br/>
-          وخلف كل معرفة إنسان،<br/>
-          وخلف كل إنسان طموح.
-        </motion.p>
-      </section>
+      {/* 6. Achievements Gallery */}
+      <AchievementsTimeline />
 
       {/* 7. Future Ambitions Wall */}
       <FutureVisionBoard 
@@ -112,8 +93,8 @@ const App: React.FC = () => {
         onAddClick={() => setIsAmbitionModalOpen(true)} 
       />
 
-      {/* 8. Cinematic Outro (No Footer) */}
-      <CinematicOutro />
+      {/* 8. Footer */}
+      <Footer />
 
       {/* Global Floating Subtitle for Rewaa's Voice */}
       <AnimatePresence>
@@ -124,7 +105,7 @@ const App: React.FC = () => {
             exit={{ opacity: 0, y: 20, scale: 0.9 }}
             className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[100] w-full max-w-2xl px-4 pointer-events-none"
           >
-            <div className="bg-white/90 backdrop-blur-xl border border-emerald-100 p-6 rounded-3xl shadow-[0_20px_50px_rgba(0,143,104,0.15)] text-center">
+            <div className="bg-white/95 backdrop-blur-xl border border-emerald-100 p-6 rounded-3xl shadow-[0_20px_50px_rgba(0,143,104,0.15)] text-center">
               {isListening ? (
                 <div className="flex items-center justify-center gap-3">
                   <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse" />

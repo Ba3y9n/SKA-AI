@@ -1,9 +1,32 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { ImagePlus } from 'lucide-react';
 
 export const CinematicHero: React.FC = () => {
+  const [heroImage, setHeroImage] = useState<string>('/national_hero.jpg');
+
+  useEffect(() => {
+    const savedImage = localStorage.getItem('custom_hero_image');
+    if (savedImage) {
+      setHeroImage(savedImage);
+    }
+  }, []);
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64String = reader.result as string;
+        setHeroImage(base64String);
+        localStorage.setItem('custom_hero_image', base64String);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   return (
-    <section className="relative w-full h-screen overflow-hidden bg-[#064C3B]">
+    <section className="relative w-full h-screen overflow-hidden bg-white">
       
       {/* Background Image */}
       <motion.div 
@@ -13,51 +36,50 @@ export const CinematicHero: React.FC = () => {
         className="absolute inset-0 z-0"
       >
         <img 
-          src="/national_hero.jpg" 
+          src={heroImage} 
           alt="Hero" 
           className="w-full h-full object-cover object-center"
         />
-        {/* Subtle Gradient Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-[#F8FBF8]" />
+        {/* Very Subtle Overlay just to ensure text readability if needed */}
+        <div className="absolute inset-0 bg-black/20" />
       </motion.div>
 
-      {/* Content over Hero */}
-      <div className="absolute inset-0 z-10 flex flex-col items-center justify-center text-center px-4 pointer-events-none">
-        <motion.h1 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1, delay: 0.5 }}
-          className="text-6xl md:text-8xl font-black text-white mb-4 drop-shadow-lg tracking-tight"
-        >
-          رِواء
-        </motion.h1>
-        <motion.p 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1, delay: 0.7 }}
-          className="text-2xl md:text-4xl text-[#DDF5EA] font-bold mb-4 drop-shadow-md"
-        >
-          صوت الجيل السعودي الرقمي
-        </motion.p>
-        <motion.p 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1, delay: 0.9 }}
-          className="text-lg md:text-xl text-white/90 font-medium tracking-wide drop-shadow-sm"
-        >
-          من حكاية الأمس إلى طموح الغد.
-        </motion.p>
+      {/* Image Upload Button (Floating) */}
+      <div className="absolute top-24 left-6 z-50">
+        <label className="flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-white/40 backdrop-blur-md border border-white/30 rounded-full cursor-pointer transition-all text-white shadow-lg text-sm font-bold group">
+          <ImagePlus className="w-4 h-4" />
+          <span className="hidden group-hover:inline">تغيير الصورة الرئيسية</span>
+          <input 
+            type="file" 
+            accept="image/*" 
+            onChange={handleImageUpload} 
+            className="hidden" 
+          />
+        </label>
       </div>
 
-      {/* Scroll Indicator */}
-      <motion.div 
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 1.5, duration: 1 }}
-        className="absolute bottom-10 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center animate-bounce text-[#064C3B]"
-      >
-        <span className="text-xs uppercase tracking-widest mb-2 font-bold drop-shadow-sm">اكتشف الحكاية ↓</span>
-      </motion.div>
+      {/* Discover Section (Massive & Interactive at the bottom) */}
+      <div className="absolute bottom-0 left-0 w-full flex flex-col items-center justify-end pb-20 z-20 bg-gradient-to-t from-[#F8FBF8] via-[#F8FBF8]/80 to-transparent pt-40">
+        <motion.div 
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 1, duration: 1 }}
+          whileHover={{ scale: 1.05 }}
+          className="cursor-pointer group flex flex-col items-center"
+          onClick={() => {
+            window.scrollTo({ top: window.innerHeight, behavior: 'smooth' });
+          }}
+        >
+          <h1 className="text-6xl md:text-8xl lg:text-9xl font-black text-[#064C3B] mb-2 tracking-tight drop-shadow-sm transition-transform duration-500 group-hover:-translate-y-2">
+            اكتشف الحكاية
+          </h1>
+          <div className="w-12 h-12 rounded-full bg-[#008F68] text-white flex items-center justify-center animate-bounce shadow-lg mt-4 group-hover:bg-[#064C3B] transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+            </svg>
+          </div>
+        </motion.div>
+      </div>
 
     </section>
   );

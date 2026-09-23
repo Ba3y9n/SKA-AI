@@ -3,49 +3,34 @@ import { RewaaLogo } from './RewaaLogo';
 
 export const Footer: React.FC = () => {
   return (
-    <footer className="relative w-full text-white py-16 sm:py-20 mt-auto overflow-hidden">
-      {/* Background Image with Sadu Pattern */}
-      <div 
-        className="absolute inset-0 z-0 bg-[url('/sadu_pattern.webp')] bg-cover bg-center opacity-40"
-      ></div>
-      {/* Dark overlay to ensure text readability */}
-      <div className="absolute inset-0 z-10 bg-gradient-to-t from-[#06241a] via-[#093526]/90 to-[#0B3D2E]/80"></div>
+    <footer className="w-full bg-[#022c22] text-white py-12 border-t border-emerald-900/50">
+      <div className="max-w-6xl mx-auto px-6">
+        <div className="flex flex-col md:flex-row items-center justify-between gap-8">
+          
+          {/* Identity */}
+          <div className="flex items-center gap-4">
+            <RewaaLogo className="w-12 h-12 text-[#008F68]" />
+            <div>
+              <h3 className="text-2xl font-black tracking-widest mb-1">رِواء</h3>
+              <p className="text-emerald-500/80 text-sm font-bold tracking-wider">
+                صوت الجيل السعودي الرقمي
+              </p>
+            </div>
+          </div>
 
-      <div className="relative z-20 max-w-6xl mx-auto px-4 sm:px-6 flex flex-col items-center text-center">
-        
-        {/* Brand */}
-        <div className="flex flex-col items-center mb-12">
-          <img src="/nd96_logo.webp" alt="اليوم الوطني 96" className="h-14 sm:h-16 object-contain mb-6 drop-shadow-md" />
-          <h2 className="text-2xl font-bold tracking-tight text-white mb-2">رِواء</h2>
-          <p className="text-sm text-emerald-100/90 font-medium tracking-wide">صوت الجيل السعودي الرقمي</p>
-        </div>
+          {/* Links / Info */}
+          <div className="flex items-center gap-6 text-sm font-bold text-gray-400">
+            <span className="hover:text-emerald-400 transition-colors cursor-pointer">عن رِواء</span>
+            <span className="hover:text-emerald-400 transition-colors cursor-pointer">الخصوصية</span>
+            <span className="hover:text-emerald-400 transition-colors cursor-pointer">شروط الاستخدام</span>
+          </div>
 
-        {/* Navigation Links */}
-        <nav className="flex flex-wrap justify-center gap-6 sm:gap-10 mb-14">
-          <a href="#" className="text-sm font-bold text-emerald-50 hover:text-white transition-colors">
-            تحدث مع رِواء
-          </a>
-          <a href="#" className="text-sm font-bold text-emerald-50 hover:text-white transition-colors">
-            صوتنا يصنع المستقبل
-          </a>
-          <a href="#" className="text-sm font-bold text-emerald-50 hover:text-white transition-colors">
-            أضيفي طموحك
-          </a>
-        </nav>
-
-        {/* Divider */}
-        <div className="w-32 h-px bg-emerald-500/30 mb-12"></div>
-
-        {/* Entities */}
-        <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-8 mb-12 text-sm font-bold text-emerald-50">
-          <span>كلية الأعمال والاقتصاد</span>
-          <span className="hidden sm:inline w-1 h-1 rounded-full bg-emerald-500"></span>
-          <span>جامعة القصيم</span>
         </div>
 
         {/* Copyright */}
-        <div className="text-xs text-emerald-400/80 font-medium tracking-wider">
-          &copy; 2026 رِواء AI — جميع الحقوق محفوظة
+        <div className="mt-12 pt-6 border-t border-emerald-900/30 text-center md:text-left flex flex-col md:flex-row items-center justify-between text-xs text-gray-500 font-medium">
+          <p>© {new Date().getFullYear()} رِواء AI. جميع الحقوق محفوظة.</p>
+          <p className="mt-2 md:mt-0">بمبادرة من طالبات ودكتورات كلية الأعمال والاقتصاد - جامعة القصيم</p>
         </div>
       </div>
     </footer>
