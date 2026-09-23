@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { CinematicHero } from './components/CinematicHero';
+import { RewaaSection } from './components/RewaaSection';
 import { CinematicVoice } from './components/CinematicVoice';
 import { NationalCardSection } from './components/NationalCardSection';
 import { AchievementsTimeline } from './components/AchievementsTimeline';
@@ -55,37 +56,40 @@ const App: React.FC = () => {
   }, []);
 
   return (
-    <div className="relative w-full min-h-screen bg-[#05110a] text-white font-arabic selection:bg-emerald-600 selection:text-white">
+    <div className="relative w-full bg-[#F8FBF8] text-[#064C3B] font-arabic selection:bg-[#008F68] selection:text-white overflow-hidden">
       
-      {/* Cinematic Header (Transparent, non-intrusive) */}
+      {/* Header */}
       <Header 
         isAutoVoiceEnabled={isAutoVoiceEnabled}
         onToggleVoice={() => setIsAutoVoiceEnabled(!isAutoVoiceEnabled)}
         onOpenAmbitionModal={() => setIsAmbitionModalOpen(true)}
       />
 
-      {/* 1. Cinematic Hero & Rewaa Intro */}
-      <CinematicHero 
+      {/* 1. Hero Image */}
+      <CinematicHero />
+
+      {/* 2. Rewaa Character Section */}
+      <RewaaSection 
         onTalk={handleToggleListening} 
         isListening={isListening} 
       />
 
-      {/* 2. Voice & Idea Section */}
+      {/* 3. Voice & Idea Section */}
       <CinematicVoice />
 
-      {/* 3. National Identity Card Section */}
+      {/* 4. National Identity Card Section */}
       <NationalCardSection />
 
-      {/* 4. Achievements Gallery (Dark Glassmorphism) */}
+      {/* 5. Achievements Gallery */}
       <AchievementsTimeline />
 
-      {/* 5. Impact Section (Small Transition) */}
-      <section className="relative w-full py-40 bg-[#05110a] text-center px-6 z-20">
+      {/* 6. Impact Section */}
+      <section className="relative w-full py-40 bg-[#EEF8F2] text-center px-6 z-20">
         <motion.h2 
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-4xl md:text-6xl font-black text-white mb-10"
+          className="text-4xl md:text-6xl font-black text-[#064C3B] mb-10"
         >
           الأثر لا يتوقف عند الإنجاز.
         </motion.h2>
@@ -94,7 +98,7 @@ const App: React.FC = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ delay: 0.2 }}
-          className="text-2xl md:text-4xl font-bold text-gray-400 leading-relaxed"
+          className="text-2xl md:text-4xl font-bold text-[#008F68] leading-relaxed"
         >
           خلف كل إنجاز معرفة،<br/>
           وخلف كل معرفة إنسان،<br/>
@@ -102,13 +106,13 @@ const App: React.FC = () => {
         </motion.p>
       </section>
 
-      {/* 6. Future Ambitions Wall */}
+      {/* 7. Future Ambitions Wall */}
       <FutureVisionBoard 
         ambitions={ambitions} 
         onAddClick={() => setIsAmbitionModalOpen(true)} 
       />
 
-      {/* 7. Cinematic Outro */}
+      {/* 8. Cinematic Outro (No Footer) */}
       <CinematicOutro />
 
       {/* Global Floating Subtitle for Rewaa's Voice */}
@@ -120,14 +124,14 @@ const App: React.FC = () => {
             exit={{ opacity: 0, y: 20, scale: 0.9 }}
             className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[100] w-full max-w-2xl px-4 pointer-events-none"
           >
-            <div className="bg-[#0A1F16]/90 backdrop-blur-xl border border-emerald-500/30 p-6 rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] text-center">
+            <div className="bg-white/90 backdrop-blur-xl border border-emerald-100 p-6 rounded-3xl shadow-[0_20px_50px_rgba(0,143,104,0.15)] text-center">
               {isListening ? (
                 <div className="flex items-center justify-center gap-3">
                   <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse" />
-                  <span className="text-white font-bold text-lg">تحدث الآن، رِواء تستمع...</span>
+                  <span className="text-[#064C3B] font-bold text-lg">تحدث الآن، رِواء تستمع...</span>
                 </div>
               ) : (
-                <p className="text-xl font-bold leading-relaxed text-emerald-50">
+                <p className="text-xl font-bold leading-relaxed text-[#008F68]">
                   {displaySubtitle}
                 </p>
               )}
