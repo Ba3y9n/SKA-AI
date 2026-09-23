@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Ambition } from '../types/ambition';
-import { Sparkles, MessageCircle } from 'lucide-react';
 
 interface FutureVisionBoardProps {
   ambitions: Ambition[];
@@ -10,91 +10,144 @@ interface FutureVisionBoardProps {
 export const FutureVisionBoard: React.FC<FutureVisionBoardProps> = ({ ambitions, onOpenAddModal }) => {
   const [activeAmbition, setActiveAmbition] = useState<string | null>(null);
 
-  return (
-    <section className="py-20 w-full relative overflow-hidden bg-white border-t border-emerald-50">
-      
-      {/* Soft Green Effects */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-64 bg-emerald-50/50 rounded-[100%] blur-3xl pointer-events-none"></div>
+  // Generate random positions for nodes in a scattered orbital layout
+  const getRandomPosition = (index: number, total: number) => {
+    // Spiral distribution
+    const angle = index * 137.5 * (Math.PI / 180);
+    const radius = 120 + (index * 15);
+    return {
+      x: Math.cos(angle) * radius,
+      y: Math.sin(angle) * radius,
+    };
+  };
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 relative z-10 text-center mb-16">
-        <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900 tracking-tight mb-3">
-          صوتنا يصنع المستقبل
-        </h2>
-        <p className="text-lg text-emerald-700 font-medium mb-10">
-          وش طموحك للسعودية؟
-        </p>
-        
-        <button
-          onClick={onOpenAddModal}
-          className="inline-flex items-center gap-2 px-6 py-3 rounded-full text-base font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-200/50 transition-all transform hover:-translate-y-1"
+  return (
+    <section className="relative w-full py-32 bg-[#0B3D2E] overflow-hidden text-white flex flex-col items-center">
+      
+      {/* Background Ambience */}
+      <div className="absolute inset-0 bg-[url('/sadu_pattern.webp')] bg-cover bg-center opacity-10 mix-blend-overlay"></div>
+      <div className="absolute inset-0 bg-gradient-to-t from-[#0A1F16] via-transparent to-[#0B3D2E]"></div>
+
+      {/* Header */}
+      <div className="relative z-20 text-center mb-16">
+        <motion.h2 
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          className="text-4xl sm:text-5xl font-extrabold tracking-tight mb-4 text-emerald-50"
         >
-          <Sparkles className="w-5 h-5" />
-          <span>أضيفي طموحك للوطن</span>
-        </button>
+          صوتنا يصنع المستقبل
+        </motion.h2>
+        <motion.p 
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="text-xl text-emerald-300 font-medium mb-10"
+        >
+          وش طموحك للسعودية؟
+        </motion.p>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 relative z-10">
+      {/* Interactive Node System */}
+      <div className="relative z-10 w-full max-w-4xl h-[600px] flex items-center justify-center">
+        
+        {/* Center Action Button */}
+        <motion.button
+          onClick={onOpenAddModal}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          className="absolute z-30 w-32 h-32 rounded-full bg-emerald-500 hover:bg-emerald-400 flex flex-col items-center justify-center shadow-[0_0_40px_rgba(16,185,129,0.4)] transition-colors border-4 border-[#0B3D2E]"
+        >
+          <span className="text-3xl mb-1">+</span>
+          <span className="text-sm font-bold">أضيفي طموحك</span>
+        </motion.button>
+
+        {/* Orbit Lines */}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-20">
+          <div className="w-[300px] h-[300px] rounded-full border border-emerald-400"></div>
+          <div className="absolute w-[450px] h-[450px] rounded-full border border-emerald-500/50 border-dashed animate-[spin_60s_linear_infinite]"></div>
+        </div>
+
+        {/* Nodes */}
         {ambitions.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 text-center max-w-lg mx-auto bg-gray-50/50 rounded-3xl border border-gray-100">
-            <MessageCircle className="w-12 h-12 text-emerald-200 mb-4" />
-            <h3 className="text-xl font-bold text-gray-800 mb-2">كوني من أول الأصوات</h3>
-            <p className="text-sm text-gray-500 mb-6">
-              أضيفي طموحك وخليه جزءًا من المستقبل.
-            </p>
-            <button
-              onClick={onOpenAddModal}
-              className="text-sm font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 px-5 py-2.5 rounded-full transition-colors"
-            >
-              أضيفي طموحك
-            </button>
-          </div>
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="absolute z-10 text-emerald-200/50 text-sm font-medium mt-48 text-center"
+          >
+            كوني من أول الأصوات في جدار المستقبل
+          </motion.div>
         ) : (
-          <div className="flex flex-wrap justify-center gap-4 sm:gap-6 px-2 py-8">
-            <style>{`
-              @keyframes float {
-                0%, 100% { transform: translateY(0); }
-                50% { transform: translateY(-5px); }
-              }
-            `}</style>
-            {ambitions.map((ambition, idx) => {
-              const isActive = activeAmbition === ambition.id;
-              // Add slight random delays so they float independently
-              const animationDelay = `${(idx % 5) * 0.4}s`;
-              
-              return (
-                <div
-                  key={ambition.id}
+          ambitions.map((ambition, idx) => {
+            const pos = getRandomPosition(idx, ambitions.length);
+            const isActive = activeAmbition === ambition.id;
+            
+            return (
+              <motion.div
+                key={ambition.id}
+                initial={{ opacity: 0, scale: 0 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                transition={{ delay: idx * 0.1, type: "spring" }}
+                className="absolute z-20 flex justify-center items-center"
+                style={{ 
+                  transform: `translate(${pos.x}px, ${pos.y}px)`,
+                }}
+              >
+                <div 
                   onClick={() => setActiveAmbition(isActive ? null : ambition.id)}
-                  style={{ animation: `float 4s ease-in-out infinite ${animationDelay}` }}
                   className={`
-                    cursor-pointer transition-all duration-500 ease-out flex flex-col items-center text-center
-                    bg-white border shadow-sm
+                    cursor-pointer transition-all duration-300 backdrop-blur-md border 
                     ${isActive 
-                      ? 'w-full sm:w-96 rounded-3xl p-6 sm:p-8 border-emerald-200 shadow-emerald-100 shadow-xl scale-100 sm:scale-105 z-20' 
-                      : 'w-48 sm:w-64 rounded-full p-4 sm:p-6 border-gray-100 hover:border-emerald-100 hover:shadow-md z-10 opacity-90 hover:opacity-100'
+                      ? 'w-64 p-6 bg-white rounded-3xl text-gray-900 border-emerald-200 shadow-xl shadow-black/20 z-50 fixed inset-0 m-auto h-fit scale-110' 
+                      : 'w-16 h-16 rounded-full bg-emerald-800/80 border-emerald-500/50 hover:bg-emerald-600 hover:border-emerald-300 hover:scale-110 flex items-center justify-center'
                     }
                   `}
                 >
-                  <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full mb-3">
-                    {ambition.department}
-                  </span>
-                  
-                  <p className={`font-medium text-gray-800 transition-all ${isActive ? 'text-lg sm:text-xl leading-relaxed' : 'text-sm line-clamp-2'}`}>
-                    "{ambition.text}"
-                  </p>
-
-                  {isActive && ambition.major && (
-                    <div className="mt-6 pt-4 border-t border-emerald-50 w-full animate-fadeIn">
-                      <span className="text-xs font-semibold text-gray-500">
-                        طالبة - {ambition.major}
+                  {isActive ? (
+                    <div className="text-center">
+                      <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full mb-3 inline-block">
+                        {ambition.department}
                       </span>
+                      <p className="font-medium text-lg leading-relaxed mb-4">"{ambition.text}"</p>
+                      {ambition.major && (
+                        <div className="pt-3 border-t border-gray-100 text-xs text-gray-500 font-semibold">
+                          طالبة - {ambition.major}
+                        </div>
+                      )}
+                      <button 
+                        onClick={(e) => { e.stopPropagation(); setActiveAmbition(null); }}
+                        className="mt-4 text-xs text-emerald-600 font-bold underline"
+                      >
+                        إغلاق
+                      </button>
                     </div>
+                  ) : (
+                    <span className="text-xl text-emerald-200 opacity-70">"</span>
                   )}
                 </div>
-              );
-            })}
-          </div>
+                
+                {/* Connection Line to Center */}
+                {!isActive && (
+                  <svg className="absolute -z-10 pointer-events-none" style={{ left: 32, top: 32, width: Math.abs(pos.x), height: Math.abs(pos.y), overflow: 'visible' }}>
+                    <line x1="0" y1="0" x2={-pos.x} y2={-pos.y} stroke="rgba(16,185,129,0.15)" strokeWidth="1" />
+                  </svg>
+                )}
+              </motion.div>
+            );
+          })
         )}
+        
+        {/* Overlay when a node is active */}
+        <AnimatePresence>
+          {activeAmbition && (
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setActiveAmbition(null)}
+              className="fixed inset-0 bg-black/60 z-40 backdrop-blur-sm cursor-pointer"
+            />
+          )}
+        </AnimatePresence>
       </div>
 
     </section>

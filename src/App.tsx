@@ -1,223 +1,173 @@
-import React, { useState } from 'react';
-import { Header } from './components/Header';
+import React, { useState, useEffect, useRef } from 'react';
+import { NationalHero } from './components/NationalHero';
+import { ScrollQuote } from './components/ScrollQuote';
+import { StorySections } from './components/StorySections';
 import { CharacterAvatar } from './components/CharacterAvatar';
-import { ChatInterface } from './components/ChatInterface';
-import { SuggestedQuestions } from './components/SuggestedQuestions';
 import { FutureVisionBoard } from './components/FutureVisionBoard';
+import { AchievementsTimeline } from './components/AchievementsTimeline';
 import { AmbitionModal } from './components/AmbitionModal';
 import { Footer } from './components/Footer';
-import { AchievementsTimeline } from './components/AchievementsTimeline';
+import { Mic, MicOff, Sparkles, Volume2 } from 'lucide-react';
+import { CharacterState } from './types/character';
 import { useGeminiChat } from './hooks/useGeminiChat';
+import { fetchAmbitions } from './services/apiService';
+import { isSupabaseConfigured } from './lib/supabase';
 import { Ambition } from './types/ambition';
-import { Mic, MicOff, Sparkles, Flag, Volume2 } from 'lucide-react';
+import { Header } from './components/Header';
+import { AnimatePresence, motion } from 'framer-motion';
 
-export const App: React.FC = () => {
+const App: React.FC = () => {
+  const [isAmbitionModalOpen, setIsAmbitionModalOpen] = useState(false);
+  const [ambitions, setAmbitions] = useState<Ambition[]>([]);
+
   const {
     messages,
     characterState,
     errorMessage,
-    audioNotice,
     isListening,
     transcript,
-    isMicSupported,
     isAutoVoiceEnabled,
     setIsAutoVoiceEnabled,
-    sendMessage,
     handleToggleListening,
-    replayMessageVoice,
+    stopSpeaking
   } = useGeminiChat();
 
-  const [ambitions, setAmbitions] = useState<Ambition[]>([]);
-  const [isAmbitionModalOpen, setIsAmbitionModalOpen] = useState(false);
-  const [inputText, setInputText] = useState('');
-
-  React.useEffect(() => {
-    import('./services/apiService').then(({ fetchAmbitions }) => {
-      fetchAmbitions().then(data => {
-        setAmbitions(data);
-      }).catch(err => console.error('Failed to fetch ambitions:', err));
-    });
-  }, []);
-
-  const handleAmbitionAdded = (newAmbition: Ambition) => {
-    setAmbitions((prev) => [newAmbition, ...prev]);
-  };
-
-  const handleTextSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (inputText.trim() && characterState !== 'THINKING') {
-      sendMessage(inputText.trim());
-      setInputText('');
-    }
-  };
-
-  // Get only the last message from Rewaa to display as subtitles
   const lastRewaaMessage = messages.slice().reverse().find(m => m.sender === 'rewaa');
   const displaySubtitle = transcript ? transcript : (characterState === 'SPEAKING' || characterState === 'IDLE' ? lastRewaaMessage?.text : '');
 
-  return (
-    <div className="flex flex-col min-h-screen font-sans selection:bg-emerald-200 selection:text-emerald-900 relative">
-      
-      {/* Dynamic Animated Gradient Background for the Entire App */}
-      <div 
-        className="fixed inset-0 z-0 pointer-events-none bg-gradient-to-br from-[#dcfce7] via-[#f1f8e9] to-[#c8e6c9] bg-[length:200%_200%]"
-        style={{
-          animation: 'gradientMove 15s ease infinite'
-        }}
-      ></div>
+  useEffect(() => {
+    return () => {
+      stopSpeaking();
+    };
+  }, [stopSpeaking]);
 
-      <style>{`
-        @keyframes gradientMove {
-          0% { background-position: 0% 50%; }
-          50% { background-position: 100% 50%; }
-          100% { background-position: 0% 50%; }
+  useEffect(() => {
+    const loadData = async () => {
+      if (isSupabaseConfigured()) {
+        try {
+          const data = await fetchAmbitions();
+          setAmbitions(data);
+        } catch (error) {
+          console.error("Error loading ambitions:", error);
         }
-      `}</style>
+      }
+    };
+    loadData();
+  }, []);
 
-      {/* Foreground Content */}
-      <div className="relative z-10 flex flex-col min-h-screen">
+  const handleAmbitionAdded = (newAmbition: Ambition) => {
+    setAmbitions(prev => [newAmbition, ...prev]);
+  };
+
+  return (
+    <div className="flex flex-col min-h-screen font-sans selection:bg-emerald-200 selection:text-emerald-900 bg-white overflow-x-hidden">
+      
+      {/* Global Fixed Header */}
+      <div className="fixed top-0 inset-x-0 z-50">
         <Header 
           isAutoVoiceEnabled={isAutoVoiceEnabled}
           onToggleVoice={() => setIsAutoVoiceEnabled(!isAutoVoiceEnabled)}
           onOpenAmbitionModal={() => setIsAmbitionModalOpen(true)}
         />
+      </div>
 
-        {/* Main Character Experience Area */}
-        <main className="flex-1 w-full mx-auto px-4 sm:px-6 py-6 sm:py-10 flex flex-col items-center justify-center min-h-[85vh]">
+      {/* 1. Immersive Hero Section */}
+      <NationalHero />
 
-        <div className="relative z-10 flex flex-col items-center w-full">
-          {/* 1. Character Title */}
-          <div className="text-center mb-6">
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight">رِواء</h2>
-            <p className="text-xs sm:text-sm font-semibold text-emerald-700 mt-1">صوت الجيل السعودي الرقمي</p>
-          </div>
+      {/* 2. Scroll Quote Section */}
+      <ScrollQuote />
 
-          {/* 2. 3D Character Avatar (Face) */}
-          <div className="mb-6">
-            <CharacterAvatar
-              state={characterState}
-              onMicClick={handleToggleListening}
-              isListening={isListening}
-            />
-          </div>
+      {/* 3. The Voice AI Experience (Rewaa) */}
+      <section className="relative w-full py-20 bg-gradient-to-b from-[#e8f5e9] to-white overflow-hidden flex flex-col items-center z-10 border-t border-emerald-100">
+        
+        {/* Title */}
+        <div className="text-center mb-2 z-20">
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-[#0B3D2E] tracking-tight">رِواء</h2>
+          <p className="text-sm sm:text-base font-semibold text-emerald-600 mt-2 tracking-wide">صوت الجيل السعودي الرقمي</p>
+        </div>
 
-          {/* 3. Small Status Area */}
-          <div className="h-6 mb-4 flex items-center justify-center">
-            {characterState === 'THINKING' ? (
-              <span className="text-xs font-bold text-emerald-600 animate-pulse flex items-center gap-1">
-                <Sparkles className="w-3 h-3" /> جاري التفكير...
-              </span>
-            ) : isListening ? (
-              <span className="text-xs font-bold text-emerald-600 animate-pulse flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" /> أستمع إليك...
-              </span>
+        {/* 3D Character Avatar & Orbits */}
+        <CharacterAvatar
+          state={characterState}
+          isListening={isListening}
+        />
+
+        {/* Interactive Status & Mic */}
+        <div className="relative z-20 w-full max-w-2xl text-center flex flex-col items-center justify-center">
+          
+          <button
+            onClick={handleToggleListening}
+            className={`group relative flex items-center justify-center w-20 h-20 sm:w-24 sm:h-24 rounded-full transition-all duration-300 shadow-2xl border-4 outline-none ${
+              isListening
+                ? 'bg-red-500 hover:bg-red-600 border-red-200 scale-105 shadow-red-200/50'
+                : characterState === 'THINKING'
+                ? 'bg-emerald-100 border-emerald-200 opacity-70 cursor-not-allowed'
+                : characterState === 'SPEAKING'
+                ? 'bg-[#0B3D2E] border-emerald-500 scale-105 shadow-emerald-500/50'
+                : 'bg-emerald-600 border-emerald-100 hover:border-white hover:scale-105 hover:bg-emerald-500 shadow-emerald-200/50'
+            }`}
+            disabled={characterState === 'THINKING'}
+            aria-label="الميكروفون"
+          >
+            {isListening ? (
+              <>
+                <div className="absolute inset-0 rounded-full border-2 border-red-400 animate-ping opacity-40"></div>
+                <MicOff className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
+              </>
+            ) : characterState === 'THINKING' ? (
+              <Sparkles className="w-8 h-8 sm:w-10 sm:h-10 text-emerald-600 animate-spin" />
             ) : characterState === 'SPEAKING' ? (
-              <span className="text-xs font-bold text-emerald-700 flex items-center gap-1">
-                <Volume2 className="w-3 h-3 animate-bounce" /> رِواء تتحدث
-              </span>
-            ) : characterState === 'ERROR' ? (
-              <span className="text-xs font-medium text-red-500">{errorMessage}</span>
+              <div className="flex items-center justify-center gap-1 h-8">
+                {[1, 2, 3, 4].map((i) => (
+                  <div key={i} className="w-1.5 bg-emerald-400 rounded-full animate-pulse" style={{ height: `${Math.random() * 24 + 8}px`, animationDuration: '0.4s' }}></div>
+                ))}
+              </div>
             ) : (
-              <span className="text-xs font-medium text-gray-400">جاهزة للاستماع</span>
+              <Mic className="w-8 h-8 sm:w-10 sm:h-10 text-white group-hover:scale-110 transition-transform" />
             )}
-          </div>
+          </button>
 
-          {/* 4. The Microphone Button */}
-          <div className="relative flex flex-col items-center mb-8">
-            <button
-              onClick={handleToggleListening}
-              className={`group relative flex items-center justify-center w-20 h-20 sm:w-24 sm:h-24 rounded-full transition-all duration-300 shadow-xl border-4 ${
-                isListening
-                  ? 'bg-emerald-600 hover:bg-emerald-700 border-emerald-200 scale-105 shadow-emerald-200/50'
-                  : characterState === 'THINKING'
-                  ? 'bg-gray-100 border-gray-200 opacity-70 cursor-not-allowed'
-                  : characterState === 'SPEAKING'
-                  ? 'bg-emerald-700 border-emerald-100 scale-105 shadow-emerald-200/50'
-                  : 'bg-white border-emerald-50 hover:border-emerald-100 hover:scale-105 shadow-gray-100'
-              }`}
-              disabled={characterState === 'THINKING'}
-              aria-label="الميكروفون"
-            >
-              {isListening ? (
-                <>
-                  <div className="absolute inset-0 rounded-full border-2 border-emerald-400 animate-ping opacity-40"></div>
-                  <MicOff className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
-                </>
-              ) : characterState === 'THINKING' ? (
-                <Sparkles className="w-8 h-8 sm:w-10 sm:h-10 text-gray-400 animate-spin" />
-              ) : characterState === 'SPEAKING' ? (
-                <div className="flex items-center justify-center gap-1 h-8">
-                  {[1, 2, 3, 4].map((i) => (
-                    <div key={i} className="w-1.5 bg-white rounded-full animate-pulse" style={{ height: `${Math.random() * 24 + 8}px`, animationDuration: '0.4s' }}></div>
-                  ))}
-                </div>
+          {/* Transcript Subtitles Area */}
+          <div className="w-full min-h-[120px] flex flex-col items-center justify-start text-center px-4 mt-8">
+            <AnimatePresence mode="wait">
+              {characterState === 'THINKING' ? (
+                <motion.div key="thinking" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="text-emerald-600 animate-pulse font-bold text-sm">
+                  جاري التفكير...
+                </motion.div>
+              ) : isListening ? (
+                <motion.div key="listening" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="text-red-500 font-bold text-sm">
+                  {transcript ? `"${transcript}"` : "أستمع إليك الآن..."}
+                </motion.div>
+              ) : characterState === 'ERROR' ? (
+                <motion.div key="error" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="text-red-500 font-bold text-sm bg-red-50 px-4 py-2 rounded-full border border-red-200">
+                  {errorMessage}
+                </motion.div>
+              ) : displaySubtitle ? (
+                <motion.div key="speaking" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="w-full bg-white/60 backdrop-blur-md p-6 rounded-3xl border border-emerald-50 shadow-sm">
+                  <p className="text-lg sm:text-xl font-medium leading-relaxed text-[#0B3D2E]">
+                    {displaySubtitle}
+                  </p>
+                </motion.div>
               ) : (
-                <Mic className="w-8 h-8 sm:w-10 sm:h-10 text-emerald-700 group-hover:scale-110 transition-transform" />
+                <motion.div key="idle" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-gray-400 font-medium text-sm">
+                  اضغط على الميكروفون للبدء
+                </motion.div>
               )}
-            </button>
-          </div>
-
-          {/* 5. Transcript / Subtitle Box (Accessibility & Context) */}
-          <div className="w-full max-w-2xl min-h-[80px] flex flex-col items-center justify-center text-center px-4">
-            {transcript && (
-              <p className="text-sm sm:text-base text-gray-500 font-medium leading-relaxed animate-fadeIn">
-                "{transcript}"
-              </p>
-            )}
-            
-            {characterState === 'SPEAKING' && displaySubtitle && (
-              <div className="mt-4 p-4 sm:p-6 bg-white/80 backdrop-blur-md border border-emerald-50 rounded-3xl shadow-sm animate-fadeIn w-full">
-                <p className="text-base sm:text-lg md:text-xl font-medium leading-relaxed text-gray-900">
-                  {displaySubtitle}
-                </p>
-              </div>
-            )}
-
-            {characterState === 'IDLE' && lastRewaaMessage && !transcript && (
-              <div className="mt-4 p-4 bg-gray-50/50 rounded-2xl w-full max-w-lg mx-auto opacity-70">
-                <p className="text-sm font-medium text-gray-600 line-clamp-2">
-                  {lastRewaaMessage.text}
-                </p>
-              </div>
-            )}
-          </div>
-
-        </div>
-      </main>
-
-      {/* National Quote Section (96 & Emblem) */}
-      <section className="relative w-full py-16 sm:py-24 bg-gradient-to-b from-white to-emerald-50/30 overflow-hidden border-t border-emerald-50/50">
-        
-        {/* Subtle Watermarks (96 & Emblem) */}
-        <div className="absolute inset-0 z-0 flex items-center justify-center opacity-[0.03] pointer-events-none">
-          <img src="/nd96_logo.webp" alt="" className="w-[800px] h-[800px] object-contain rotate-12 scale-150" />
-        </div>
-        
-        <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 text-center">
-          <div className="inline-block mb-6">
-            <span className="text-4xl sm:text-5xl font-serif text-emerald-800">"</span>
-          </div>
-          <h3 className="text-xl sm:text-2xl md:text-3xl font-bold leading-loose text-gray-800">
-            عزّنا برؤيتنا، وشجاعتنا، وهمتنا، وأصالتنا، وكرمنا، وجودنا..
-            <br className="hidden sm:block" />
-            <span className="text-emerald-700">96 عاماً</span> من المجد والتاريخ والشموخ.
-            <br className="hidden sm:block" />
-            دمت يا وطني عزيزاً شامخاً، ودام عزك بطبعك الأصيل الذي لا يتغير!
-          </h3>
-          <div className="inline-block mt-6">
-            <span className="text-4xl sm:text-5xl font-serif text-emerald-800">"</span>
+            </AnimatePresence>
           </div>
         </div>
       </section>
 
-      {/* Future Vision Board (Independent Section) */}
-      <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 mb-8">
-        <FutureVisionBoard
-          ambitions={ambitions}
-          onOpenAddModal={() => setIsAmbitionModalOpen(true)}
-        />
-      </div>
+      {/* 4. Story Sections (Meaning, Message, Goal) */}
+      <StorySections />
 
+      {/* 5. Future Vision Board (Ambitions Orbits) */}
+      <FutureVisionBoard
+        ambitions={ambitions}
+        onOpenAddModal={() => setIsAmbitionModalOpen(true)}
+      />
+
+      {/* 6. Achievements Timeline */}
       <AchievementsTimeline />
 
       <AmbitionModal
@@ -226,8 +176,8 @@ export const App: React.FC = () => {
         onAmbitionAdded={handleAmbitionAdded}
       />
 
+      {/* 7. Footer */}
       <Footer />
-      </div>
     </div>
   );
 };

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Volume2, VolumeX, Sparkles, Flag } from 'lucide-react';
+import { Mic, Volume2 } from 'lucide-react';
 
 interface HeaderProps {
   isAutoVoiceEnabled: boolean;
@@ -7,15 +7,13 @@ interface HeaderProps {
   onOpenAmbitionModal: () => void;
 }
 
-import { RewaaLogo } from './RewaaLogo';
-
 export const Header: React.FC<HeaderProps> = ({
   isAutoVoiceEnabled,
   onToggleVoice,
   onOpenAmbitionModal,
 }) => {
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-emerald-50 bg-white/80 backdrop-blur-xl transition-all">
+    <header className="w-full bg-black/20 backdrop-blur-md border-b border-white/10 transition-all">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between">
         
         {/* Brand & Project Identity - Simplified with ND96 Logo */}
@@ -23,45 +21,31 @@ export const Header: React.FC<HeaderProps> = ({
           <img 
             src="/nd96_logo.webp" 
             alt="عزنا بطبعنا - اليوم الوطني 96" 
-            className="h-10 sm:h-12 object-contain" 
+            className="h-10 sm:h-12 object-contain drop-shadow-md" 
           />
         </div>
 
         {/* Actions & Toggles */}
         <div className="flex items-center gap-2 sm:gap-3">
           
-          {/* Action Button: أضف طموحك (Optional) */}
-          <button
-            onClick={onOpenAmbitionModal}
-            className="flex items-center gap-1.5 sm:gap-2 px-3.5 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-emerald-700 hover:bg-emerald-800 text-white shadow-sm transition-all transform active:scale-95 border border-emerald-600"
-            aria-label="أضف طموحك لمستقبل السعودية"
-          >
-            <Sparkles className="w-4 h-4 text-emerald-200" />
-            <span>أضف طموحك</span>
-          </button>
-
-          {/* Voice Auto-Play Toggle */}
           <button
             onClick={onToggleVoice}
-            className={`p-2 sm:px-3 sm:py-2 rounded-xl text-xs font-semibold border transition-colors flex items-center gap-1.5 ${
+            className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-bold transition-all ${
               isAutoVoiceEnabled
-                ? 'bg-emerald-50 border-emerald-300 text-emerald-800 hover:bg-emerald-100'
-                : 'bg-gray-100 border-gray-200 text-gray-500 hover:bg-gray-200'
+                ? 'bg-emerald-500/20 text-emerald-100 hover:bg-emerald-500/30'
+                : 'bg-white/10 text-gray-300 hover:bg-white/20'
             }`}
-            title={isAutoVoiceEnabled ? 'الصوت مفعل' : 'الصوت معطل'}
-            aria-label={isAutoVoiceEnabled ? 'تعطيل نطق الردود' : 'تفعيل نطق الردود'}
           >
-            {isAutoVoiceEnabled ? (
-              <>
-                <Volume2 className="w-4 h-4 text-emerald-700" />
-                <span className="hidden md:inline">الصوت مفعل</span>
-              </>
-            ) : (
-              <>
-                <VolumeX className="w-4 h-4 text-gray-400" />
-                <span className="hidden md:inline">الصوت صامت</span>
-              </>
-            )}
+            {isAutoVoiceEnabled ? <Volume2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> : <Mic className="w-3.5 h-3.5 sm:w-4 sm:h-4" />}
+            <span className="hidden sm:inline">{isAutoVoiceEnabled ? 'الصوت مفعل' : 'صامت'}</span>
+          </button>
+
+          <button
+            onClick={onOpenAmbitionModal}
+            className="flex items-center gap-1.5 px-3 sm:px-5 py-1.5 sm:py-2.5 rounded-full text-xs sm:text-sm font-bold bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg transition-all transform hover:-translate-y-0.5"
+          >
+            <span className="hidden sm:inline">أضف طموحك</span>
+            <span className="sm:hidden">طموحك</span>
           </button>
         </div>
 

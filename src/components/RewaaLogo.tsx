@@ -8,29 +8,33 @@ export const RewaaLogo: React.FC<{ className?: string }> = ({ className = "w-10 
       xmlns="http://www.w3.org/2000/svg"
       className={className}
     >
-      <rect width="100" height="100" rx="24" fill="#0B3D2E"/>
+      {/* Background shape - subtle AI circular motion */}
+      <circle cx="50" cy="50" r="48" fill="url(#gradient-bg)" className="opacity-10" />
+      <circle cx="50" cy="50" r="48" stroke="url(#gradient-bg)" strokeWidth="1" strokeDasharray="4 8" className="animate-[spin_20s_linear_infinite]" />
       
-      {/* Geometric 'ر' */}
+      {/* Voice Waves / AI Signal */}
+      <path d="M75 40 Q85 50 75 60" stroke="#10B981" strokeWidth="3" strokeLinecap="round" className="opacity-60" />
+      <path d="M82 35 Q95 50 82 65" stroke="#10B981" strokeWidth="2" strokeLinecap="round" className="opacity-40" />
+      <path d="M68 45 Q75 50 68 55" stroke="#10B981" strokeWidth="4" strokeLinecap="round" />
+
+      {/* The letter 'ر' (Arabic Identity) */}
       <path 
-        d="M 65 30 
-           L 65 50 
-           C 65 65, 55 75, 40 75
-           L 30 75" 
-        stroke="white" 
+        d="M 55 35 
+           L 55 50 
+           C 55 75, 25 80, 20 80" 
+        stroke="currentColor" 
         strokeWidth="10" 
         strokeLinecap="round" 
         strokeLinejoin="round"
       />
       
-      {/* Waveform accent / dot representing AI/Audio */}
-      <circle cx="72" cy="22" r="5" fill="#10B981" />
-      <path 
-        d="M 40 40 L 40 60 M 30 45 L 30 55" 
-        stroke="#10B981" 
-        strokeWidth="6" 
-        strokeLinecap="round" 
-        className="animate-pulse"
-      />
+      {/* Gradient Defs */}
+      <defs>
+        <linearGradient id="gradient-bg" x1="0" y1="0" x2="100" y2="100">
+          <stop offset="0%" stopColor="#10B981" />
+          <stop offset="100%" stopColor="#0B3D2E" />
+        </linearGradient>
+      </defs>
     </svg>
   );
 };
