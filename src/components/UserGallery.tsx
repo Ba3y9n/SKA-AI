@@ -25,6 +25,7 @@ import {
   subscribeToGalleryChanges
 } from '../services/galleryService';
 import { optimizeImageFile } from '../utils/imageOptimizer';
+import { DeleteConfirmModal } from './DeleteConfirmModal';
 
 interface UserGalleryProps {
   onOpenAdmin?: () => void;
@@ -49,6 +50,8 @@ export const UserGallery: React.FC<UserGalleryProps> = ({ onOpenAdmin }) => {
 
   // My Submissions Modal
   const [isMySubmissionsOpen, setIsMySubmissionsOpen] = useState(false);
+  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
+  const [isDeletingPhoto, setIsDeletingPhoto] = useState(false);
 
   const loadData = async () => {
     try {
@@ -133,15 +136,22 @@ export const UserGallery: React.FC<UserGalleryProps> = ({ onOpenAdmin }) => {
     }
   };
 
-  // User deletes their own pending submission
-  const handleDeleteMySubmission = async (id: string) => {
-    if (window.confirm('هل أنت متأكد من حذف هذه المشاركة؟')) {
-      const res = await deletePhotoSubmission(id);
+  // User deletes their own submission via modal
+  const handleConfirmDeletePhoto = async () => {
+    if (!deleteTargetId) return;
+    setIsDeletingPhoto(true);
+    try {
+      const res = await deletePhotoSubmission(deleteTargetId);
       if (res.success) {
+        setDeleteTargetId(null);
         await loadData();
       } else {
         alert(res.message);
       }
+    } catch (err) {
+      console.error('Error deleting photo:', err);
+    } finally {
+      setIsDeletingPhoto(false);
     }
   };
 
@@ -285,7 +295,7 @@ export const UserGallery: React.FC<UserGalleryProps> = ({ onOpenAdmin }) => {
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            handleDeleteMySubmission(photo.id);
+                            setDeleteTargetId(photo.id);
                           }}
                           className="p-2 bg-red-600/90 hover:bg-red-700 text-white rounded-full transition-colors shadow-md"
                           title="حذف صورتي"
@@ -329,7 +339,7 @@ export const UserGallery: React.FC<UserGalleryProps> = ({ onOpenAdmin }) => {
                   onClick={() => {
                     const id = filteredApprovedPhotos[lightboxIndex].id;
                     setLightboxIndex(null);
-                    handleDeleteMySubmission(id);
+                    setDeleteTargetId(id);
                   }}
                   className="p-3 rounded-full bg-red-600 hover:bg-red-700 text-white transition-colors flex items-center gap-2 text-xs font-bold shadow-lg"
                   title="حذف هذه الصورة"
@@ -613,7 +623,7 @@ export const UserGallery: React.FC<UserGalleryProps> = ({ onOpenAdmin }) => {
 
                         {item.status === 'pending' && (
                           <button
-                            onClick={() => handleDeleteMySubmission(item.id)}
+                            onClick={() => setDeleteTargetId(item.id)}
                             className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 text-xs font-bold transition-colors self-end sm:self-auto"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -629,6 +639,16 @@ export const UserGallery: React.FC<UserGalleryProps> = ({ onOpenAdmin }) => {
           </div>
         )}
       </AnimatePresence>
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmModal
+        isOpen={!!deleteTargetId}
+        title="تأكيد حذف الصورة"
+        message="هل أنتِ متأكدة من رغبتك في حذف هذه المشاركة؟"
+        isDeleting={isDeletingPhoto}
+        onConfirm={handleConfirmDeletePhoto}
+        onCancel={() => setDeleteTargetId(null)}
+      />
 
     </section>
   );

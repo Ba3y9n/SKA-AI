@@ -108,7 +108,7 @@ export function useVoiceRecognition({ onResult, onError, onEnd }: VoiceRecogniti
 
       if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
         setIsListening(false);
-        onErrorRef.current('اسمحي للمتصفح باستخدام الميكروفون حتى تقدرين تتحدثين معي.');
+        onErrorRef.current('لتمكين المحادثة الصوتية، اسمحي للمتصفح باستخدام الميكروفون.');
       } else if (event.error === 'no-speech') {
         if (latestTranscriptRef.current.trim()) {
           triggerFinalResult();

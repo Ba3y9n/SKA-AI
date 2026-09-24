@@ -9,13 +9,15 @@ import {
   deleteDatabaseAchievement, 
   getAchievementUserToken 
 } from '../services/achievementsService';
+import { DeleteConfirmModal } from './DeleteConfirmModal';
 
 export const AchievementsTimeline: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'students' | 'faculty'>('students');
   const [dbAchievements, setDbAchievements] = useState<DatabaseAchievement[]>([]);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [myUserToken, setMyUserToken] = useState<string>('');
-  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
+  const [isDeletingRecord, setIsDeletingRecord] = useState(false);
 
   // New Achievement Form State
   const [newName, setNewName] = useState('');
@@ -99,20 +101,21 @@ export const AchievementsTimeline: React.FC = () => {
     }
   };
 
-  const handleDelete = async (id: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (deleteConfirmId !== id) {
-      setDeleteConfirmId(id);
-      return;
-    }
-
-    // Confirmed delete
-    const success = await deleteDatabaseAchievement(id);
-    if (success) {
-      setDbAchievements(prev => prev.filter(a => a.id !== id));
-      setDeleteConfirmId(null);
-    } else {
-      alert('تعذر حذف الإنجاز حالياً.');
+  const handleConfirmDelete = async () => {
+    if (!deleteTargetId) return;
+    setIsDeletingRecord(true);
+    try {
+      const success = await deleteDatabaseAchievement(deleteTargetId);
+      if (success) {
+        setDbAchievements(prev => prev.filter(a => a.id !== deleteTargetId));
+        setDeleteTargetId(null);
+      } else {
+        alert('تعذر حذف الإنجاز حالياً.');
+      }
+    } catch (err) {
+      console.error('Error deleting achievement:', err);
+    } finally {
+      setIsDeletingRecord(false);
     }
   };
 
@@ -235,7 +238,6 @@ export const AchievementsTimeline: React.FC = () => {
           >
             {currentList.map((person, index) => {
               const isOwner = person.isUserAdded && (person.userToken === myUserToken || !person.userToken);
-              const isConfirmingDelete = deleteConfirmId === person.id;
 
               return (
                 <motion.div
@@ -262,38 +264,16 @@ export const AchievementsTimeline: React.FC = () => {
                       {/* Deletion Button for Added Achievements */}
                       <div className="flex items-center gap-2">
                         {isOwner && (
-                          <div className="relative flex items-center">
-                            <AnimatePresence>
-                              {isConfirmingDelete && (
-                                <motion.div 
-                                  initial={{ opacity: 0, scale: 0.8, x: -10 }}
-                                  animate={{ opacity: 1, scale: 1, x: 0 }}
-                                  exit={{ opacity: 0, scale: 0.8, x: -10 }}
-                                  className="absolute left-full ml-2 whitespace-nowrap bg-red-500 text-white text-xs font-bold py-1.5 px-3 rounded-xl flex items-center gap-1.5 shadow-lg border border-red-400 z-30"
-                                >
-                                  <AlertCircle className="w-3.5 h-3.5" />
-                                  <span>تأكيد الحذف؟</span>
-                                  <button 
-                                    onClick={(e) => { e.stopPropagation(); setDeleteConfirmId(null); }}
-                                    className="p-0.5 hover:bg-white/20 rounded transition-colors"
-                                  >
-                                    <X className="w-3 h-3" />
-                                  </button>
-                                </motion.div>
-                              )}
-                            </AnimatePresence>
-                            <button 
-                              onClick={(e) => handleDelete(person.id, e)}
-                              className={`p-2 rounded-full transition-all duration-300 ${
-                                isConfirmingDelete 
-                                  ? 'bg-red-500 text-white shadow-md' 
-                                  : 'text-red-400 hover:text-red-600 hover:bg-red-50'
-                              }`}
-                              title="حذف هذا الإنجاز"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
+                          <button 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setDeleteTargetId(person.id);
+                            }}
+                            className="p-2 rounded-full transition-all duration-300 text-red-400 hover:text-white hover:bg-red-500 border border-transparent hover:border-red-500 shadow-sm"
+                            title="حذف هذا الإنجاز"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
                         )}
                       </div>
                     </div>
@@ -445,6 +425,16 @@ export const AchievementsTimeline: React.FC = () => {
           </div>
         )}
       </AnimatePresence>
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmModal
+        isOpen={!!deleteTargetId}
+        title="تأكيد حذف الإنجاز"
+        message="هل أنتِ متأكدة من رغبتك في حذف هذا الإنجاز من السجل العام؟"
+        isDeleting={isDeletingRecord}
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setDeleteTargetId(null)}
+      />
 
     </section>
   );

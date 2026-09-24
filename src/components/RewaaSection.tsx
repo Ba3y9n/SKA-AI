@@ -183,8 +183,8 @@ export const RewaaSection: React.FC<RewaaSectionProps> = ({
               }`} />
               {characterState === 'LISTENING' && 'رِواء تستمع...'}
               {characterState === 'THINKING' && 'رِواء تفكر...'}
-              {characterState === 'SPEAKING' && 'رِواء تجيب...'}
-              {characterState === 'IDLE' && 'أنا جاهزة للاستماع'}
+              {characterState === 'SPEAKING' && 'رِواء تتحدث...'}
+              {characterState === 'IDLE' && 'تحدثي معي'}
               {characterState === 'ERROR' && 'حدث انقطاع بسيط'}
             </span>
           </div>

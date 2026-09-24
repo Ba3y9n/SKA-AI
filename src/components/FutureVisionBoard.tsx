@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, Edit2, Trash2, Quote, AlertCircle, X, Search, ChevronRight, ChevronLeft, LayoutGrid, Layers } from 'lucide-react';
 import { Ambition } from '../types/ambition';
 import { deleteAmbition } from '../services/apiService';
+import { DeleteConfirmModal } from './DeleteConfirmModal';
 
 interface FutureVisionBoardProps {
   ambitions: Ambition[];
@@ -13,7 +14,8 @@ interface FutureVisionBoardProps {
 const ITEMS_PER_PAGE = 6;
 
 export const FutureVisionBoard: React.FC<FutureVisionBoardProps> = ({ ambitions, onAddClick, onDelete }) => {
-  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [ownedIds, setOwnedIds] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
@@ -31,21 +33,21 @@ export const FutureVisionBoard: React.FC<FutureVisionBoardProps> = ({ ambitions,
     return () => window.removeEventListener('storage', updateOwned);
   }, [ambitions]);
 
-  const handleDeleteClick = async (id: string) => {
-    if (deleteConfirmId !== id) {
-      setDeleteConfirmId(id);
-      return;
-    }
-
-    // Confirmed deletion
-    if (id) {
+  const handleConfirmDelete = async () => {
+    if (!deleteTargetId) return;
+    setIsDeleting(true);
+    try {
       const owned = JSON.parse(localStorage.getItem('ownedAmbitions') || '[]');
-      localStorage.setItem('ownedAmbitions', JSON.stringify(owned.filter((item: string) => item !== id)));
-      setOwnedIds(prev => prev.filter(item => item !== id));
+      localStorage.setItem('ownedAmbitions', JSON.stringify(owned.filter((item: string) => item !== deleteTargetId)));
+      setOwnedIds(prev => prev.filter(item => item !== deleteTargetId));
       
-      await deleteAmbition(id);
-      if (onDelete) onDelete(id);
-      setDeleteConfirmId(null);
+      await deleteAmbition(deleteTargetId);
+      if (onDelete) onDelete(deleteTargetId);
+      setDeleteTargetId(null);
+    } catch (err) {
+      console.error('Failed to delete ambition:', err);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -147,7 +149,6 @@ export const FutureVisionBoard: React.FC<FutureVisionBoardProps> = ({ ambitions,
           <AnimatePresence mode="popLayout">
             {paginatedAmbitions.map((item, idx) => {
               const isOwner = ownedIds.includes(item.id) || (item.id && item.id.startsWith('local-'));
-              const isConfirmingDelete = deleteConfirmId === item.id;
               
               const mockDate = item.created_at 
                 ? new Date(item.created_at).toLocaleDateString('ar-SA', { month: 'short', day: 'numeric', year: 'numeric' })
@@ -190,34 +191,13 @@ export const FutureVisionBoard: React.FC<FutureVisionBoardProps> = ({ ambitions,
                     
                     <div className="flex items-center gap-2">
                       {isOwner && (
-                        <div className="relative flex items-center">
-                          <AnimatePresence>
-                            {isConfirmingDelete && (
-                              <motion.div 
-                                initial={{ opacity: 0, scale: 0.8, x: -10 }}
-                                animate={{ opacity: 1, scale: 1, x: 0 }}
-                                exit={{ opacity: 0, scale: 0.8, x: -10 }}
-                                className="absolute left-full ml-2 whitespace-nowrap bg-red-600 text-white text-xs font-bold py-2 px-3 rounded-xl flex items-center gap-2 shadow-2xl border border-red-400 z-30"
-                              >
-                                <AlertCircle className="w-3.5 h-3.5" />
-                                <span>تأكيد الحذف؟</span>
-                                <button 
-                                  onClick={(e) => { e.stopPropagation(); setDeleteConfirmId(null); }}
-                                  className="ml-1 p-0.5 hover:bg-white/20 rounded-md transition-colors"
-                                >
-                                  <X className="w-3 h-3" />
-                                </button>
-                              </motion.div>
-                            )}
-                          </AnimatePresence>
-                          <button 
-                            onClick={() => handleDeleteClick(item.id!)}
-                            className={`p-2.5 rounded-full transition-all duration-300 ${isConfirmingDelete ? 'bg-red-500 text-white shadow-lg' : 'bg-white/10 text-white/70 hover:bg-red-500/20 hover:text-red-400 border border-white/10 hover:border-red-500/40'}`}
-                            title="حذف هذا الطموح"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
+                        <button 
+                          onClick={() => setDeleteTargetId(item.id!)}
+                          className="p-2.5 rounded-full transition-all duration-300 bg-white/10 text-white/70 hover:bg-red-500 hover:text-white border border-white/10 hover:border-red-500 shadow-sm"
+                          title="حذف هذا الطموح"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
                       )}
                     </div>
                   </div>
@@ -308,7 +288,7 @@ export const FutureVisionBoard: React.FC<FutureVisionBoardProps> = ({ ambitions,
                       <span className="text-gold-light font-black">{item.name || 'طالبة طموحة'} - {item.major || item.department}</span>
                       {ownedIds.includes(item.id) && (
                         <button 
-                          onClick={() => handleDeleteClick(item.id)}
+                          onClick={() => setDeleteTargetId(item.id)}
                           className="text-red-400 hover:text-red-300 font-bold flex items-center gap-1"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -323,6 +303,16 @@ export const FutureVisionBoard: React.FC<FutureVisionBoardProps> = ({ ambitions,
           </div>
         )}
       </AnimatePresence>
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmModal
+        isOpen={!!deleteTargetId}
+        title="تأكيد حذف الطموح"
+        message="هل أنتِ متأكدة من رغبتك في حذف هذا الطموح من المنصة؟"
+        isDeleting={isDeleting}
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setDeleteTargetId(null)}
+      />
 
     </section>
   );
