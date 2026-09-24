@@ -2,11 +2,12 @@ import React, { useState } from 'react';
 import { submitAmbitionIdea } from '../services/apiService';
 import { X, Send, Sparkles, ImagePlus, RefreshCw, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Ambition } from '../types/ambition';
 
 interface AmbitionModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSuccess?: () => void;
+  onSuccess?: (newAmbition: Ambition) => void;
 }
 
 export const AmbitionModal: React.FC<AmbitionModalProps> = ({ isOpen, onClose, onSuccess }) => {
@@ -17,6 +18,7 @@ export const AmbitionModal: React.FC<AmbitionModalProps> = ({ isOpen, onClose, o
   const [ambitionImage, setAmbitionImage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -34,14 +36,9 @@ export const AmbitionModal: React.FC<AmbitionModalProps> = ({ isOpen, onClose, o
     if (!text.trim()) return;
 
     setIsSubmitting(true);
+    setSubmitError(null);
     try {
-      let userToken = localStorage.getItem('rewaa_user_token');
-      if (!userToken) {
-        userToken = 'usr_' + Math.random().toString(36).substr(2, 9) + Date.now();
-        localStorage.setItem('rewaa_user_token', userToken);
-      }
-
-      await submitAmbitionIdea({
+      const inserted = await submitAmbitionIdea({
         text: text.trim(),
         name: name.trim() || 'طالبة طموحة',
         role: `${role} - ${major || 'كلية الأعمال والاقتصاد'}`,
@@ -50,23 +47,10 @@ export const AmbitionModal: React.FC<AmbitionModalProps> = ({ isOpen, onClose, o
         is_approved: true
       });
 
-      // Also save locally with the user token for ownership tracking
-      const localAmbitions = JSON.parse(localStorage.getItem('user_local_ambitions') || '[]');
-      const newLocal = {
-        id: 'local_' + Date.now(),
-        text: text.trim(),
-        name: name.trim() || 'طالبة طموحة',
-        role: `${role} - ${major || 'كلية الأعمال والاقتصاد'}`,
-        department: major || 'كلية الأعمال والاقتصاد',
-        created_at: new Date().toISOString(),
-        isUserAdded: true,
-        userToken: userToken,
-        imageUrl: ambitionImage || undefined
-      };
-      localStorage.setItem('user_local_ambitions', JSON.stringify([newLocal, ...localAmbitions]));
-
       setIsSuccess(true);
-      if (onSuccess) onSuccess();
+      if (onSuccess && inserted) {
+        onSuccess(inserted);
+      }
 
       setTimeout(() => {
         setIsSuccess(false);
@@ -76,9 +60,10 @@ export const AmbitionModal: React.FC<AmbitionModalProps> = ({ isOpen, onClose, o
         setText('');
         setAmbitionImage(null);
         onClose();
-      }, 2000);
-    } catch (error) {
+      }, 1500);
+    } catch (error: any) {
       console.error('Error submitting ambition:', error);
+      setSubmitError('تعذر حفظ الطموح حالياً، يرجى المحاولة مرة ثانية.');
     } finally {
       setIsSubmitting(false);
     }

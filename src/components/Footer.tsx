@@ -3,38 +3,38 @@ import { RewaaLogo } from './RewaaLogo';
 
 export const Footer: React.FC = () => {
   return (
-    <footer className="w-full bg-saudi-700 text-saudi-50 py-12 border-t border-saudi-600/50">
-      <div className="max-w-6xl mx-auto px-6">
-        <div className="flex flex-col md:flex-row items-center justify-between gap-8">
+    <footer className="w-full bg-[#003828] text-white py-14 border-t border-emerald-900">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6">
+        <div className="flex flex-col md:flex-row items-center justify-between gap-8 text-right">
           
           {/* Identity */}
-          <div className="flex items-center gap-4 cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
-            <img 
-              src="/logo.png" 
-              alt="شعار المنصة" 
-              className="w-16 h-16 md:w-20 md:h-20 object-contain drop-shadow-lg" 
-            />
+          <div 
+            className="flex items-center gap-3.5 cursor-pointer" 
+            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          >
+            <RewaaLogo className="w-12 h-12 text-emerald-300" />
             <div>
-              <h3 className="text-2xl font-black tracking-widest mb-1 text-gold">رِواء</h3>
-              <p className="text-saudi-300 text-sm font-bold tracking-wider">
-                صوت الجيل السعودي الرقمي
+              <h3 className="text-2xl font-black tracking-tight text-white">رِواء AI</h3>
+              <p className="text-emerald-200/80 text-xs font-bold tracking-wide">
+                صوت الجيل السعودي الرقمي • اليوم الوطني 96
               </p>
             </div>
           </div>
 
           {/* Links / Info */}
-          <div className="flex items-center gap-6 text-sm font-bold text-gray-400">
-            <span className="hover:text-gold-light transition-colors cursor-pointer">عن رِواء</span>
-            <span className="hover:text-gold-light transition-colors cursor-pointer">الخصوصية</span>
-            <span className="hover:text-gold-light transition-colors cursor-pointer">شروط الاستخدام</span>
+          <div className="flex items-center gap-6 text-xs sm:text-sm font-bold text-gray-300">
+            <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="hover:text-emerald-300 transition-colors">عن رِواء</button>
+            <a href="#storytelling" className="hover:text-emerald-300 transition-colors">مسار الحكاية</a>
+            <a href="#ambitions" className="hover:text-emerald-300 transition-colors">جدار الطموحات</a>
+            <a href="#achievements" className="hover:text-emerald-300 transition-colors">الإنجازات</a>
           </div>
 
         </div>
 
         {/* Copyright */}
-        <div className="mt-12 pt-6 border-t border-saudi-900/30 text-center md:text-left flex flex-col md:flex-row items-center justify-between text-xs text-gray-500 font-medium">
-          <p>© {new Date().getFullYear()} رِواء AI. جميع الحقوق محفوظة.</p>
-          <p className="mt-2 md:mt-0">بمبادرة من طالبات ودكتورات كلية الأعمال والاقتصاد - جامعة القصيم</p>
+        <div className="mt-12 pt-6 border-t border-emerald-900/60 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-emerald-200/60 font-medium text-center md:text-right">
+          <p>© {new Date().getFullYear()} رِواء AI — المنصة الرقمية التفاعلية لليوم الوطني 96.</p>
+          <p>بمبادرة من طالبات ودكتورات كلية الأعمال والاقتصاد — جامعة القصيم</p>
         </div>
       </div>
     </footer>

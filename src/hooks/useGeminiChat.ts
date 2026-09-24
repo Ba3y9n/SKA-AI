@@ -136,7 +136,7 @@ export function useGeminiChat() {
         const errorChatMessage: ChatMessage = {
           id: 'msg-err-' + Date.now(),
           sender: 'system',
-          text: `⚠️ ${errorText}`,
+          text: errorText,
           timestamp: new Date(),
         };
         setMessages((prev) => [...prev, errorChatMessage]);

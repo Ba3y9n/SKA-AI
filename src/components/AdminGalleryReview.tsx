@@ -28,9 +28,6 @@ interface AdminGalleryReviewProps {
   onBackToSite: () => void;
 }
 
-// Supervisor Passcodes
-const VALID_PASSWORDS = ['Ba#6i6', 'ba#6i6', 'BA#6I6', '9696'];
-
 export const AdminGalleryReview: React.FC<AdminGalleryReviewProps> = ({ onBackToSite }) => {
   // Authentication State
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
@@ -38,6 +35,7 @@ export const AdminGalleryReview: React.FC<AdminGalleryReviewProps> = ({ onBackTo
   });
   const [pinInput, setPinInput] = useState('');
   const [authError, setAuthError] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
 
   const [submissions, setSubmissions] = useState<GallerySubmission[]>([]);
   const [activeTab, setActiveTab] = useState<'pending' | 'approved' | 'rejected' | 'all'>('pending');
@@ -78,14 +76,32 @@ export const AdminGalleryReview: React.FC<AdminGalleryReviewProps> = ({ onBackTo
     }
   }, [isAuthenticated]);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (VALID_PASSWORDS.includes(pinInput.trim())) {
-      setIsAuthenticated(true);
-      sessionStorage.setItem('cbe_admin_auth', 'true');
-      setAuthError(false);
-    } else {
+    if (!pinInput.trim()) return;
+
+    setIsVerifying(true);
+    setAuthError(false);
+
+    try {
+      const res = await fetch('/api/admin-auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pin: pinInput.trim() })
+      });
+
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setIsAuthenticated(true);
+        sessionStorage.setItem('cbe_admin_auth', 'true');
+        setAuthError(false);
+      } else {
+        setAuthError(true);
+      }
+    } catch {
       setAuthError(true);
+    } finally {
+      setIsVerifying(false);
     }
   };
 
