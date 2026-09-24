@@ -108,13 +108,7 @@ const App: React.FC = () => {
       {/* 2. Hero Image with change photo & big discover title */}
       <CinematicHero />
 
-      {/* Decorative Golden Divider */}
-      <div className="w-full bg-saudi-100 py-6 sm:py-10 flex justify-center">
-        <div 
-          className="w-[80%] max-w-2xl h-12 sm:h-20 bg-contain bg-center bg-no-repeat opacity-90"
-          style={{ backgroundImage: "url('/gold-border.png')" }}
-        />
-      </div>
+
 
       {/* 3. Rewaa Character Section */}
       <RewaaSection 
@@ -143,6 +137,7 @@ const App: React.FC = () => {
       <FutureVisionBoard 
         ambitions={ambitions} 
         onAddClick={() => setIsAmbitionModalOpen(true)} 
+        onDelete={(id) => setAmbitions(prev => prev.filter(a => a.id !== id))}
       />
 
       {/* 8. College Students & Faculty Achievements ("طالبات كلية الأعمال والاقتصاد ودكتوراتها") */}

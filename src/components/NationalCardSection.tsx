@@ -69,14 +69,7 @@ export const NationalCardSection: React.FC = () => {
             transition={{ duration: 1, ease: "easeOut" }}
             className="lg:col-span-6 w-full flex items-center justify-center min-h-[400px]"
           >
-            <div className="relative inline-flex flex-col items-center justify-center p-6 sm:p-10">
-              {/* Golden Frame around the logo (No white background) */}
-              <div className="absolute inset-x-0 top-0 h-px bg-gold" />
-              <div className="absolute inset-x-0 bottom-0 h-px bg-gold" />
-              
-              <div className="hidden sm:block absolute -right-8 sm:-right-12 top-1/2 -translate-y-1/2 w-16 sm:w-20 h-10 sm:h-12 bg-contain bg-no-repeat bg-left" style={{ backgroundImage: "url('/gold-border.png')" }} />
-              <div className="hidden sm:block absolute -left-8 sm:-left-12 top-1/2 -translate-y-1/2 w-16 sm:w-20 h-10 sm:h-12 bg-contain bg-no-repeat bg-left rotate-180" style={{ backgroundImage: "url('/gold-border.png')" }} />
-              
+              <div className="relative inline-flex flex-col items-center justify-center p-6 sm:p-10">
               <img 
                 src="/identity-logo.png" 
                 alt="عزنا بطبعنا" 

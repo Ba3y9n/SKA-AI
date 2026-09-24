@@ -36,17 +36,7 @@ export const CinematicVoice: React.FC = () => {
       {/* Main Content */}
       <motion.div style={{ y: yTransform }} className="max-w-5xl mx-auto px-6 text-center relative z-10">
         
-        {/* Subtle Tag */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.8 }}
-          className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-saudi-50/10 backdrop-blur-md border border-gold/30 text-gold-light text-sm font-bold mb-10 shadow-lg"
-        >
-          <span className="w-2 h-2 rounded-full bg-gold animate-ping" />
-          تجربة رقمية فريدة
-        </motion.div>
+
 
         {/* Cinematic Title */}
         <motion.div

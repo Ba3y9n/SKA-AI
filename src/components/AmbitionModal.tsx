@@ -50,6 +50,11 @@ export const AmbitionModal: React.FC<AmbitionModalProps> = ({ isOpen, onClose, o
       setIsSuccess(true);
       if (onSuccess && inserted) {
         onSuccess(inserted);
+        const owned = JSON.parse(localStorage.getItem('ownedAmbitions') || '[]');
+        if (inserted.id) {
+          owned.push(inserted.id);
+          localStorage.setItem('ownedAmbitions', JSON.stringify(owned));
+        }
       }
 
       setTimeout(() => {

@@ -66,10 +66,6 @@ export const RewaaSection: React.FC<RewaaSectionProps> = ({
         
         {/* Header Badge */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-saudi-50 border border-saudi-200/60 text-saudi-700 text-sm font-bold shadow-sm">
-            <Sparkles className="w-4 h-4 text-gold-dark" />
-            <span>المساعد الذكي لمنصة اليوم الوطني 96</span>
-          </div>
           <h2 className="text-3xl sm:text-5xl font-black text-saudi-700 mt-4 mb-2 tracking-tight">
             أهلًا بك، أنا رِواء
           </h2>
@@ -157,7 +153,6 @@ export const RewaaSection: React.FC<RewaaSectionProps> = ({
               {characterState === 'LISTENING' && 'جاري الاستماع إليكِ...'}
               {characterState === 'THINKING' && 'جاري التفكير في الإجابة...'}
               {characterState === 'SPEAKING' && 'رِواء تتحدث الآن...'}
-              {characterState === 'IDLE' && 'رِواء جاهزة للاستماع'}
               {characterState === 'ERROR' && 'حدث انقطاع بسيط'}
             </span>
           </div>
@@ -218,11 +213,7 @@ export const RewaaSection: React.FC<RewaaSectionProps> = ({
               </div>
               <div>
                 <h4 className="text-sm font-black text-saudi-700">محادثة رِواء المباشرة</h4>
-                <p className="text-[11px] font-bold text-gray-400">Gemini 3.7 Flash</p>
               </div>
-            </div>
-            <div className="text-xs font-bold text-saudi-600 bg-saudi-50 px-3 py-1 rounded-full border border-saudi-200/50">
-              اليوم الوطني 96
             </div>
           </div>
 
@@ -258,7 +249,7 @@ export const RewaaSection: React.FC<RewaaSectionProps> = ({
                     </span>
                   </div>
 
-                  <div className={`relative max-w-[85%] sm:max-w-[75%] px-5 py-3.5 rounded-2xl text-sm sm:text-base font-medium leading-relaxed shadow-sm ${
+                  <div className={`relative max-w-[90%] sm:max-w-[75%] px-4 sm:px-5 py-3.5 rounded-2xl text-sm sm:text-base font-medium leading-relaxed shadow-sm break-words whitespace-pre-wrap ${
                     isUser 
                       ? 'bg-saudi-600 text-white rounded-tr-none' 
                       : 'bg-white text-saudi-700 border border-saudi-100/90 rounded-tl-none'

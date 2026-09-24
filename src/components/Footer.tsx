@@ -31,10 +31,24 @@ export const Footer: React.FC = () => {
 
         </div>
 
-        {/* Copyright */}
-        <div className="mt-12 pt-6 border-t border-saudi-900/30 text-center md:text-left flex flex-col md:flex-row items-center justify-between text-xs text-gray-500 font-medium">
-          <p>© {new Date().getFullYear()} رِواء AI. جميع الحقوق محفوظة.</p>
-          <p className="mt-2 md:mt-0">بمبادرة من طالبات ودكتورات كلية الأعمال والاقتصاد - جامعة القصيم</p>
+        {/* Copyright & Dev Credit */}
+        <div className="mt-12 pt-6 border-t border-saudi-900/30 flex flex-col md:flex-row items-center justify-between text-xs font-medium space-y-4 md:space-y-0">
+          <p className="text-gray-500">© {new Date().getFullYear()} رِواء AI. جميع الحقوق محفوظة.</p>
+          <div className="flex flex-col md:flex-row items-center gap-2 md:gap-6 text-gray-500">
+            <p>بمبادرة من طالبات ودكتورات كلية الأعمال والاقتصاد - جامعة القصيم</p>
+            <div className="hidden md:block w-1 h-1 rounded-full bg-gray-600"></div>
+            <p className="flex items-center gap-1.5 mt-2 md:mt-0 text-gray-400">
+              <span>فريق التطوير:</span>
+              <a 
+                href="https://www.linkedin.com/in/bayan-almutairi-93a872333?utm_source=share_via&utm_content=profile&utm_medium=member_ios" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-gold-light hover:text-gold font-bold transition-colors underline decoration-gold/30 hover:decoration-gold"
+              >
+                بيان المطيري
+              </a>
+            </p>
+          </div>
         </div>
       </div>
     </footer>

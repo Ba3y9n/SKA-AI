@@ -43,19 +43,7 @@ export const CinematicHero: React.FC = () => {
         {/* Removed dark overlay to make the main image much clearer */}
       </motion.div>
 
-      {/* Image Upload Button (Floating) */}
-      <div className="absolute top-24 left-6 z-50">
-        <label className="flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-white/40 backdrop-blur-md border border-white/30 rounded-full cursor-pointer transition-all text-white shadow-lg text-sm font-bold group">
-          <ImagePlus className="w-4 h-4" />
-          <span className="hidden group-hover:inline">تغيير الصورة الرئيسية</span>
-          <input 
-            type="file" 
-            accept="image/*" 
-            onChange={handleImageUpload} 
-            className="hidden" 
-          />
-        </label>
-      </div>
+
 
       {/* Discover Section (Massive & Interactive at the bottom) */}
       <div className="absolute bottom-0 left-0 w-full flex flex-col items-center justify-end pb-20 z-20 bg-gradient-to-t from-saudi-100 via-saudi-100/80 to-transparent pt-40">

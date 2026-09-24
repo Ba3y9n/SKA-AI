@@ -1,19 +1,46 @@
 import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, Plus, Share2, User } from 'lucide-react';
+import { Sparkles, Plus, Share2, User, Trash2 } from 'lucide-react';
 import { Ambition } from '../types/ambition';
 import { ShareAmbitionModal } from './ShareAmbitionModal';
+import { deleteAmbition } from '../services/apiService';
 
 interface FutureVisionBoardProps {
   ambitions: Ambition[];
   onAddClick: () => void;
+  onDelete?: (id: string) => void;
 }
 
 export const FutureVisionBoard: React.FC<FutureVisionBoardProps> = ({
   ambitions,
   onAddClick,
+  onDelete,
 }) => {
   const [selectedAmbitionForShare, setSelectedAmbitionForShare] = useState<Ambition | null>(null);
+  const [isDeleting, setIsDeleting] = useState<string | null>(null);
+
+  const ownedAmbitions = useMemo(() => {
+    try {
+      return JSON.parse(localStorage.getItem('ownedAmbitions') || '[]');
+    } catch {
+      return [];
+    }
+  }, [ambitions]); // Re-compute when ambitions change just to stay updated
+
+  const handleDelete = async (id: string) => {
+    if (confirm('هل أنت متأكد من حذف طموحك؟')) {
+      setIsDeleting(id);
+      const success = await deleteAmbition(id);
+      setIsDeleting(null);
+      if (success) {
+        const owned = JSON.parse(localStorage.getItem('ownedAmbitions') || '[]');
+        localStorage.setItem('ownedAmbitions', JSON.stringify(owned.filter((item: string) => item !== id)));
+        if (onDelete) onDelete(id);
+      } else {
+        alert('حدث خطأ أثناء حذف الطموح.');
+      }
+    }
+  };
 
   // Deduplicate ambitions by ID to prevent any duplicate keys or rendering artifacts
   const uniqueAmbitions = useMemo(() => {
@@ -104,6 +131,16 @@ export const FutureVisionBoard: React.FC<FutureVisionBoardProps> = ({
                         </div>
 
                         <div className="flex items-center gap-2 bg-saudi-700/50 rounded-full p-1 border border-saudi-600">
+                          {ambition.id && ownedAmbitions.includes(ambition.id) && (
+                            <button
+                              onClick={() => handleDelete(ambition.id!)}
+                              disabled={isDeleting === ambition.id}
+                              className="p-2 text-saudi-200 hover:text-red-400 hover:bg-saudi-600 rounded-full transition-all flex items-center gap-1"
+                              title="حذف طموحي"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          )}
                           <button
                             onClick={() => setSelectedAmbitionForShare(ambition)}
                             className="p-2 text-saudi-200 hover:text-gold hover:bg-saudi-600 rounded-full transition-all flex items-center gap-1"
