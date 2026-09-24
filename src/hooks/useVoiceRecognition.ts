@@ -93,10 +93,10 @@ export function useVoiceRecognition({ onResult, onError, onEnd }: VoiceRecogniti
         clearTimeout(silenceTimerRef.current);
       }
 
-      // If pause detected after speaking, automatically trigger submission
+      // If pause detected after speaking, automatically trigger submission with natural speech pause
       silenceTimerRef.current = setTimeout(() => {
         triggerFinalResult();
-      }, final.length > 0 ? 500 : 900);
+      }, final.length > 0 ? 1200 : 1600);
     };
 
     recognition.onerror = (event: any) => {

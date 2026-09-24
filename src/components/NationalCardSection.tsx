@@ -74,8 +74,8 @@ export const NationalCardSection: React.FC = () => {
               <div className="absolute inset-x-0 top-0 h-px bg-gold" />
               <div className="absolute inset-x-0 bottom-0 h-px bg-gold" />
               
-              <div className="absolute -right-8 sm:-right-12 top-1/2 -translate-y-1/2 w-16 sm:w-20 h-10 sm:h-12 bg-contain bg-no-repeat bg-left" style={{ backgroundImage: "url('/gold-border.png')" }} />
-              <div className="absolute -left-8 sm:-left-12 top-1/2 -translate-y-1/2 w-16 sm:w-20 h-10 sm:h-12 bg-contain bg-no-repeat bg-left rotate-180" style={{ backgroundImage: "url('/gold-border.png')" }} />
+              <div className="hidden sm:block absolute -right-8 sm:-right-12 top-1/2 -translate-y-1/2 w-16 sm:w-20 h-10 sm:h-12 bg-contain bg-no-repeat bg-left" style={{ backgroundImage: "url('/gold-border.png')" }} />
+              <div className="hidden sm:block absolute -left-8 sm:-left-12 top-1/2 -translate-y-1/2 w-16 sm:w-20 h-10 sm:h-12 bg-contain bg-no-repeat bg-left rotate-180" style={{ backgroundImage: "url('/gold-border.png')" }} />
               
               <img 
                 src="/identity-logo.png" 

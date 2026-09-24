@@ -50,7 +50,7 @@ export const AchievementsTimeline: React.FC = () => {
     try {
       localStorage.setItem('user_achievements', JSON.stringify(achievements));
     } catch (e) {
-      alert('مساحة التخزين ممتلئة.');
+      console.warn('LocalStorage quota exceeded for achievements');
     }
   };
 

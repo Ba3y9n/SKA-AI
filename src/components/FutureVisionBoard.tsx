@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, Plus, Share2, User, Trash2 } from 'lucide-react';
+import { Sparkles, Plus, Share2, User } from 'lucide-react';
 import { Ambition } from '../types/ambition';
 import { ShareAmbitionModal } from './ShareAmbitionModal';
 
@@ -14,6 +14,16 @@ export const FutureVisionBoard: React.FC<FutureVisionBoardProps> = ({
   onAddClick,
 }) => {
   const [selectedAmbitionForShare, setSelectedAmbitionForShare] = useState<Ambition | null>(null);
+
+  // Deduplicate ambitions by ID to prevent any duplicate keys or rendering artifacts
+  const uniqueAmbitions = useMemo(() => {
+    const seen = new Set<string>();
+    return ambitions.filter((item) => {
+      if (!item.id || seen.has(item.id)) return false;
+      seen.add(item.id);
+      return true;
+    });
+  }, [ambitions]);
 
   return (
     <section className="relative w-full bg-saudi-700 overflow-hidden py-24 z-20" id="ambitions">
@@ -49,7 +59,7 @@ export const FutureVisionBoard: React.FC<FutureVisionBoardProps> = ({
         </div>
 
         {/* Multi-Card Interactive Grid */}
-        {ambitions.length === 0 ? (
+        {uniqueAmbitions.length === 0 ? (
           <div className="w-full py-20 flex flex-col items-center justify-center text-center bg-saudi-600/30 backdrop-blur-md rounded-3xl border border-gold/20">
             <div className="w-20 h-20 bg-saudi-700 rounded-full flex items-center justify-center mb-6 shadow-inner border border-saudi-600">
               <Sparkles className="w-10 h-10 text-gold-light/50" />
@@ -60,7 +70,7 @@ export const FutureVisionBoard: React.FC<FutureVisionBoardProps> = ({
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <AnimatePresence>
-              {ambitions.map((ambition, i) => {
+              {uniqueAmbitions.map((ambition, i) => {
                 const authorName = ambition.name || ambition.department || 'طالبة طموحة';
                 const authorRole = ambition.role || 'كلية الأعمال والاقتصاد';
 
