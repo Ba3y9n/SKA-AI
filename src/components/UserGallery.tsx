@@ -159,16 +159,15 @@ export const UserGallery: React.FC<UserGalleryProps> = ({ onOpenAdmin }) => {
         {/* Section Header */}
         <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8 mb-14 text-right">
           <div>
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-saudi-700 leading-tight mb-4 tracking-tight flex flex-wrap items-center gap-3">
-              <span className="relative inline-flex items-center justify-center px-8 py-1.5 mx-2 border-y-[1.5px] border-gold/60">
-                <span className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-contain bg-no-repeat" style={{ backgroundImage: "url('/gold-border.png')", backgroundPosition: 'left center' }}></span>
-                <span className="absolute -left-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-contain bg-no-repeat" style={{ backgroundImage: "url('/gold-border.png')", backgroundPosition: 'left center' }}></span>
-                <span className="relative z-10">شاركنا</span>
-              </span>
-              <span>لحظات اليوم الوطني في كلية الأعمال والاقتصاد</span>
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-saudi-50 border border-saudi-200/60 text-saudi-700 text-sm font-bold mb-4 shadow-sm">
+              <ImagePlus className="w-4 h-4 text-gold-dark" />
+              <span>معرض الصور التفاعلي</span>
+            </div>
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-saudi-700 leading-tight mb-4 tracking-tight">
+              شارك لحظتك… واجعلها جزءًا من الحكاية
             </h2>
             <p className="text-base sm:text-lg text-gray-600 font-medium max-w-2xl leading-relaxed">
-              التقط لحظتك في البهو وشاركنا أجواء اليوم الوطني داخل الكلية.
+              التقطي لحظتكِ في بهو كلية الأعمال والاقتصاد وشاركي أجواء اليوم الوطني لتوثيق بصمتكِ.
             </p>
           </div>
 
@@ -243,15 +242,15 @@ export const UserGallery: React.FC<UserGalleryProps> = ({ onOpenAdmin }) => {
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-gold/10 rounded-full blur-[80px] pointer-events-none" />
             
             <div className="w-20 h-20 bg-saudi-50 text-gold rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm border border-gold/20">
-              <ImagePlus className="w-8 h-8" />
+              <ImagePlus className="w-8 h-8 text-gold-dark" />
             </div>
-            <h3 className="text-2xl font-black text-saudi-700 mb-2">كوني أول من يوثّق اللحظة!</h3>
+            <h3 className="text-2xl font-black text-saudi-700 mb-2">هنا تبدأ حكايات طالبات كلية الأعمال والاقتصاد</h3>
             <p className="text-base text-gray-500 mt-1 max-w-md mx-auto">
-              المعرض بانتظار إبداعك. التقطي صورة لأجواء اليوم الوطني في كلية الأعمال والاقتصاد وشاركيها لتبقى ذكرى تروى.
+              المعرض بانتظار إبداعك. التقطي صورة لأجواء اليوم الوطني في الكلية وشاركيها لتبقى ذكرى تروى.
             </p>
             <button
               onClick={() => setIsUploadModalOpen(true)}
-              className="mt-8 inline-flex items-center gap-2.5 px-8 py-3.5 rounded-full bg-saudi-600 text-white text-base font-bold shadow-lg hover:bg-saudi-700 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300"
+              className="mt-8 inline-flex items-center gap-2.5 px-8 py-3.5 rounded-full bg-gold hover:bg-gold-light text-saudi-800 text-base font-bold shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300"
             >
               <ImagePlus className="w-5 h-5" />
               <span>أضفي صورتكِ الأولى</span>

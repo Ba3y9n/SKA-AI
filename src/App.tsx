@@ -105,12 +105,13 @@ const App: React.FC = () => {
         onOpenAmbitionModal={() => setIsAmbitionModalOpen(true)}
       />
 
-      {/* 2. Hero Image with change photo & big discover title */}
+      {/* 2. Hero Section ("اكتشف الحكاية") */}
       <CinematicHero />
 
+      {/* 3. National Identity & Particle Orbit Section ("عزنا بطبعنا") */}
+      <NationalCardSection />
 
-
-      {/* 3. Rewaa Character Section */}
+      {/* 4. Rewaa AI Character & Gemini 3.7 Flash Voice Chat */}
       <RewaaSection 
         messages={messages}
         characterState={characterState}
@@ -124,26 +125,23 @@ const App: React.FC = () => {
         onReplayVoice={(text) => replayMessageVoice(text)}
       />
 
-      {/* 4. Cinematic Voice ("صوت يروي... وصوت يُسمع" & "فكرة") */}
+      {/* 5. Cinematic Voice & National Poem ("صوت يروي... وصوت يُسمع") */}
       <CinematicVoice />
 
-      {/* 5. National Identity Section (Clean & Big) */}
-      <NationalCardSection />
-
-      {/* 6. CBE National Day Photos ("شاركنا لحظات اليوم الوطني في كلية الأعمال والاقتصاد") */}
+      {/* 6. Interactive Gallery ("شارك لحظتك… واجعلها جزءًا من الحكاية") */}
       <UserGallery onOpenAdmin={navigateToAdmin} />
 
-      {/* 7. Future Ambitions Wall ("صوتنا يصنع المستقبل") */}
+      {/* 7. Future Ambitions Wall ("جدار المستقبل - من هنا يبدأ أثر الجيل القادم") */}
       <FutureVisionBoard 
         ambitions={ambitions} 
         onAddClick={() => setIsAmbitionModalOpen(true)} 
         onDelete={(id) => setAmbitions(prev => prev.filter(a => a.id !== id))}
       />
 
-      {/* 8. College Students & Faculty Achievements ("طالبات كلية الأعمال والاقتصاد ودكتوراتها") */}
+      {/* 8. College Students & Faculty Achievements ("أصوات تحكي أثرًا لا يُنسى") */}
       <AchievementsTimeline />
 
-      {/* 9. Final Clean Footer */}
+      {/* 9. Final Luxury Footer */}
       <Footer />
 
       {/* Add Ambition Modal */}

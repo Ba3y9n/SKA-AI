@@ -68,7 +68,7 @@ export const FutureVisionBoard: React.FC<FutureVisionBoardProps> = ({
               جدار المستقبل
             </div>
             <h2 className="text-4xl sm:text-6xl font-black text-white leading-tight mb-4 drop-shadow-md">
-              طالباتنا يصنعن <span className="text-gold">المستقبل</span>
+              من هنا يبدأ <span className="text-gold">أثر الجيل القادم</span>
             </h2>
             <p className="text-lg md:text-xl text-saudi-100 font-medium max-w-3xl leading-relaxed">
               يا بنات كلية الأعمال والاقتصاد بجامعة القصيم.. أنتنّ صانعات الأثر وقادة الغد.

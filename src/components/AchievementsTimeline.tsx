@@ -130,8 +130,8 @@ export const AchievementsTimeline: React.FC = () => {
 
       {/* Header */}
       <div className="max-w-4xl mx-auto px-6 mb-16 text-center relative z-10">
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-saudi-600/10 text-saudi-700 text-sm font-bold mb-4">
-          <Award className="w-4 h-4 text-saudi-600" />
+        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-saudi-50 border border-saudi-200/60 text-saudi-700 text-sm font-bold mb-4 shadow-sm">
+          <Award className="w-4 h-4 text-gold-dark" />
           إنجازات كلية الأعمال والاقتصاد
         </div>
         <motion.h2 
@@ -140,7 +140,7 @@ export const AchievementsTimeline: React.FC = () => {
           viewport={{ once: true }}
           className="text-3xl sm:text-5xl font-black text-saudi-700 mb-4 leading-tight"
         >
-          أصوات صنعت أثرًا... وإنجازات تستحق أن تُروى
+          أصوات تحكي أثرًا لا يُنسى
         </motion.h2>
         <motion.p 
           initial={{ opacity: 0, y: 20 }}
