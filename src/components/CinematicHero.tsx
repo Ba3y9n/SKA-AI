@@ -37,13 +37,21 @@ export const CinematicHero: React.FC = () => {
       onMouseMove={handleMouseMove}
       className="relative w-full h-[calc(100vh-80px)] min-h-[640px] overflow-hidden bg-saudi-900 select-none"
     >
-      {/* 1. Opening White Flash from Right */}
+      {/* 1. Cinematic Premium Reveal (Dark Green to Transparent with Gold Glow) */}
       <motion.div 
-        initial={{ x: '100%', opacity: 1 }}
-        animate={{ x: '-100%', opacity: 0 }}
-        transition={{ duration: 1.5, ease: "circOut", delay: 0.2 }}
-        className="absolute inset-0 z-50 bg-white pointer-events-none origin-right blur-sm"
-      />
+        initial={{ opacity: 1 }}
+        animate={{ opacity: 0 }}
+        transition={{ duration: 2.5, ease: "easeInOut" }}
+        className="absolute inset-0 z-50 bg-[#001f0f] pointer-events-none flex items-center justify-center"
+      >
+        {/* Subtle gold glow in the center that expands and fades */}
+        <motion.div 
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1.5, opacity: [0, 0.5, 0] }}
+          transition={{ duration: 2.5, ease: "easeInOut" }}
+          className="w-full h-full max-w-4xl bg-[radial-gradient(circle_at_center,_rgba(201,162,39,0.4)_0%,_transparent_70%)]"
+        />
+      </motion.div>
 
       {/* 2. Opening Golden Particles Scattering */}
       <motion.div 
@@ -71,10 +79,11 @@ export const CinematicHero: React.FC = () => {
       {/* Dynamic Background Image with Smooth Depth & Zoom */}
       <motion.div 
         style={{ x: bgX, y: bgY }}
-        initial={{ scale: 1.2, opacity: 0 }}
-        animate={{ scale: [1.2, 1.05, 1.08], opacity: 1 }}
+        initial={{ scale: 1.2, opacity: 0, filter: 'blur(20px)' }}
+        animate={{ scale: [1.2, 1.05, 1.08], opacity: 1, filter: 'blur(0px)' }}
         transition={{ 
-          opacity: { duration: 2, ease: "easeOut" },
+          opacity: { duration: 2.5, ease: "easeOut" },
+          filter: { duration: 2.5, ease: "easeOut" },
           scale: { duration: 25, repeat: Infinity, ease: "linear" } 
         }}
         className="absolute inset-0 z-0 origin-center"
