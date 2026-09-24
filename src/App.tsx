@@ -13,6 +13,22 @@ import { AdminGalleryReview } from './components/AdminGalleryReview';
 import { useGeminiChat } from './hooks/useGeminiChat';
 import { fetchAmbitions, subscribeToAmbitions } from './services/apiService';
 import { Ambition } from './types/ambition';
+import { motion } from 'framer-motion';
+
+// Cinematic Fade-Up & Unblur Reveal Wrapper
+const SectionReveal: React.FC<{ children: React.ReactNode; delay?: number }> = ({ children, delay = 0 }) => {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 120, filter: 'blur(10px)', scale: 0.96 }}
+      whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)', scale: 1 }}
+      viewport={{ once: true, margin: "-12%" }}
+      transition={{ duration: 1.4, delay, ease: [0.16, 1, 0.3, 1] }}
+      className="w-full"
+    >
+      {children}
+    </motion.div>
+  );
+};
 
 const App: React.FC = () => {
   const [isAdminView, setIsAdminView] = useState(false);
@@ -121,37 +137,49 @@ const App: React.FC = () => {
       <CinematicHero />
 
       {/* 3. National Identity & Particle Orbit Section ("عزنا بطبعنا") */}
-      <NationalCardSection />
+      <SectionReveal>
+        <NationalCardSection />
+      </SectionReveal>
 
       {/* 4. Rewaa AI Character & Gemini 3.7 Flash Voice Chat */}
-      <RewaaSection 
-        messages={messages}
-        characterState={characterState}
-        isListening={isListening}
-        transcript={transcript}
-        errorMessage={errorMessage}
-        isAutoVoiceEnabled={isAutoVoiceEnabled}
-        onToggleVoice={() => setIsAutoVoiceEnabled(!isAutoVoiceEnabled)}
-        onToggleListening={handleToggleListening}
-        onSendMessage={(text) => sendMessage(text, false)}
-        onReplayVoice={(text) => replayMessageVoice(text)}
-      />
+      <SectionReveal>
+        <RewaaSection 
+          messages={messages}
+          characterState={characterState}
+          isListening={isListening}
+          transcript={transcript}
+          errorMessage={errorMessage}
+          isAutoVoiceEnabled={isAutoVoiceEnabled}
+          onToggleVoice={() => setIsAutoVoiceEnabled(!isAutoVoiceEnabled)}
+          onToggleListening={handleToggleListening}
+          onSendMessage={(text) => sendMessage(text, false)}
+          onReplayVoice={(text) => replayMessageVoice(text)}
+        />
+      </SectionReveal>
 
       {/* 5. Cinematic Voice & National Poem ("صوت يروي... وصوت يُسمع") */}
-      <CinematicVoice />
+      <SectionReveal>
+        <CinematicVoice />
+      </SectionReveal>
 
       {/* 6. Interactive Gallery ("شارك لحظتك… واجعلها جزءًا من الحكاية") */}
-      <UserGallery onOpenAdmin={navigateToAdmin} />
+      <SectionReveal>
+        <UserGallery onOpenAdmin={navigateToAdmin} />
+      </SectionReveal>
 
       {/* 7. Future Ambitions Wall ("جدار المستقبل - من هنا يبدأ أثر الجيل القادم") */}
-      <FutureVisionBoard 
-        ambitions={ambitions} 
-        onAddClick={() => setIsAmbitionModalOpen(true)} 
-        onDelete={(id) => setAmbitions(prev => prev.filter(a => a.id !== id))}
-      />
+      <SectionReveal>
+        <FutureVisionBoard 
+          ambitions={ambitions} 
+          onAddClick={() => setIsAmbitionModalOpen(true)} 
+          onDelete={(id) => setAmbitions(prev => prev.filter(a => a.id !== id))}
+        />
+      </SectionReveal>
 
       {/* 8. College Students & Faculty Achievements ("أصوات تحكي أثرًا لا يُنسى") */}
-      <AchievementsTimeline />
+      <SectionReveal>
+        <AchievementsTimeline />
+      </SectionReveal>
 
       {/* 9. Final Luxury Footer */}
       <Footer />
