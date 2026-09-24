@@ -160,10 +160,10 @@ export const AchievementsTimeline: React.FC = () => {
       <div className="max-w-5xl mx-auto px-6 mb-16 relative z-10">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 p-6 sm:p-8 rounded-[2rem] bg-saudi-50/70 border border-saudi-200/60 shadow-sm">
           {[
-            { label: 'طالبات وخريجات الكلية', value: Math.max(students.length, 12), icon: GraduationCap },
-            { label: 'أعضاء هيئة التدريس', value: Math.max(faculty.length, 8), icon: Briefcase },
-            { label: 'إجمالي الإنجازات الموثقة', value: Math.max(allAchievements.length, 20), icon: Award },
-            { label: 'التخصصات والأقسام', value: Math.max(new Set(allAchievements.map(a => a.major)).size, 6), icon: Sparkles }
+            { label: 'طالبات وخريجات الكلية', value: students.length, icon: GraduationCap },
+            { label: 'أعضاء هيئة التدريس', value: faculty.length, icon: Briefcase },
+            { label: 'إجمالي الإنجازات الموثقة', value: allAchievements.length, icon: Award },
+            { label: 'التخصصات والأقسام', value: new Set(allAchievements.map(a => a.major)).size, icon: Sparkles }
           ].map((stat, i) => {
             const Icon = stat.icon;
             return (

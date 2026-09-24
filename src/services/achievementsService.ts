@@ -131,9 +131,9 @@ export async function submitDatabaseAchievement(
     .insert([
       {
         text: JSON.stringify(payload),
-        name: achievement.nameAr,
         department: DEPARTMENT_ACHIEVEMENT_TAG,
-        major: achievement.major,
+        major: achievement.major || 'كلية الأعمال والاقتصاد',
+        status: 'approved',
         is_approved: true
       }
     ])
