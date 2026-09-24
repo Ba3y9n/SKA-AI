@@ -1,6 +1,6 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, Edit2, Trash2, Heart, Share2, Quote, AlertCircle, X } from 'lucide-react';
+import { Sparkles, Edit2, Trash2, Quote, AlertCircle, X, Search, ChevronRight, ChevronLeft, LayoutGrid, Layers } from 'lucide-react';
 import { Ambition } from '../types/ambition';
 import { deleteAmbition } from '../services/apiService';
 
@@ -10,30 +10,14 @@ interface FutureVisionBoardProps {
   onDelete?: (id: string) => void;
 }
 
+const ITEMS_PER_PAGE = 6;
+
 export const FutureVisionBoard: React.FC<FutureVisionBoardProps> = ({ ambitions, onAddClick, onDelete }) => {
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
-
-  const handleDeleteClick = async (id: string) => {
-    if (deleteConfirmId !== id) {
-      setDeleteConfirmId(id);
-      return;
-    }
-
-    // Confirmed deletion
-    if (id) {
-      const success = await deleteAmbition(id);
-      if (success) {
-        const owned = JSON.parse(localStorage.getItem('ownedAmbitions') || '[]');
-        localStorage.setItem('ownedAmbitions', JSON.stringify(owned.filter((item: string) => item !== id)));
-        if (onDelete) onDelete(id);
-      } else {
-        alert('حدث خطأ أثناء حذف الطموح.');
-      }
-      setDeleteConfirmId(null);
-    }
-  };
-
   const [ownedIds, setOwnedIds] = useState<string[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isFullViewOpen, setIsFullViewOpen] = useState(false);
 
   useEffect(() => {
     const updateOwned = () => {
@@ -47,14 +31,48 @@ export const FutureVisionBoard: React.FC<FutureVisionBoardProps> = ({ ambitions,
     return () => window.removeEventListener('storage', updateOwned);
   }, [ambitions]);
 
-  const uniqueAmbitions = useMemo(() => {
+  const handleDeleteClick = async (id: string) => {
+    if (deleteConfirmId !== id) {
+      setDeleteConfirmId(id);
+      return;
+    }
+
+    // Confirmed deletion
+    if (id) {
+      const owned = JSON.parse(localStorage.getItem('ownedAmbitions') || '[]');
+      localStorage.setItem('ownedAmbitions', JSON.stringify(owned.filter((item: string) => item !== id)));
+      setOwnedIds(prev => prev.filter(item => item !== id));
+      
+      await deleteAmbition(id);
+      if (onDelete) onDelete(id);
+      setDeleteConfirmId(null);
+    }
+  };
+
+  // Deduplicate and filter ambitions
+  const filteredAmbitions = useMemo(() => {
     const seen = new Set<string>();
     return ambitions.filter((item) => {
       if (!item.id || seen.has(item.id)) return false;
       seen.add(item.id);
-      return true;
+
+      if (!searchQuery.trim()) return true;
+      const q = searchQuery.toLowerCase();
+      return (
+        (item.text && item.text.toLowerCase().includes(q)) ||
+        (item.name && item.name.toLowerCase().includes(q)) ||
+        (item.major && item.major.toLowerCase().includes(q)) ||
+        (item.department && item.department.toLowerCase().includes(q))
+      );
     });
-  }, [ambitions]);
+  }, [ambitions, searchQuery]);
+
+  // Pagination calculation
+  const totalPages = Math.max(1, Math.ceil(filteredAmbitions.length / ITEMS_PER_PAGE));
+  const paginatedAmbitions = useMemo(() => {
+    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filteredAmbitions.slice(start, start + ITEMS_PER_PAGE);
+  }, [filteredAmbitions, currentPage]);
 
   return (
     <section className="relative w-full bg-saudi-700 overflow-hidden py-24 z-20 border-t border-gold/10" id="ambitions">
@@ -65,11 +83,11 @@ export const FutureVisionBoard: React.FC<FutureVisionBoardProps> = ({ ambitions,
       <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10">
         
         {/* Section Header */}
-        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8 mb-16 text-right">
+        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8 mb-12 text-right">
           <div>
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-sm border border-gold/30 text-gold-light text-sm font-bold mb-4 shadow-lg">
               <Sparkles className="w-4 h-4 text-gold" />
-              <span>جدار المستقبل</span>
+              <span>جدار المستقبل • {filteredAmbitions.length} طموح موثق</span>
             </div>
             <h2 className="text-3xl sm:text-5xl lg:text-6xl font-black text-white leading-tight mb-4 drop-shadow-md">
               من هنا تبدأ <span className="text-gold">حكايات الجيل القادم</span>
@@ -80,33 +98,69 @@ export const FutureVisionBoard: React.FC<FutureVisionBoardProps> = ({ ambitions,
             </p>
           </div>
 
-          <button
-            onClick={onAddClick}
-            className="self-start lg:self-auto inline-flex items-center gap-2.5 px-8 py-4 rounded-full bg-gold hover:bg-gold-light text-saudi-800 font-black text-base sm:text-lg shadow-[0_0_20px_rgba(198,161,91,0.4)] hover:shadow-[0_0_30px_rgba(198,161,91,0.6)] hover:-translate-y-1 transition-all duration-300"
-          >
-            <Edit2 className="w-5 h-5" />
-            <span>اكتب رؤيتك للمستقبل</span>
-          </button>
+          <div className="flex flex-wrap items-center gap-3 self-start lg:self-auto">
+            {/* View all / Secondary Interface Button */}
+            {filteredAmbitions.length > 3 && (
+              <button
+                onClick={() => setIsFullViewOpen(true)}
+                className="inline-flex items-center gap-2 px-6 py-4 rounded-full bg-white/10 hover:bg-white/20 text-white border border-gold/30 font-bold text-sm sm:text-base shadow-lg transition-all"
+              >
+                <Layers className="w-4 h-4 text-gold" />
+                <span>عرض جميع الطموحات ({filteredAmbitions.length})</span>
+              </button>
+            )}
+
+            {/* Add Ambition Button */}
+            <button
+              onClick={onAddClick}
+              className="inline-flex items-center gap-2.5 px-8 py-4 rounded-full bg-gold hover:bg-gold-light text-saudi-800 font-black text-base sm:text-lg shadow-[0_0_20px_rgba(198,161,91,0.4)] hover:shadow-[0_0_30px_rgba(198,161,91,0.6)] hover:-translate-y-1 transition-all duration-300"
+            >
+              <Edit2 className="w-5 h-5" />
+              <span>اكتب رؤيتك للمستقبل</span>
+            </button>
+          </div>
         </div>
 
-        {/* Masonry / Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-          <AnimatePresence>
-            {uniqueAmbitions.map((item, idx) => {
+        {/* Live Search & Filter Bar */}
+        <div className="mb-10 flex flex-col sm:flex-row items-center justify-between gap-4 p-3 bg-white/5 backdrop-blur-md rounded-2xl border border-white/10">
+          <div className="relative w-full sm:w-80">
+            <Search className="w-4 h-4 absolute right-4 top-1/2 -translate-y-1/2 text-gold-light opacity-80" />
+            <input 
+              type="text"
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setCurrentPage(1);
+              }}
+              placeholder="ابحثي في طموحات الطالبات..."
+              className="w-full pr-11 pl-4 py-2.5 rounded-xl bg-white/10 text-white placeholder-saudi-200/60 text-sm border border-white/10 focus:border-gold outline-none text-right"
+            />
+          </div>
+
+          <div className="text-xs sm:text-sm font-bold text-saudi-200 px-3">
+            عرض {paginatedAmbitions.length} من أصل {filteredAmbitions.length} طموح
+          </div>
+        </div>
+
+        {/* Cards Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 min-h-[360px]">
+          <AnimatePresence mode="popLayout">
+            {paginatedAmbitions.map((item, idx) => {
               const isOwner = ownedIds.includes(item.id) || (item.id && item.id.startsWith('local-'));
               const isConfirmingDelete = deleteConfirmId === item.id;
               
-              // Fake date generation if not present, just to show UI requirement
-              const mockDate = new Date(Date.now() - idx * 86400000).toLocaleDateString('ar-SA', { month: 'short', day: 'numeric', year: 'numeric' });
+              const mockDate = item.created_at 
+                ? new Date(item.created_at).toLocaleDateString('ar-SA', { month: 'short', day: 'numeric', year: 'numeric' })
+                : new Date(Date.now() - idx * 86400000).toLocaleDateString('ar-SA', { month: 'short', day: 'numeric', year: 'numeric' });
 
               return (
                 <motion.div
                   key={item.id}
                   layout
                   initial={{ opacity: 0, y: 30, scale: 0.95 }}
-                  whileInView={{ opacity: 1, y: 0, scale: 1 }}
-                  viewport={{ once: true, margin: "50px" }}
-                  transition={{ duration: 0.6, delay: idx * 0.05, ease: "easeOut" }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  transition={{ duration: 0.4, delay: (idx % 6) * 0.05, ease: "easeOut" }}
                   whileHover={{ y: -6 }}
                   className="group relative flex flex-col justify-between bg-white/10 backdrop-blur-xl border border-white/20 hover:border-gold/40 rounded-[2rem] p-6 sm:p-8 shadow-xl transition-all duration-300 overflow-hidden"
                 >
@@ -130,8 +184,8 @@ export const FutureVisionBoard: React.FC<FutureVisionBoardProps> = ({ ambitions,
 
                   <div className="relative z-10 flex items-center justify-between pt-5 border-t border-white/10">
                     <div>
-                      <h4 className="text-base sm:text-lg font-black text-gold-light mb-0.5">{item.name}</h4>
-                      <p className="text-xs sm:text-sm font-bold text-saudi-200 opacity-80">{item.major}</p>
+                      <h4 className="text-base sm:text-lg font-black text-gold-light mb-0.5">{item.name || 'طالبة طموحة'}</h4>
+                      <p className="text-xs sm:text-sm font-bold text-saudi-200 opacity-80">{item.major || item.department || 'كلية الأعمال والاقتصاد'}</p>
                     </div>
                     
                     <div className="flex items-center gap-2">
@@ -143,7 +197,7 @@ export const FutureVisionBoard: React.FC<FutureVisionBoardProps> = ({ ambitions,
                                 initial={{ opacity: 0, scale: 0.8, x: -10 }}
                                 animate={{ opacity: 1, scale: 1, x: 0 }}
                                 exit={{ opacity: 0, scale: 0.8, x: -10 }}
-                                className="absolute right-full mr-2 whitespace-nowrap bg-red-500/90 backdrop-blur-md text-white text-xs font-bold py-2 px-3 rounded-xl flex items-center gap-2 shadow-lg border border-red-400"
+                                className="absolute left-full ml-2 whitespace-nowrap bg-red-600 text-white text-xs font-bold py-2 px-3 rounded-xl flex items-center gap-2 shadow-2xl border border-red-400 z-30"
                               >
                                 <AlertCircle className="w-3.5 h-3.5" />
                                 <span>تأكيد الحذف؟</span>
@@ -158,8 +212,8 @@ export const FutureVisionBoard: React.FC<FutureVisionBoardProps> = ({ ambitions,
                           </AnimatePresence>
                           <button 
                             onClick={() => handleDeleteClick(item.id!)}
-                            className={`p-2 rounded-full transition-all duration-300 ${isConfirmingDelete ? 'bg-red-500 text-white shadow-md' : 'bg-white/5 text-white/60 hover:bg-red-500/20 hover:text-red-400 border border-transparent hover:border-red-500/30'}`}
-                            title="حذف الطموح"
+                            className={`p-2.5 rounded-full transition-all duration-300 ${isConfirmingDelete ? 'bg-red-500 text-white shadow-lg' : 'bg-white/10 text-white/70 hover:bg-red-500/20 hover:text-red-400 border border-white/10 hover:border-red-500/40'}`}
+                            title="حذف هذا الطموح"
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>
@@ -173,7 +227,103 @@ export const FutureVisionBoard: React.FC<FutureVisionBoardProps> = ({ ambitions,
           </AnimatePresence>
         </div>
 
+        {filteredAmbitions.length === 0 && (
+          <div className="text-center py-20 text-saudi-200/80 font-bold bg-white/5 rounded-3xl border border-white/10">
+            لا توجد طموحات تطابق بحثك حالياً.
+          </div>
+        )}
+
+        {/* Pagination Controls */}
+        {totalPages > 1 && (
+          <div className="mt-12 flex items-center justify-center gap-2">
+            <button
+              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+              disabled={currentPage === 1}
+              className="p-3 rounded-full bg-white/10 text-white hover:bg-white/20 border border-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
+
+            <div className="flex items-center gap-1.5 px-3">
+              {[...Array(totalPages)].map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => setCurrentPage(i + 1)}
+                  className={`w-9 h-9 rounded-full font-bold text-sm transition-all ${
+                    currentPage === i + 1
+                      ? 'bg-gold text-saudi-900 shadow-md font-black scale-105'
+                      : 'bg-white/10 text-white hover:bg-white/20 border border-white/10'
+                  }`}
+                >
+                  {i + 1}
+                </button>
+              ))}
+            </div>
+
+            <button
+              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+              disabled={currentPage === totalPages}
+              className="p-3 rounded-full bg-white/10 text-white hover:bg-white/20 border border-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+          </div>
+        )}
+
       </div>
+
+      {/* Secondary Interface: Full Ambitions Modal Drawer */}
+      <AnimatePresence>
+        {isFullViewOpen && (
+          <div className="fixed inset-0 z-[130] flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0 }} 
+              animate={{ opacity: 1 }} 
+              exit={{ opacity: 0 }} 
+              className="absolute inset-0 bg-saudi-900/80 backdrop-blur-xl" 
+              onClick={() => setIsFullViewOpen(false)} 
+            />
+
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95, y: 20 }} 
+              animate={{ opacity: 1, scale: 1, y: 0 }} 
+              exit={{ opacity: 0, scale: 0.95, y: 20 }} 
+              className="relative w-full max-w-5xl bg-saudi-800 border border-gold/30 rounded-3xl p-6 sm:p-10 shadow-2xl z-10 max-h-[90vh] overflow-y-auto text-right"
+            >
+              <div className="flex items-center justify-between pb-6 mb-6 border-b border-white/10">
+                <button onClick={() => setIsFullViewOpen(false)} className="p-2.5 rounded-full hover:bg-white/10 text-saudi-200 hover:text-white transition-colors">
+                  <X className="w-6 h-6" />
+                </button>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-2xl font-black text-white">سجل طموحات طالبات الكلية ({filteredAmbitions.length})</h3>
+                  <Sparkles className="w-6 h-6 text-gold" />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {filteredAmbitions.map((item, idx) => (
+                  <div key={item.id || idx} className="p-5 bg-white/5 border border-white/10 rounded-2xl flex flex-col justify-between">
+                    <p className="text-base text-white font-bold mb-3 leading-relaxed">"{item.text}"</p>
+                    <div className="flex items-center justify-between pt-3 border-t border-white/10 text-xs">
+                      <span className="text-gold-light font-black">{item.name || 'طالبة طموحة'} - {item.major || item.department}</span>
+                      {ownedIds.includes(item.id) && (
+                        <button 
+                          onClick={() => handleDeleteClick(item.id)}
+                          className="text-red-400 hover:text-red-300 font-bold flex items-center gap-1"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                          <span>حذف</span>
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
     </section>
   );
 };
