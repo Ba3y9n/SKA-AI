@@ -102,7 +102,15 @@ export async function fetchAmbitions(): Promise<Ambition[]> {
       
       // Filter test noise strings
       const t = row.text ? row.text.trim() : '';
-      if (!t || t === 'ئئئئ' || t === 'test 1' || t === 'test 3' || t === 'انا بيان' || t === 'فزت بالمركز الاول' || t === 'فزت بالمركز الاول') return;
+      if (
+        !t || 
+        t.includes('ئئئئ') || 
+        t.includes('test 1') || 
+        t.includes('test 3') || 
+        t.includes('انا بيان') || 
+        t.includes('فزت بالمركز الاول') ||
+        t.includes('فزت بالمركز الأول')
+      ) return;
 
       validData.push(row as Ambition);
     });

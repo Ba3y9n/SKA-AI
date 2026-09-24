@@ -93,8 +93,8 @@ export const FutureVisionBoard: React.FC<FutureVisionBoardProps> = ({ ambitions,
               من هنا تبدأ <span className="text-gold">حكايات الجيل القادم</span>
             </h2>
             <p className="text-base sm:text-lg lg:text-xl text-saudi-100 font-medium max-w-3xl leading-relaxed">
-              يا بنات كلية الأعمال والاقتصاد بجامعة القصيم.. أنتنّ صانعات الأثر وقادة الغد.
-              <br />شاركِي طموحكِ ورسالتكِ في مسيرة النماء لوطننا الغالي.
+              إلى طالبات كلية الأعمال والاقتصاد.. أنتنّ ركيزة المستقبل وصانعات الأثر.
+              <br />دوّنّ طموحاتكُنّ، وشاركنَ رؤيتكُنّ لتُخلّد في مسيرة النماء والازدهار لوطننا الغالي.
             </p>
           </div>
 
