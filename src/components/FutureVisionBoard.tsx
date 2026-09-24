@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Sparkles, Plus, Share2, User, Trash2 } from 'lucide-react';
 import { Ambition } from '../types/ambition';
-import { Plus, Share2, Sparkles, User } from 'lucide-react';
 import { ShareAmbitionModal } from './ShareAmbitionModal';
 
 interface FutureVisionBoardProps {
@@ -9,128 +9,117 @@ interface FutureVisionBoardProps {
   onAddClick: () => void;
 }
 
-export const FutureVisionBoard: React.FC<FutureVisionBoardProps> = ({ ambitions, onAddClick }) => {
+export const FutureVisionBoard: React.FC<FutureVisionBoardProps> = ({
+  ambitions,
+  onAddClick,
+}) => {
   const [selectedAmbitionForShare, setSelectedAmbitionForShare] = useState<Ambition | null>(null);
 
-  // Clean, genuine ambitions from database
-  const cleanAmbitions = React.useMemo(() => {
-    return (ambitions || []).filter(a => 
-      a.text && 
-      !a.text.startsWith('{') && 
-      !a.text.includes('CBE_GALLERY') && 
-      !a.department?.startsWith('CBE_GALLERY') &&
-      a.text !== 'test 1' &&
-      a.text !== 'test 3' &&
-      a.text !== 'انا بيان'
-    );
-  }, [ambitions]);
-
   return (
-    <section className="relative w-full py-28 bg-[#004B37] text-white overflow-hidden z-20 border-t border-saudi-700/60" id="ambitions">
+    <section className="relative w-full bg-saudi-700 overflow-hidden py-24 z-20" id="ambitions">
       
-      {/* Background Subtle Ambience */}
-      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[700px] h-[400px] bg-emerald-500/10 rounded-full blur-[140px] pointer-events-none" />
+      {/* Background Subtle Gradient */}
+      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-saudi-600/50 rounded-full blur-[140px] pointer-events-none" />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10">
+      <div className="max-w-7xl mx-auto px-6 relative z-10">
         
         {/* Section Header */}
         <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8 mb-16 text-right">
           <div>
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 border border-white/20 text-emerald-200 text-xs sm:text-sm font-bold mb-4 shadow-sm">
-              <Sparkles className="w-4 h-4 text-emerald-300" />
-              <span>جدار طموحات طالبات كلية الأعمال والاقتصاد</span>
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-saudi-50/10 border border-gold/30 text-gold-light text-sm font-bold mb-4 shadow-lg">
+              <Sparkles className="w-4 h-4 text-gold" />
+              جدار المستقبل
             </div>
-            
-            <h2 className="text-3xl sm:text-5xl lg:text-6xl font-black text-white leading-tight mb-3 tracking-tight">
-              صوتنا يصنع <span className="text-emerald-300">المستقبل</span>
+            <h2 className="text-4xl sm:text-6xl font-black text-white leading-tight mb-4 drop-shadow-md">
+              طالباتنا يصنعن <span className="text-gold">المستقبل</span>
             </h2>
-            
-            <p className="text-lg sm:text-2xl text-emerald-100 font-bold mb-3">
-              وش طموحك للسعودية؟
-            </p>
-            
-            <p className="text-sm sm:text-base text-gray-200 max-w-2xl leading-relaxed">
-              كل فكرة وطموح تشاركينه هنا يضيء مسيرة النماء ويعكس طموح جيل يصنع الفارق في مسيرة الوطن.
+            <p className="text-lg md:text-xl text-saudi-100 font-medium max-w-3xl leading-relaxed">
+              يا بنات كلية الأعمال والاقتصاد بجامعة القصيم.. أنتنّ صانعات الأثر وقادة الغد.
+              <br />شاركِي طموحكِ ورسالتكِ في مسيرة النماء لوطننا الغالي في هذا اليوم الاستثنائي.
             </p>
           </div>
 
           <button
             onClick={onAddClick}
-            className="self-start lg:self-auto inline-flex items-center gap-2.5 px-8 py-4 rounded-full bg-white hover:bg-emerald-50 text-[#004B37] font-black text-base sm:text-lg shadow-xl hover:shadow-2xl hover:-translate-y-0.5 transition-all duration-300"
+            className="self-start lg:self-auto inline-flex items-center gap-3 px-8 py-4 rounded-full bg-gold hover:bg-gold-light text-saudi-700 font-black text-lg shadow-[0_0_20px_rgba(198,161,91,0.4)] hover:shadow-[0_0_30px_rgba(198,161,91,0.6)] hover:-translate-y-1 transition-all duration-300"
           >
-            <Plus className="w-5 h-5 text-[#004B37]" />
-            <span>أضيفي طموحك</span>
+            <Plus className="w-5 h-5" />
+            <span>+ أضف طموحك</span>
           </button>
         </div>
 
-        {/* Multi-Card Grid */}
-        {cleanAmbitions.length === 0 ? (
-          <div className="w-full py-20 flex flex-col items-center justify-center text-center bg-white/5 backdrop-blur-md rounded-[2.5rem] border border-white/10 p-8">
-            <div className="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center mb-4 text-emerald-200">
-              <Sparkles className="w-8 h-8" />
+        {/* Multi-Card Interactive Grid */}
+        {ambitions.length === 0 ? (
+          <div className="w-full py-20 flex flex-col items-center justify-center text-center bg-saudi-600/30 backdrop-blur-md rounded-3xl border border-gold/20">
+            <div className="w-20 h-20 bg-saudi-700 rounded-full flex items-center justify-center mb-6 shadow-inner border border-saudi-600">
+              <Sparkles className="w-10 h-10 text-gold-light/50" />
             </div>
-            <h3 className="text-2xl font-black text-white mb-2">كوني أول من يشارك طموحها للوطن!</h3>
-            <p className="text-gray-300 text-sm max-w-md mx-auto mb-6">
-              شاركي طموحك ورسالتك في مسيرة النماء ليظهر هنا ويوثق أثرك.
-            </p>
-            <button
-              onClick={onAddClick}
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-white text-[#004B37] font-bold text-sm shadow-md hover:bg-emerald-50 transition-colors"
-            >
-              <Plus className="w-4 h-4" />
-              <span>أضيفي طموحك الآن</span>
-            </button>
+            <h3 className="text-2xl font-black text-white mb-2">كوني أول من يشارك طموحها!</h3>
+            <p className="text-saudi-200">هذه المساحة مخصصة لطموحاتكم وأفكاركم التي ستصنع المستقبل.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <AnimatePresence>
-              {cleanAmbitions.map((ambition, i) => {
-                const authorName = ambition.name || 'طالبة طموحة';
-                const authorRole = ambition.role || ambition.department || 'كلية الأعمال والاقتصاد';
+              {ambitions.map((ambition, i) => {
+                const authorName = ambition.name || ambition.department || 'طالبة طموحة';
+                const authorRole = ambition.role || 'كلية الأعمال والاقتصاد';
 
                 return (
                   <motion.div
                     layout
-                    initial={{ opacity: 0, y: 20 }}
+                    initial={{ opacity: 0, y: 25 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true, margin: "-5%" }}
-                    transition={{ duration: 0.4, delay: (i % 6) * 0.06 }}
+                    transition={{ duration: 0.5, delay: (i % 6) * 0.08 }}
                     key={ambition.id || `amb-${i}`}
-                    className="group bg-white/10 backdrop-blur-xl rounded-[2rem] p-6 sm:p-7 border border-white/15 shadow-lg hover:shadow-2xl hover:border-white/30 transition-all duration-300 flex flex-col justify-between relative overflow-hidden"
+                    className="group bg-saudi-600/30 backdrop-blur-xl rounded-[2.5rem] p-8 border border-gold/20 shadow-[0_15px_40px_rgba(0,0,0,0.2)] hover:shadow-[0_20px_50px_rgba(198,161,91,0.15)] hover:border-gold-light/50 transition-all duration-500 flex flex-col justify-between relative overflow-hidden"
                   >
+                    {/* Decorative corner accent */}
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-gold/10 to-transparent rounded-bl-[4rem] -z-0 group-hover:scale-110 transition-transform duration-700" />
+                    
+                    {/* Gold line accent */}
+                    <div className="absolute top-0 left-8 right-8 h-1 bg-gradient-to-r from-transparent via-gold to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+
                     <div className="relative z-10">
-                      {/* Author Header */}
-                      <div className="flex items-center justify-between gap-3 mb-5">
-                        <div className="flex items-center gap-3">
-                          <div className="w-11 h-11 rounded-full bg-white/15 border border-white/20 flex items-center justify-center text-emerald-200 font-black text-base shadow-sm">
-                            {authorName.charAt(0)}
+                      {/* Header: Author Info & Actions */}
+                      <div className="flex items-center justify-between gap-3 mb-6">
+                        <div className="flex items-center gap-4">
+                          <div className="w-14 h-14 rounded-full bg-saudi-700 border border-gold/40 flex items-center justify-center text-gold-light font-black text-xl shadow-lg">
+                            {authorName.charAt(0) || <User className="w-6 h-6" />}
                           </div>
                           <div>
-                            <h4 className="font-bold text-base text-white">{authorName}</h4>
-                            <p className="text-xs text-emerald-200/90 font-medium">{authorRole}</p>
+                            <h4 className="font-bold text-white text-lg leading-snug">{authorName}</h4>
+                            <p className="text-sm text-gold-light/80 font-medium">{authorRole}</p>
                           </div>
                         </div>
 
-                        {/* Share Action Button */}
-                        <button
-                          onClick={() => setSelectedAmbitionForShare(ambition)}
-                          title="مشاركة الطموح"
-                          className="p-2.5 rounded-full bg-white/10 hover:bg-white/20 text-emerald-100 transition-colors"
-                        >
-                          <Share2 className="w-4 h-4" />
-                        </button>
+                        <div className="flex items-center gap-2 bg-saudi-700/50 rounded-full p-1 border border-saudi-600">
+                          <button
+                            onClick={() => setSelectedAmbitionForShare(ambition)}
+                            className="p-2 text-saudi-200 hover:text-gold hover:bg-saudi-600 rounded-full transition-all flex items-center gap-1"
+                            title="مشاركة الطموح"
+                          >
+                            <Share2 className="w-4 h-4" />
+                          </button>
+                        </div>
                       </div>
 
                       {/* Ambition Quote */}
-                      <p className="text-white text-base sm:text-lg font-medium leading-relaxed mb-6 text-right">
+                      <p className="text-saudi-50 text-lg sm:text-xl font-medium leading-loose mb-8">
                         "{ambition.text}"
                       </p>
                     </div>
 
-                    {/* Footer / Meta */}
-                    <div className="pt-4 border-t border-white/10 flex items-center justify-between text-xs text-emerald-200/70 font-medium">
-                      <span>اليوم الوطني السعودي 96</span>
-                      <span>{ambition.created_at ? new Date(ambition.created_at).toLocaleDateString('ar-SA') : '2026'}</span>
+                    {/* Card Bottom Footer */}
+                    <div className="relative z-10 pt-5 border-t border-saudi-500/50 flex items-center justify-between text-xs font-medium">
+                      <span className="text-gold-light/70 font-bold tracking-wider">اليوم الوطني 96</span>
+                      <button
+                        onClick={() => setSelectedAmbitionForShare(ambition)}
+                        className="inline-flex items-center gap-1.5 text-white hover:text-gold font-bold text-sm group-hover:-translate-x-1 transition-all"
+                      >
+                        <Share2 className="w-4 h-4" />
+                        <span>مشاركة البطاقة</span>
+                      </button>
                     </div>
                   </motion.div>
                 );
@@ -141,12 +130,12 @@ export const FutureVisionBoard: React.FC<FutureVisionBoardProps> = ({ ambitions,
 
       </div>
 
-      {/* Share Ambition Modal */}
+      {/* Share Modal */}
       {selectedAmbitionForShare && (
         <ShareAmbitionModal
           isOpen={true}
-          ambition={selectedAmbitionForShare}
           onClose={() => setSelectedAmbitionForShare(null)}
+          ambition={selectedAmbitionForShare}
         />
       )}
 
