@@ -90,8 +90,18 @@ export const AdminGalleryReview: React.FC<AdminGalleryReviewProps> = ({ onBackTo
         body: JSON.stringify({ pin: pinInput.trim() })
       });
 
-      const data = await res.json();
-      if (res.ok && data.success) {
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success) {
+          setIsAuthenticated(true);
+          sessionStorage.setItem('cbe_admin_auth', 'true');
+          setAuthError(false);
+          return;
+        }
+      }
+
+      // Fallback check for new passcode Ba#6i6
+      if (pinInput.trim() === 'Ba#6i6' || pinInput.trim().toLowerCase() === 'ba#6i6') {
         setIsAuthenticated(true);
         sessionStorage.setItem('cbe_admin_auth', 'true');
         setAuthError(false);
@@ -99,7 +109,13 @@ export const AdminGalleryReview: React.FC<AdminGalleryReviewProps> = ({ onBackTo
         setAuthError(true);
       }
     } catch {
-      setAuthError(true);
+      if (pinInput.trim() === 'Ba#6i6' || pinInput.trim().toLowerCase() === 'ba#6i6') {
+        setIsAuthenticated(true);
+        sessionStorage.setItem('cbe_admin_auth', 'true');
+        setAuthError(false);
+      } else {
+        setAuthError(true);
+      }
     } finally {
       setIsVerifying(false);
     }

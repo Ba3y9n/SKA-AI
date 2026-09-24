@@ -21,10 +21,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     // Secure server-side check (environment variable or default supervisor key)
     const validPins = [
-      process.env.ADMIN_PIN,
       'Ba#6i6',
       'ba#6i6',
       'BA#6I6',
+      process.env.ADMIN_PIN,
       '9696'
     ].filter(Boolean);
 
