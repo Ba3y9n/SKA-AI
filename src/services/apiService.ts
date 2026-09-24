@@ -109,7 +109,9 @@ export async function fetchAmbitions(): Promise<Ambition[]> {
         t.includes('test 3') || 
         t.includes('انا بيان') || 
         t.includes('فزت بالمركز الاول') ||
-        t.includes('فزت بالمركز الأول')
+        t.includes('فزت بالمركز الأول') ||
+        t.includes('الحمدلله') ||
+        t.includes('الحمد لله')
       ) return;
 
       validData.push(row as Ambition);
