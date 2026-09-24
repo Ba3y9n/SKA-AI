@@ -1,10 +1,9 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
-import { Play, Pause, Volume2, Sparkles } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 
 export const CinematicVoice: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [isPlayingPoem, setIsPlayingPoem] = useState(false);
   const [activeLineIndex, setActiveLineIndex] = useState(0);
 
   const { scrollYProgress } = useScroll({
@@ -16,22 +15,13 @@ export const CinematicVoice: React.FC = () => {
   const typographyXReverse = useTransform(scrollYProgress, [0.3, 0.8], ['15%', '-15%']);
   const yTransform = useTransform(scrollYProgress, [0, 1], [50, -50]);
 
-  // Synchronized Poem lines highlight progression
+  // Synchronized Karaoke-style Poem lines highlight progression
   useEffect(() => {
-    let timer: NodeJS.Timeout;
-    if (isPlayingPoem) {
-      timer = setInterval(() => {
-        setActiveLineIndex((prev) => (prev + 1) % 4);
-      }, 3500);
-    } else {
-      setActiveLineIndex(0);
-    }
+    const timer = setInterval(() => {
+      setActiveLineIndex((prev) => (prev + 1) % 4);
+    }, 4000); // 4 seconds per line
     return () => clearInterval(timer);
-  }, [isPlayingPoem]);
-
-  const togglePlayPoem = () => {
-    setIsPlayingPoem(!isPlayingPoem);
-  };
+  }, []);
 
   const poemLines = [
     "وطني الحبيبُ وهل أُحِبُّ سِواهُ؟",
@@ -44,6 +34,7 @@ export const CinematicVoice: React.FC = () => {
     <section 
       ref={containerRef} 
       className="relative w-full bg-saudi-700 text-saudi-50 overflow-hidden py-32 z-20"
+      id="cinematic-voice"
     >
       {/* Sleek Dark Gradient Background */}
       <div className="absolute inset-0 bg-gradient-to-b from-saudi-700 via-[#093324] to-saudi-700" />
@@ -70,114 +61,83 @@ export const CinematicVoice: React.FC = () => {
           whileInView={{ opacity: 1, scale: 1 }}
           viewport={{ once: true }}
           transition={{ duration: 1 }}
-          className="relative"
+          className="relative mb-12"
         >
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-saudi-50/10 border border-gold/30 text-gold-light text-sm font-bold mb-6 shadow-md">
             <Sparkles className="w-4 h-4 text-gold" />
-            <span>تجربة صوتية تفاعلية</span>
+            <span>اقرأ الحكاية بصوت الوطن</span>
           </div>
 
-          <h2 className="text-5xl md:text-7xl lg:text-8xl font-black text-white leading-tight mb-4 tracking-tight drop-shadow-2xl">
-            صوتٌ <span className="text-gold-light">يروي...</span>
+          <h2 className="text-4xl md:text-6xl lg:text-7xl font-black text-white leading-tight mb-4 tracking-tight drop-shadow-2xl">
+            صوتٌ يروي... <span className="text-gold">وأثرٌ يبقى.</span>
           </h2>
 
-          <h2 className="text-5xl md:text-7xl lg:text-8xl font-black text-white leading-tight tracking-tight drop-shadow-2xl">
-            وصوتٌ <span className="text-gold">يُسمع.</span>
-          </h2>
+          <p className="text-lg sm:text-xl font-medium text-saudi-100 max-w-2xl mx-auto">
+            قصيدة وطنية تحمل مشاعر الانتماء والاعتزاز بالهوية السعودية
+          </p>
         </motion.div>
 
-        {/* Dynamic Voice Waveform Visualization */}
-        <div className="mt-14 flex items-center justify-center gap-1 md:gap-1.5 h-28 group cursor-pointer mb-12 w-full max-w-5xl mx-auto overflow-hidden px-4">
-          {[...Array(70)].map((_, i) => {
-            const isCenter = Math.abs(i - 35) < 15;
+        {/* Dynamic Voice Waveform Visualization (Fake reactive waveform) */}
+        <div className="flex items-center justify-center gap-1 md:gap-1.5 h-28 mb-12 w-full max-w-5xl mx-auto overflow-hidden px-4 opacity-80">
+          {[...Array(60)].map((_, i) => {
+            const isCenter = Math.abs(i - 30) < 15;
+            // Waveform height changes slightly based on the activeLineIndex to simulate speaking
+            const baseHeight = isCenter ? 40 : 15;
+            const dynamicMultiplier = (activeLineIndex + 1) * 0.2 + 0.8;
+            
             return (
               <motion.div
                 key={i}
                 className={`w-1.5 md:w-2 rounded-full transition-colors duration-500 ${
-                  isPlayingPoem 
-                    ? isCenter ? 'bg-gold shadow-[0_0_12px_rgba(201,162,39,0.8)]' : 'bg-gold-light/60'
-                    : isCenter ? 'bg-gold/60 group-hover:bg-gold-light' : 'bg-gold/25 group-hover:bg-gold/50'
+                  isCenter ? 'bg-gold shadow-[0_0_12px_rgba(201,162,39,0.5)]' : 'bg-gold-light/40'
                 }`}
                 animate={{
-                  height: isPlayingPoem
-                    ? [
-                        `${15 + ((i * 7) % 65)}%`,
-                        `${90 - ((i * 5) % 50)}%`,
-                        `${30 + ((i * 11) % 60)}%`,
-                        `${85 - ((i * 3) % 40)}%`,
-                        `${20 + ((i * 4) % 50)}%`,
-                      ]
-                    : [
-                        `${10 + (i % 7) * 10}%`,
-                        `${50 + ((i * 11) % 35)}%`,
-                        `${20 + (i % 4) * 15}%`,
-                        `${65 + ((i * 3) % 10)}%`,
-                        `${15 + (i % 5) * 15}%`,
-                      ],
+                  height: [
+                    `${baseHeight + ((i * 7) % 30) * dynamicMultiplier}%`,
+                    `${baseHeight + 40 - ((i * 5) % 20) * dynamicMultiplier}%`,
+                    `${baseHeight + 10 + ((i * 11) % 40) * dynamicMultiplier}%`,
+                    `${baseHeight + 35 - ((i * 3) % 25) * dynamicMultiplier}%`,
+                  ]
                 }}
                 transition={{
-                  duration: isPlayingPoem ? 0.8 + (i % 5) * 0.1 : 1.6 + (i % 7) * 0.15,
+                  duration: 1.2 + (i % 5) * 0.2,
                   repeat: Infinity,
                   ease: 'easeInOut',
-                  delay: i * 0.015,
+                  delay: i * 0.02,
                 }}
               />
             );
           })}
         </div>
 
-        {/* Interactive Play Button */}
-        <div className="flex justify-center mb-16">
-          <button
-            onClick={togglePlayPoem}
-            className={`inline-flex items-center gap-3 px-8 py-3.5 rounded-full font-bold text-base transition-all duration-300 shadow-xl ${
-              isPlayingPoem
-                ? 'bg-gold text-saudi-800 shadow-[0_0_30px_rgba(201,162,39,0.5)] scale-105'
-                : 'bg-white/10 hover:bg-white/20 text-white border border-gold/40 hover:border-gold'
-            }`}
-          >
-            {isPlayingPoem ? <Pause className="w-5 h-5 fill-current" /> : <Play className="w-5 h-5 fill-current ml-0.5" />}
-            <span>{isPlayingPoem ? 'إيقاف اللحن الوطني' : 'استمع إلى اللحن الوطني'}</span>
-          </button>
-        </div>
-
-        {/* Poem Section - Synchronized Line Highlights */}
+        {/* Poem Section - Synchronized Line Highlights (Karaoke Style) */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8, delay: 0.2 }}
-          className="text-center max-w-4xl mx-auto flex flex-col items-center bg-saudi-800/40 p-8 sm:p-12 rounded-[2.5rem] border border-gold/20 backdrop-blur-md shadow-2xl"
+          className="text-center max-w-4xl mx-auto flex flex-col items-center bg-white/5 p-8 sm:p-14 rounded-[2.5rem] border border-white/10 backdrop-blur-xl shadow-2xl relative overflow-hidden group hover:border-gold/30 transition-all duration-700"
         >
-          <span className="text-gold-light text-sm sm:text-base font-bold tracking-widest mb-4 block">
-            قصيدة وطن • كلية الأعمال والاقتصاد
-          </span>
-          
-          <h3 className={`text-3xl sm:text-5xl font-black mb-6 transition-all duration-700 ${
-            activeLineIndex === 0 && isPlayingPoem ? 'text-gold-light scale-105 drop-shadow-[0_0_20px_rgba(201,162,39,0.5)]' : 'text-white'
-          }`}>
-            {poemLines[0]}
-          </h3>
-          
-          {/* Thick, Clear Gold Line */}
-          <div className="w-40 sm:w-60 h-1.5 bg-gradient-to-r from-transparent via-gold to-transparent mb-8 rounded-full" />
-          
-          <div className="space-y-4 text-xl sm:text-3xl font-medium leading-relaxed">
-            <p className={`transition-all duration-700 ${
-              activeLineIndex === 1 && isPlayingPoem ? 'text-gold-light font-bold scale-105 drop-shadow-md' : 'text-saudi-100'
-            }`}>
-              {poemLines[1]}
-            </p>
-            <p className={`transition-all duration-700 ${
-              activeLineIndex === 2 && isPlayingPoem ? 'text-gold-light font-bold scale-105 drop-shadow-md' : 'text-saudi-100'
-            }`}>
-              {poemLines[2]}
-            </p>
-            <p className={`transition-all duration-700 text-2xl sm:text-4xl font-black pt-3 ${
-              activeLineIndex === 3 && isPlayingPoem ? 'text-gold scale-105 drop-shadow-[0_0_25px_rgba(201,162,39,0.7)]' : 'text-gold-light'
-            }`}>
-              {poemLines[3]}
-            </p>
+          {/* Internal Glow on Hover */}
+          <div className="absolute inset-0 bg-gradient-to-t from-gold/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
+
+          <div className="space-y-6 sm:space-y-8 text-xl sm:text-3xl lg:text-4xl font-medium leading-relaxed w-full z-10">
+            {poemLines.map((line, idx) => {
+              const isActive = activeLineIndex === idx;
+              return (
+                <motion.p
+                  key={idx}
+                  className={`transition-all duration-1000 ease-out ${
+                    isActive 
+                      ? 'text-gold-light font-black scale-105 sm:scale-110 drop-shadow-[0_0_25px_rgba(201,162,39,0.8)]' 
+                      : 'text-saudi-100/50 scale-95 blur-[1px]'
+                  }`}
+                  layout
+                >
+                  {line}
+                </motion.p>
+              );
+            })}
           </div>
         </motion.div>
       </motion.div>

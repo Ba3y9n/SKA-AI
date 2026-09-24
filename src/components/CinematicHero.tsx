@@ -35,14 +35,48 @@ export const CinematicHero: React.FC = () => {
   return (
     <section 
       onMouseMove={handleMouseMove}
-      className="relative w-full h-[calc(100vh-80px)] min-h-[640px] overflow-hidden bg-white select-none"
+      className="relative w-full h-[calc(100vh-80px)] min-h-[640px] overflow-hidden bg-saudi-900 select-none"
     >
+      {/* 1. Opening White Flash from Right */}
+      <motion.div 
+        initial={{ x: '100%', opacity: 1 }}
+        animate={{ x: '-100%', opacity: 0 }}
+        transition={{ duration: 1.5, ease: "circOut", delay: 0.2 }}
+        className="absolute inset-0 z-50 bg-white pointer-events-none origin-right blur-sm"
+      />
+
+      {/* 2. Opening Golden Particles Scattering */}
+      <motion.div 
+        initial={{ opacity: 1 }}
+        animate={{ opacity: 0 }}
+        transition={{ delay: 2, duration: 1.5 }}
+        className="absolute inset-0 z-40 pointer-events-none flex items-center justify-center overflow-hidden"
+      >
+        {[...Array(20)].map((_, i) => (
+          <motion.div
+            key={`gold-spark-${i}`}
+            initial={{ scale: 0, x: 0, y: 0, opacity: 1 }}
+            animate={{ 
+              scale: [0, 1.5, 0], 
+              x: (Math.random() - 0.5) * 800, 
+              y: (Math.random() - 0.5) * 800,
+              opacity: [1, 1, 0]
+            }}
+            transition={{ duration: 2 + Math.random() * 1.5, ease: "easeOut" }}
+            className="absolute w-2 h-2 rounded-full bg-gold shadow-[0_0_15px_rgba(201,162,39,1)] blur-[1px]"
+          />
+        ))}
+      </motion.div>
+
       {/* Dynamic Background Image with Smooth Depth & Zoom */}
       <motion.div 
         style={{ x: bgX, y: bgY }}
-        initial={{ scale: 1.08 }}
-        animate={{ scale: [1.08, 1.02, 1.08] }}
-        transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
+        initial={{ scale: 1.2, opacity: 0 }}
+        animate={{ scale: [1.2, 1.05, 1.08], opacity: 1 }}
+        transition={{ 
+          opacity: { duration: 2, ease: "easeOut" },
+          scale: { duration: 25, repeat: Infinity, ease: "linear" } 
+        }}
         className="absolute inset-0 z-0 origin-center"
       >
         <img 
@@ -54,7 +88,7 @@ export const CinematicHero: React.FC = () => {
 
       {/* Atmospheric Soft Radiant Gradient */}
       <div className="absolute inset-0 z-10 bg-gradient-to-t from-saudi-100 via-saudi-100/60 to-transparent pointer-events-none" />
-      <div className="absolute inset-0 z-10 bg-radial-gradient from-transparent via-transparent to-black/15 pointer-events-none" />
+      <div className="absolute inset-0 z-10 bg-radial-gradient from-transparent via-transparent to-black/20 pointer-events-none" />
 
       {/* Interactive Title & Subtitle with Parallax and Letter Reveal */}
       <div className="absolute bottom-0 left-0 w-full flex flex-col items-center justify-end pb-12 sm:pb-16 z-20 px-4 text-center">
@@ -78,8 +112,8 @@ export const CinematicHero: React.FC = () => {
             variants={{
               visible: {
                 transition: {
-                  staggerChildren: 0.05,
-                  delayChildren: 0.2
+                  staggerChildren: 0.1,
+                  delayChildren: 0.8 // Start after flash
                 }
               }
             }}
@@ -88,12 +122,13 @@ export const CinematicHero: React.FC = () => {
               <motion.span
                 key={index}
                 variants={{
-                  hidden: { opacity: 0, y: 25, filter: 'blur(8px)' },
+                  hidden: { opacity: 0, scale: 0.5, y: 40, filter: 'blur(10px)' },
                   visible: { 
                     opacity: 1, 
+                    scale: 1,
                     y: 0, 
                     filter: 'blur(0px)',
-                    transition: { duration: 0.6, ease: "easeOut" }
+                    transition: { type: "spring", stiffness: 100, damping: 10 }
                   }
                 }}
                 className="inline-block"
@@ -107,8 +142,8 @@ export const CinematicHero: React.FC = () => {
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 1, duration: 0.8 }}
-            className="text-base sm:text-lg md:text-xl font-bold text-saudi-600 max-w-2xl leading-relaxed mb-6 px-4"
+            transition={{ delay: 2, duration: 1 }}
+            className="text-base sm:text-lg md:text-xl font-bold text-saudi-600 max-w-2xl leading-relaxed mb-6 px-4 drop-shadow-sm"
           >
             رحلة رقمية تروي هوية وطنية، أصواتًا، وإنجازات من كلية الأعمال والاقتصاد
           </motion.p>
@@ -117,14 +152,14 @@ export const CinematicHero: React.FC = () => {
           <motion.div
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 1.3, duration: 0.5 }}
+            transition={{ delay: 2.5, duration: 0.8 }}
             whileHover={{ scale: 1.15 }}
             className="relative flex flex-col items-center gap-2"
           >
-            <div className="w-12 h-12 rounded-full bg-gold text-saudi-700 flex items-center justify-center shadow-[0_4px_25px_rgba(201,162,39,0.4)] group-hover:bg-gold-light transition-all duration-300">
+            <div className="w-12 h-12 rounded-full bg-white/80 backdrop-blur-md border border-gold/40 text-saudi-700 flex items-center justify-center shadow-[0_4px_25px_rgba(201,162,39,0.3)] group-hover:bg-gold transition-all duration-300">
               <motion.svg 
                 xmlns="http://www.w3.org/2000/svg" 
-                className="h-6 w-6 text-white" 
+                className="h-6 w-6 text-saudi-700 group-hover:text-white transition-colors" 
                 fill="none" 
                 viewBox="0 0 24 24" 
                 stroke="currentColor" 

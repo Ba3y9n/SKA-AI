@@ -241,9 +241,9 @@ export const AchievementsTimeline: React.FC = () => {
                   viewport={{ once: true, margin: "-5%" }}
                   transition={{ duration: 0.4, delay: (index % 6) * 0.08 }}
                   key={person.id}
-                  className="group relative bg-white rounded-3xl p-6 sm:p-8 border border-gray-100 shadow-[0_10px_30px_rgba(0,108,79,0.04)] hover:shadow-xl hover:border-saudi-200 transition-all duration-300 flex flex-col justify-between h-full text-right overflow-hidden"
+                  className="group relative bg-white/60 backdrop-blur-md rounded-3xl p-6 sm:p-8 border border-gray-100 shadow-[0_10px_30px_rgba(0,108,79,0.04)] hover:shadow-xl hover:border-gold/40 hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between h-full text-right overflow-hidden"
                 >
-                  <div className="absolute top-0 left-0 w-24 h-24 bg-gradient-to-br from-saudi-50 to-transparent rounded-br-[3rem] -z-0 group-hover:scale-110 transition-transform duration-500" />
+                  <div className="absolute inset-0 bg-gradient-to-br from-gold/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
                   
                   <div className="relative z-10">
                     <div className="flex items-center justify-between mb-5">
