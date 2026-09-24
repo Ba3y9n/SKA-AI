@@ -104,38 +104,14 @@ export const CinematicHero: React.FC = () => {
             }
           }}
         >
-          {/* Letter Reveal Title */}
+          {/* Unified Cinematic Title Reveal */}
           <motion.h1 
-            className="text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-black text-saudi-700 mb-4 tracking-tight drop-shadow-sm flex items-center justify-center gap-1 sm:gap-2 flex-wrap"
-            initial="hidden"
-            animate="visible"
-            variants={{
-              visible: {
-                transition: {
-                  staggerChildren: 0.1,
-                  delayChildren: 0.8 // Start after flash
-                }
-              }
-            }}
+            initial={{ opacity: 0, y: 30, filter: 'blur(12px)' }}
+            animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+            transition={{ duration: 1.2, delay: 0.6, ease: "easeOut" }}
+            className="text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-black text-saudi-700 mb-4 tracking-tight drop-shadow-md text-center"
           >
-            {titleText.split('').map((char, index) => (
-              <motion.span
-                key={index}
-                variants={{
-                  hidden: { opacity: 0, scale: 0.5, y: 40, filter: 'blur(10px)' },
-                  visible: { 
-                    opacity: 1, 
-                    scale: 1,
-                    y: 0, 
-                    filter: 'blur(0px)',
-                    transition: { type: "spring", stiffness: 100, damping: 10 }
-                  }
-                }}
-                className="inline-block"
-              >
-                {char === ' ' ? '\u00A0' : char}
-              </motion.span>
-            ))}
+            اكتشف الحكاية
           </motion.h1>
 
           {/* Subtitle */}

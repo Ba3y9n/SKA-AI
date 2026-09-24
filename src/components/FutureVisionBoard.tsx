@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, Edit2, Trash2, Heart, Share2, Quote, AlertCircle, X } from 'lucide-react';
 import { Ambition } from '../types/ambition';
@@ -33,7 +33,20 @@ export const FutureVisionBoard: React.FC<FutureVisionBoardProps> = ({ ambitions,
     }
   };
 
-  // Deduplicate ambitions by ID to prevent any duplicate keys or rendering artifacts
+  const [ownedIds, setOwnedIds] = useState<string[]>([]);
+
+  useEffect(() => {
+    const updateOwned = () => {
+      try {
+        const list = JSON.parse(localStorage.getItem('ownedAmbitions') || '[]');
+        setOwnedIds(list);
+      } catch (e) {}
+    };
+    updateOwned();
+    window.addEventListener('storage', updateOwned);
+    return () => window.removeEventListener('storage', updateOwned);
+  }, [ambitions]);
+
   const uniqueAmbitions = useMemo(() => {
     const seen = new Set<string>();
     return ambitions.filter((item) => {
@@ -41,10 +54,6 @@ export const FutureVisionBoard: React.FC<FutureVisionBoardProps> = ({ ambitions,
       seen.add(item.id);
       return true;
     });
-  }, [ambitions]);
-
-  const ownedAmbitionsSet = useMemo(() => {
-    return new Set(JSON.parse(localStorage.getItem('ownedAmbitions') || '[]'));
   }, [ambitions]);
 
   return (
@@ -84,7 +93,7 @@ export const FutureVisionBoard: React.FC<FutureVisionBoardProps> = ({ ambitions,
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
           <AnimatePresence>
             {uniqueAmbitions.map((item, idx) => {
-              const isOwner = ownedAmbitionsSet.has(item.id);
+              const isOwner = ownedIds.includes(item.id) || (item.id && item.id.startsWith('local-'));
               const isConfirmingDelete = deleteConfirmId === item.id;
               
               // Fake date generation if not present, just to show UI requirement

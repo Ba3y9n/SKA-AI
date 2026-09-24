@@ -277,9 +277,23 @@ export const UserGallery: React.FC<UserGalleryProps> = ({ onOpenAdmin }) => {
                     loading="lazy"
                   />
 
-                  {/* Clean Hover Overlay with "عرض الصورة" */}
+                  {/* Clean Hover Overlay with "عرض الصورة" & Owner Delete */}
                   <div className="absolute inset-0 bg-saudi-700/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-between p-6 border-2 border-transparent group-hover:border-gold rounded-3xl pointer-events-none">
-                    <div className="flex justify-end">
+                    <div className="flex justify-between items-center pointer-events-auto">
+                      {/* Delete button if user is owner */}
+                      {myPhotos.some(m => m.id === photo.id) ? (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteMySubmission(photo.id);
+                          }}
+                          className="p-2 bg-red-600/90 hover:bg-red-700 text-white rounded-full transition-colors shadow-md"
+                          title="حذف صورتي"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      ) : <div />}
+
                       <span className="px-3 py-1 bg-white/20 backdrop-blur-md rounded-full text-xs font-bold text-white border border-white/20">
                         {photo.category}
                       </span>
@@ -309,12 +323,28 @@ export const UserGallery: React.FC<UserGalleryProps> = ({ onOpenAdmin }) => {
       <AnimatePresence>
         {lightboxIndex !== null && filteredApprovedPhotos[lightboxIndex] && (
           <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
-            <button
-              onClick={() => setLightboxIndex(null)}
-              className="absolute top-6 left-6 z-30 p-3 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
-            >
-              <X className="w-6 h-6" />
-            </button>
+            <div className="absolute top-6 left-6 z-30 flex items-center gap-3">
+              {myPhotos.some(m => m.id === filteredApprovedPhotos[lightboxIndex].id) && (
+                <button
+                  onClick={() => {
+                    const id = filteredApprovedPhotos[lightboxIndex].id;
+                    setLightboxIndex(null);
+                    handleDeleteMySubmission(id);
+                  }}
+                  className="p-3 rounded-full bg-red-600 hover:bg-red-700 text-white transition-colors flex items-center gap-2 text-xs font-bold shadow-lg"
+                  title="حذف هذه الصورة"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  <span>حذف صورتي</span>
+                </button>
+              )}
+              <button
+                onClick={() => setLightboxIndex(null)}
+                className="p-3 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
 
             {/* Prev / Next controls */}
             {filteredApprovedPhotos.length > 1 && (

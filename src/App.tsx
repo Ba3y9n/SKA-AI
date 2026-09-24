@@ -87,7 +87,19 @@ const App: React.FC = () => {
       }
     };
     initAmbitions();
-    return () => { if (unsubscribe) unsubscribe(); };
+
+    // Multi-user real-time polling every 6s for 500+ students
+    const interval = setInterval(async () => {
+      try {
+        const fresh = await fetchAmbitions();
+        setAmbitions(fresh);
+      } catch (e) {}
+    }, 6000);
+
+    return () => { 
+      if (unsubscribe) unsubscribe(); 
+      clearInterval(interval);
+    };
   }, []);
 
   // If in Admin view, render AdminGalleryReview directly

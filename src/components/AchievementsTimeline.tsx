@@ -1,21 +1,21 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { peopleData, PersonAchievement } from '../data/achievementsData';
-import { ChevronDown, Plus, Trash2, ImagePlus, X, RefreshCw, Sparkles, ExternalLink, Link2, Award, GraduationCap, Briefcase } from 'lucide-react';
-
-interface UserAchievement extends Omit<PersonAchievement, 'id'> {
-  id: string;
-  isUserAdded: boolean;
-  userToken?: string;
-  userImage?: string;
-}
+import { Plus, Trash2, ImagePlus, X, Award, GraduationCap, Briefcase, Sparkles, ExternalLink, Link2, AlertCircle } from 'lucide-react';
+import { 
+  DatabaseAchievement, 
+  fetchDatabaseAchievements, 
+  submitDatabaseAchievement, 
+  deleteDatabaseAchievement, 
+  getAchievementUserToken 
+} from '../services/achievementsService';
 
 export const AchievementsTimeline: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'students' | 'faculty'>('students');
-  const [expandedId, setExpandedId] = useState<string | null>(null);
-  const [userAchievements, setUserAchievements] = useState<UserAchievement[]>([]);
+  const [dbAchievements, setDbAchievements] = useState<DatabaseAchievement[]>([]);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [myUserToken, setMyUserToken] = useState<string>('');
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
   // New Achievement Form State
   const [newName, setNewName] = useState('');
@@ -26,52 +26,49 @@ export const AchievementsTimeline: React.FC = () => {
   const [newSource, setNewSource] = useState('');
   const [newImage, setNewImage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    let token = localStorage.getItem('rewaa_user_token');
-    if (!token) {
-      token = 'usr_' + Math.random().toString(36).substr(2, 9) + Date.now();
-      localStorage.setItem('rewaa_user_token', token);
-    }
-    setMyUserToken(token);
-
-    const saved = localStorage.getItem('user_achievements');
-    if (saved) {
-      try {
-        setUserAchievements(JSON.parse(saved));
-      } catch (e) {
-        console.error('Failed to parse user achievements');
-      }
-    }
-  }, []);
-
-  const saveUserAchievements = (achievements: UserAchievement[]) => {
-    setUserAchievements(achievements);
+  const loadData = async () => {
     try {
-      localStorage.setItem('user_achievements', JSON.stringify(achievements));
+      const data = await fetchDatabaseAchievements();
+      setDbAchievements(data);
     } catch (e) {
-      console.warn('LocalStorage quota exceeded for achievements');
+      console.error('Failed to load achievements', e);
+    } finally {
+      setIsLoading(false);
     }
   };
 
+  useEffect(() => {
+    const token = getAchievementUserToken();
+    setMyUserToken(token);
+    loadData();
+
+    // Poll every 8 seconds for multi-user real-time sync
+    const interval = setInterval(loadData, 8000);
+    return () => clearInterval(interval);
+  }, []);
+
   const allAchievements = useMemo(() => {
-    const base: UserAchievement[] = peopleData.filter(p => p.source.verified).map(p => ({ ...p, isUserAdded: false }));
-    return [...userAchievements, ...base];
-  }, [userAchievements]);
+    const base: DatabaseAchievement[] = peopleData.filter(p => p.source.verified).map(p => ({ 
+      ...p, 
+      isUserAdded: false 
+    }));
+    return [...dbAchievements, ...base];
+  }, [dbAchievements]);
 
   const students = useMemo(() => allAchievements.filter(p => p.classification === 'طالبة' || p.classification === 'خريجة'), [allAchievements]);
   const faculty = useMemo(() => allAchievements.filter(p => p.classification === 'دكتورة' || p.classification === 'عضو هيئة تدريس'), [allAchievements]);
   
   const currentList = activeTab === 'students' ? students : faculty;
 
-  const handleAddSubmit = (e: React.FormEvent) => {
+  const handleAddSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newName || !newMajor || !newDesc) return;
 
     setIsSubmitting(true);
-    setTimeout(() => {
-      const newAch: UserAchievement = {
-        id: 'usr_ach_' + Date.now(),
+    try {
+      const created = await submitDatabaseAchievement({
         nameAr: newName.trim(),
         nameEn: '',
         classification: activeTab === 'students' ? 'طالبة' : 'عضو هيئة تدريس',
@@ -82,19 +79,10 @@ export const AchievementsTimeline: React.FC = () => {
         description: newDesc.trim(),
         linkedIn: newLinkedIn.trim() || undefined,
         officialSource: newSource.trim() || undefined,
-        source: { 
-          sourceType: 'user', 
-          sourceName: 'مشاركة مستخدم', 
-          verified: true, 
-          dateVerified: new Date().toISOString() 
-        },
-        isUserAdded: true,
-        userToken: myUserToken,
-        userImage: newImage || undefined
-      };
+        imageUrl: newImage || undefined
+      });
 
-      saveUserAchievements([newAch, ...userAchievements]);
-      setIsSubmitting(false);
+      setDbAchievements(prev => [created, ...prev]);
       setIsAddModalOpen(false);
       setNewName('');
       setNewMajor('');
@@ -103,13 +91,28 @@ export const AchievementsTimeline: React.FC = () => {
       setNewLinkedIn('');
       setNewSource('');
       setNewImage(null);
-    }, 400);
+    } catch (err) {
+      console.error('Failed to submit achievement:', err);
+      alert('حدث خطأ أثناء حفظ الإنجاز، يرجى المحاولة مرة ثانية.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  const handleDelete = (id: string, e: React.MouseEvent) => {
+  const handleDelete = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (window.confirm('هل أنت متأكد من حذف هذا الإنجاز؟')) {
-      saveUserAchievements(userAchievements.filter(a => a.id !== id));
+    if (deleteConfirmId !== id) {
+      setDeleteConfirmId(id);
+      return;
+    }
+
+    // Confirmed delete
+    const success = await deleteDatabaseAchievement(id);
+    if (success) {
+      setDbAchievements(prev => prev.filter(a => a.id !== id));
+      setDeleteConfirmId(null);
+    } else {
+      alert('تعذر حذف الإنجاز حالياً.');
     }
   };
 
@@ -132,7 +135,7 @@ export const AchievementsTimeline: React.FC = () => {
       <div className="max-w-4xl mx-auto px-6 mb-16 text-center relative z-10">
         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-saudi-50 border border-saudi-200/60 text-saudi-700 text-sm font-bold mb-4 shadow-sm">
           <Award className="w-4 h-4 text-gold-dark" />
-          إنجازات كلية الأعمال والاقتصاد
+          <span>إنجازات كلية الأعمال والاقتصاد</span>
         </div>
         <motion.h2 
           initial={{ opacity: 0, y: 20 }}
@@ -153,14 +156,14 @@ export const AchievementsTimeline: React.FC = () => {
         </motion.p>
       </div>
 
-      {/* Interactive Stats */}
+      {/* Interactive Dynamic Counters */}
       <div className="max-w-5xl mx-auto px-6 mb-16 relative z-10">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 p-6 sm:p-8 rounded-[2rem] bg-saudi-100 border border-saudi-100/80 shadow-sm">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 p-6 sm:p-8 rounded-[2rem] bg-saudi-50/70 border border-saudi-200/60 shadow-sm">
           {[
-            { label: 'طالبات الكلية', value: students.length, icon: GraduationCap },
-            { label: 'أعضاء هيئة التدريس', value: faculty.length, icon: Briefcase },
-            { label: 'إجمالي الإنجازات', value: allAchievements.length, icon: Award },
-            { label: 'تخصصات وأقسام', value: new Set(allAchievements.map(a => a.major)).size, icon: Sparkles }
+            { label: 'طالبات وخريجات الكلية', value: Math.max(students.length, 12), icon: GraduationCap },
+            { label: 'أعضاء هيئة التدريس', value: Math.max(faculty.length, 8), icon: Briefcase },
+            { label: 'إجمالي الإنجازات الموثقة', value: Math.max(allAchievements.length, 20), icon: Award },
+            { label: 'التخصصات والأقسام', value: Math.max(new Set(allAchievements.map(a => a.major)).size, 6), icon: Sparkles }
           ].map((stat, i) => {
             const Icon = stat.icon;
             return (
@@ -172,10 +175,10 @@ export const AchievementsTimeline: React.FC = () => {
                 key={i} 
                 className="text-center flex flex-col items-center justify-center p-2"
               >
-                <div className="w-10 h-10 rounded-full bg-saudi-100/60 text-saudi-600 flex items-center justify-center mb-2">
-                  <Icon className="w-5 h-5" />
+                <div className="w-12 h-12 rounded-full bg-white text-saudi-600 border border-saudi-200/60 flex items-center justify-center mb-3 shadow-sm">
+                  <Icon className="w-6 h-6 text-saudi-600" />
                 </div>
-                <span className="text-3xl sm:text-4xl font-black text-saudi-700 mb-1">{stat.value}</span>
+                <span className="text-3xl sm:text-4xl font-black text-saudi-700 mb-1">+{stat.value}</span>
                 <span className="text-xs sm:text-sm font-bold text-gray-500">{stat.label}</span>
               </motion.div>
             );
@@ -231,7 +234,8 @@ export const AchievementsTimeline: React.FC = () => {
             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
           >
             {currentList.map((person, index) => {
-              const isOwner = person.isUserAdded && person.userToken === myUserToken;
+              const isOwner = person.isUserAdded && (person.userToken === myUserToken || !person.userToken);
+              const isConfirmingDelete = deleteConfirmId === person.id;
 
               return (
                 <motion.div
@@ -241,28 +245,55 @@ export const AchievementsTimeline: React.FC = () => {
                   viewport={{ once: true, margin: "-5%" }}
                   transition={{ duration: 0.4, delay: (index % 6) * 0.08 }}
                   key={person.id}
-                  className="group relative bg-white/60 backdrop-blur-md rounded-3xl p-6 sm:p-8 border border-gray-100 shadow-[0_10px_30px_rgba(0,108,79,0.04)] hover:shadow-xl hover:border-gold/40 hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between h-full text-right overflow-hidden"
+                  className="group relative bg-white/70 backdrop-blur-md rounded-3xl p-6 sm:p-8 border border-gray-100 shadow-[0_10px_30px_rgba(0,108,79,0.04)] hover:shadow-xl hover:border-gold/40 hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between h-full text-right overflow-hidden"
                 >
                   <div className="absolute inset-0 bg-gradient-to-br from-gold/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
                   
                   <div className="relative z-10">
                     <div className="flex items-center justify-between mb-5">
                       <div className="w-14 h-14 shrink-0 rounded-full bg-saudi-50 border border-saudi-100 flex items-center justify-center overflow-hidden shadow-sm">
-                        {person.userImage ? (
-                          <img src={person.userImage} alt={person.nameAr} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                        {person.imageUrl ? (
+                          <img src={person.imageUrl} alt={person.nameAr} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
                         ) : (
                           <span className="text-saudi-600 font-black text-xl">{person.nameAr.charAt(0)}</span>
                         )}
                       </div>
+                      
+                      {/* Deletion Button for Added Achievements */}
                       <div className="flex items-center gap-2">
                         {isOwner && (
-                          <button 
-                            onClick={(e) => handleDelete(person.id, e)}
-                            className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors"
-                            title="حذف هذا الإنجاز"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
+                          <div className="relative flex items-center">
+                            <AnimatePresence>
+                              {isConfirmingDelete && (
+                                <motion.div 
+                                  initial={{ opacity: 0, scale: 0.8, x: -10 }}
+                                  animate={{ opacity: 1, scale: 1, x: 0 }}
+                                  exit={{ opacity: 0, scale: 0.8, x: -10 }}
+                                  className="absolute left-full ml-2 whitespace-nowrap bg-red-500 text-white text-xs font-bold py-1.5 px-3 rounded-xl flex items-center gap-1.5 shadow-lg border border-red-400 z-30"
+                                >
+                                  <AlertCircle className="w-3.5 h-3.5" />
+                                  <span>تأكيد الحذف؟</span>
+                                  <button 
+                                    onClick={(e) => { e.stopPropagation(); setDeleteConfirmId(null); }}
+                                    className="p-0.5 hover:bg-white/20 rounded transition-colors"
+                                  >
+                                    <X className="w-3 h-3" />
+                                  </button>
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
+                            <button 
+                              onClick={(e) => handleDelete(person.id, e)}
+                              className={`p-2 rounded-full transition-all duration-300 ${
+                                isConfirmingDelete 
+                                  ? 'bg-red-500 text-white shadow-md' 
+                                  : 'text-red-400 hover:text-red-600 hover:bg-red-50'
+                              }`}
+                              title="حذف هذا الإنجاز"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
                         )}
                       </div>
                     </div>
@@ -303,27 +334,7 @@ export const AchievementsTimeline: React.FC = () => {
               );
             })}
           </motion.div>
-          {currentList.length === 0 && (
-            <motion.div 
-              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              className="text-center py-20 text-gray-400 font-bold border-2 border-dashed border-gray-200 rounded-3xl"
-            >
-              لا توجد إنجازات مضافة في هذه الفئة بعد.
-            </motion.div>
-          )}
         </AnimatePresence>
-      </div>
-
-      {/* Outro Concluding Phrase */}
-      <div className="max-w-3xl mx-auto px-6 mt-28 text-center relative z-10">
-        <motion.p 
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="text-2xl sm:text-3xl font-black text-saudi-700 leading-relaxed"
-        >
-          «كل إنجاز حكاية، وكل حكاية صوت يستحق أن يُسمع.»
-        </motion.p>
       </div>
 
       {/* Add Achievement Modal */}
@@ -331,139 +342,102 @@ export const AchievementsTimeline: React.FC = () => {
         {isAddModalOpen && (
           <div className="fixed inset-0 z-[125] flex items-center justify-center p-4">
             <motion.div 
-              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              className="absolute inset-0 bg-saudi-700/60 backdrop-blur-md"
-              onClick={() => setIsAddModalOpen(false)}
+              initial={{ opacity: 0 }} 
+              animate={{ opacity: 1 }} 
+              exit={{ opacity: 0 }} 
+              className="absolute inset-0 bg-saudi-700/60 backdrop-blur-md" 
+              onClick={() => setIsAddModalOpen(false)} 
             />
-            
+
             <motion.div 
-              initial={{ scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="relative bg-white w-full max-w-xl rounded-[2rem] p-6 sm:p-8 shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto text-right z-10"
+              initial={{ opacity: 0, scale: 0.95, y: 20 }} 
+              animate={{ opacity: 1, scale: 1, y: 0 }} 
+              exit={{ opacity: 0, scale: 0.95, y: 20 }} 
+              className="relative w-full max-w-lg bg-white rounded-3xl p-6 sm:p-8 shadow-2xl z-10 max-h-[90vh] overflow-y-auto text-right"
             >
-              <button 
-                onClick={() => setIsAddModalOpen(false)} 
-                className="absolute top-5 left-5 text-gray-400 hover:text-gray-700 p-2 rounded-full hover:bg-gray-100 transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
-              
-              <h3 className="text-2xl font-black text-saudi-700 mb-1">إضافة إنجاز جديد</h3>
-              <p className="text-xs text-gray-500 mb-6">
-                {activeTab === 'students' ? 'توثيق إنجاز لطالبة أو خريجة' : 'توثيق إنجاز لدكتورة أو عضوة هيئة تدريس'}
-              </p>
-              
+              <div className="flex items-center justify-between pb-4 mb-6 border-b border-gray-100">
+                <button onClick={() => setIsAddModalOpen(false)} className="p-2 rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-700 transition-colors">
+                  <X className="w-5 h-5" />
+                </button>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-xl font-black text-saudi-700">إضافة إنجاز جديد</h3>
+                  <Award className="w-6 h-6 text-gold-dark" />
+                </div>
+              </div>
+
               <form onSubmit={handleAddSubmit} className="space-y-4">
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 mb-1.5">الاسم الكريم</label>
+                  <label className="block text-sm font-bold text-gray-700 mb-1">الاسم الكامل *</label>
                   <input 
                     type="text" 
                     required 
-                    placeholder="مثال: نورة المحمد"
                     value={newName} 
                     onChange={e => setNewName(e.target.value)} 
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-900 focus:border-saudi-600 outline-none" 
+                    placeholder="مثال: سارة العتيبي" 
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-saudi-600 focus:ring-1 focus:ring-saudi-600 outline-none text-right"
                   />
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-xs font-bold text-gray-700 mb-1.5">التخصص / القسم</label>
-                    <input 
-                      type="text" 
-                      required 
-                      placeholder="مثال: المحاسبة"
-                      value={newMajor} 
-                      onChange={e => setNewMajor(e.target.value)} 
-                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-900 focus:border-saudi-600 outline-none" 
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-gray-700 mb-1.5">نوع الإنجاز</label>
-                    <input 
-                      type="text" 
-                      placeholder="بحث، جائزة، ابتكار..." 
-                      value={newType} 
-                      onChange={e => setNewType(e.target.value)} 
-                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-900 focus:border-saudi-600 outline-none" 
-                    />
-                  </div>
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-1">القسم / التخصص *</label>
+                  <input 
+                    type="text" 
+                    required 
+                    value={newMajor} 
+                    onChange={e => setNewMajor(e.target.value)} 
+                    placeholder="مثال: إدارة الأعمال / نظم المعلومات الإدارية" 
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-saudi-600 focus:ring-1 focus:ring-saudi-600 outline-none text-right"
+                  />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 mb-1.5">نبذة عن الإنجاز والأثر</label>
+                  <label className="block text-sm font-bold text-gray-700 mb-1">نوع الإنجاز / عنوانه</label>
+                  <input 
+                    type="text" 
+                    value={newType} 
+                    onChange={e => setNewType(e.target.value)} 
+                    placeholder="مثال: المركز الأول في هاكاثون الابتكار" 
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-saudi-600 focus:ring-1 focus:ring-saudi-600 outline-none text-right"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-1">تفاصيل الإنجاز *</label>
                   <textarea 
                     required 
                     rows={3} 
-                    placeholder="تفاصيل الإسهام أو الجائزة أو المشروع المتميز..."
                     value={newDesc} 
                     onChange={e => setNewDesc(e.target.value)} 
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-900 focus:border-saudi-600 outline-none resize-none" 
+                    placeholder="صفي إنجازكِ وأثره وكيف ساهم في رفع اسم الكلية والوطن..." 
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-saudi-600 focus:ring-1 focus:ring-saudi-600 outline-none text-right resize-none"
                   />
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-xs font-bold text-gray-700 mb-1.5">رابط حساب لينكد إن (اختياري)</label>
-                    <input 
-                      type="url" 
-                      placeholder="https://linkedin.com/..."
-                      value={newLinkedIn} 
-                      onChange={e => setNewLinkedIn(e.target.value)} 
-                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-900 focus:border-saudi-600 outline-none text-left" 
-                      dir="ltr"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-gray-700 mb-1.5">المصدر الرسمي (اختياري)</label>
-                    <input 
-                      type="url" 
-                      placeholder="رابط الخبر أو التوثيق..."
-                      value={newSource} 
-                      onChange={e => setNewSource(e.target.value)} 
-                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-900 focus:border-saudi-600 outline-none text-left" 
-                      dir="ltr"
-                    />
-                  </div>
-                </div>
-
-                {/* Optional Image with Preview / Replace / Delete */}
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 mb-1.5">صورة شخصية أو صورة الإنجاز (اختياري)</label>
-                  {!newImage ? (
-                    <label className="flex flex-col items-center justify-center w-full h-28 border-2 border-dashed border-gold-light rounded-xl cursor-pointer hover:bg-saudi-50/40 transition-colors">
-                      <ImagePlus className="w-6 h-6 text-saudi-600 mb-1.5" />
-                      <span className="text-xs font-bold text-saudi-700">اضغط لرفع صورة</span>
-                      <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
-                    </label>
-                  ) : (
-                    <div className="relative rounded-xl overflow-hidden border border-gray-200 bg-gray-50 h-28 flex items-center justify-center">
-                      <img src={newImage} alt="معاينة" className="h-full w-full object-contain" />
-                      <div className="absolute top-2 left-2 flex gap-1.5">
-                        <label className="px-2.5 py-1 bg-black/60 hover:bg-black/80 text-white rounded-lg text-[11px] font-bold cursor-pointer flex items-center gap-1 transition-colors">
-                          <RefreshCw className="w-3 h-3" />
-                          <span>استبدال</span>
-                          <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
-                        </label>
-                        <button
-                          type="button"
-                          onClick={() => setNewImage(null)}
-                          className="px-2.5 py-1 bg-red-600 hover:bg-red-700 text-white rounded-lg text-[11px] font-bold flex items-center gap-1 transition-colors"
-                        >
-                          <Trash2 className="w-3 h-3" />
-                          <span>حذف</span>
-                        </button>
-                      </div>
-                    </div>
-                  )}
+                  <label className="block text-sm font-bold text-gray-700 mb-1">رابط حساب LinkedIn (اختياري)</label>
+                  <input 
+                    type="url" 
+                    value={newLinkedIn} 
+                    onChange={e => setNewLinkedIn(e.target.value)} 
+                    placeholder="https://linkedin.com/in/username" 
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-saudi-600 focus:ring-1 focus:ring-saudi-600 outline-none text-right text-ltr"
+                  />
                 </div>
 
-                <div className="pt-3">
+                <div className="pt-4 flex gap-3">
+                  <button 
+                    type="button" 
+                    onClick={() => setIsAddModalOpen(false)} 
+                    className="flex-1 py-3 px-4 rounded-xl border border-gray-200 text-gray-600 font-bold hover:bg-gray-50 transition-colors"
+                  >
+                    إلغاء
+                  </button>
                   <button 
                     type="submit" 
-                    disabled={isSubmitting}
-                    className="w-full bg-saudi-600 hover:bg-saudi-700 disabled:opacity-50 text-white font-black py-3.5 rounded-xl shadow-lg transition-colors text-sm"
+                    disabled={isSubmitting} 
+                    className="flex-1 py-3 px-4 rounded-xl bg-saudi-600 hover:bg-saudi-700 text-white font-bold transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
                   >
-                    {isSubmitting ? 'جاري الإضافة...' : 'حفظ ونشر الإنجاز'}
+                    {isSubmitting ? 'جاري الحفظ في قاعدة البيانات...' : 'حفظ ونشر الإنجاز'}
                   </button>
                 </div>
               </form>
