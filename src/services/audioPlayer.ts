@@ -240,44 +240,18 @@ class AudioPlayerService {
   }
 
   /**
-   * Play multiple chunks using fluid Online Neural Arabic Audio Stream
+   * Play complete, continuous Online Neural Arabic Audio Stream
    */
-  private playDirectAudioStream(
+  private async playDirectAudioStream(
     cleanText: string,
     onStart?: () => void,
     onEnd?: () => void,
     onError?: (err: any) => void
   ) {
-    const chunks = this.splitArabicSentences(cleanText);
-    if (chunks.length === 0) {
-      if (onEnd) onEnd();
-      return;
-    }
-
-    // Limit to first 4 chunks for conversational speed
-    this.currentQueue = chunks.slice(0, 4);
-    this.currentQueueIndex = 0;
-    this.onQueueStartCallback = onStart || null;
-    this.onQueueEndCallback = onEnd || null;
-    this.onQueueErrorCallback = onError || null;
-
-    console.log(`[TTS] 🚀 Starting Neural Arabic Audio stream queue (${this.currentQueue.length} chunks)...`);
-    this.playNextInQueue();
-  }
-
-  private async playNextInQueue() {
-    if (this.currentQueueIndex >= this.currentQueue.length) {
-      this.isPlayingAudio = false;
-      console.log('[TTS] ✅ Finished speaking all audio chunks.');
-      if (this.onQueueEndCallback) this.onQueueEndCallback();
-      return;
-    }
-
-    const chunkText = this.currentQueue[this.currentQueueIndex];
+    console.log(`[TTS] 🚀 Fetching complete continuous Arabic audio for "${cleanText.slice(0, 60)}..."`);
 
     try {
-      // Fetch high-quality Arabic audio through the local TTS endpoint (Vite / Express)
-      const ttsEndpoint = `/api/tts?text=${encodeURIComponent(chunkText)}`;
+      const ttsEndpoint = `/api/tts?text=${encodeURIComponent(cleanText)}`;
       let audioBlobUrl: string | null = null;
 
       try {
@@ -293,14 +267,8 @@ class AudioPlayerService {
       }
 
       if (!audioBlobUrl) {
-        // If server endpoint was unreachable, fallback to system Web Speech
-        console.warn('[TTS] Audio blob unavailable, using Web Speech fallback...');
-        this.fallbackFemaleSpeech(
-          this.currentQueue.slice(this.currentQueueIndex).join(' '),
-          this.onQueueStartCallback || undefined,
-          this.onQueueEndCallback || undefined,
-          this.onQueueErrorCallback || undefined
-        );
+        console.warn('[TTS] Audio blob unavailable from endpoint, using Web Speech fallback...');
+        this.fallbackFemaleSpeech(cleanText, onStart, onEnd, onError);
         return;
       }
 
@@ -311,43 +279,30 @@ class AudioPlayerService {
       audio.volume = 1.0;
       audio.playbackRate = 1.02;
 
-      let hasTriggeredStart = false;
-
       audio.onplay = () => {
         this.isPlayingAudio = true;
-        if (!hasTriggeredStart && this.currentQueueIndex === 0) {
-          hasTriggeredStart = true;
-          console.log('[TTS] 🔊 Rewaa voice is now playing through speakers!');
-          if (this.onQueueStartCallback) this.onQueueStartCallback();
-        }
+        console.log('[TTS] 🔊 Rewaa voice is now playing through speakers!');
+        if (onStart) onStart();
       };
 
       audio.onended = () => {
+        this.isPlayingAudio = false;
         URL.revokeObjectURL(audioBlobUrl!);
-        this.currentQueueIndex++;
-        this.playNextInQueue();
+        console.log('[TTS] ✅ Rewaa finished speaking the entire response seamlessly.');
+        if (onEnd) onEnd();
       };
 
       audio.onerror = (e) => {
+        this.isPlayingAudio = false;
         URL.revokeObjectURL(audioBlobUrl!);
-        console.warn(`[TTS] Audio chunk ${this.currentQueueIndex} playback failed:`, e);
-        this.fallbackFemaleSpeech(
-          this.currentQueue.slice(this.currentQueueIndex).join(' '),
-          this.onQueueStartCallback || undefined,
-          this.onQueueEndCallback || undefined,
-          this.onQueueErrorCallback || undefined
-        );
+        console.warn('[TTS] Audio stream playback failed, trying system speech...', e);
+        this.fallbackFemaleSpeech(cleanText, onStart, onEnd, onError);
       };
 
       await audio.play();
     } catch (e) {
-      console.error('[TTS ERROR] Exception during audio stream playback:', e);
-      this.fallbackFemaleSpeech(
-        this.currentQueue.slice(this.currentQueueIndex).join(' '),
-        this.onQueueStartCallback || undefined,
-        this.onQueueEndCallback || undefined,
-        this.onQueueErrorCallback || undefined
-      );
+      console.error('[TTS ERROR] Exception during audio playback:', e);
+      this.fallbackFemaleSpeech(cleanText, onStart, onEnd, onError);
     }
   }
 

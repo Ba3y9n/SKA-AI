@@ -27,7 +27,7 @@ function ttsDevPlugin() {
             const chunks: string[] = [];
             let currentChunk = '';
             for (const part of sentences) {
-              if ((currentChunk + part).length < 140) {
+              if ((currentChunk + part).length < 130) {
                 currentChunk += part;
               } else {
                 if (currentChunk.trim()) chunks.push(currentChunk.trim());
@@ -36,29 +36,41 @@ function ttsDevPlugin() {
             }
             if (currentChunk.trim()) chunks.push(currentChunk.trim());
 
-            const activeChunks = chunks.slice(0, 4);
-            const audioBuffers: Buffer[] = [];
+            if (chunks.length === 0) {
+              res.statusCode = 400;
+              res.end('Empty text');
+              return;
+            }
 
-            for (const chunk of activeChunks) {
+            // Synthesize ALL chunks in parallel
+            const fetchPromises = chunks.map(async (chunk, idx) => {
               const googleUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(chunk)}&tl=ar&client=tw-ob`;
               const ttsRes = await fetch(googleUrl, {
                 headers: {
                   'Referer': 'https://translate.google.com/',
                   'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
                 },
-                signal: AbortSignal.timeout(6000),
+                signal: AbortSignal.timeout(8000),
               });
 
               if (ttsRes.ok) {
                 const arrayBuf = await ttsRes.arrayBuffer();
                 if (arrayBuf.byteLength > 0) {
-                  audioBuffers.push(Buffer.from(arrayBuf));
+                  return { idx, buf: Buffer.from(arrayBuf) };
                 }
               }
-            }
+              return { idx, buf: null };
+            });
 
-            if (audioBuffers.length > 0) {
-              const combined = Buffer.concat(audioBuffers);
+            const results = await Promise.all(fetchPromises);
+            results.sort((a, b) => a.idx - b.idx);
+
+            const validBuffers = results
+              .map(r => r.buf)
+              .filter((buf): buf is Buffer => buf !== null && buf.length > 0);
+
+            if (validBuffers.length > 0) {
+              const combined = Buffer.concat(validBuffers);
               res.setHeader('Content-Type', 'audio/mpeg');
               res.setHeader('Content-Length', combined.length);
               res.setHeader('Access-Control-Allow-Origin', '*');
