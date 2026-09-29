@@ -133,11 +133,11 @@ export const AdminGalleryReview: React.FC<AdminGalleryReviewProps> = ({ onBackTo
     await updatePhotoStatus(id, 'rejected', 'مشرف الكلية');
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (id: string, imageUrl?: string) => {
     if (window.confirm('هل أنت متأكد من حذف هذه الصورة نهائياً من قاعدة البيانات والتخزين؟')) {
       // Optimistic UI Update: immediately remove from local state
       setSubmissions(prev => prev.filter(s => s.id !== id));
-      await deletePhotoSubmission(id, true);
+      await deletePhotoSubmission(id, imageUrl, true);
     }
   };
 
@@ -435,7 +435,7 @@ export const AdminGalleryReview: React.FC<AdminGalleryReviewProps> = ({ onBackTo
                       )}
 
                       <button
-                        onClick={() => handleDelete(sub.id)}
+                        onClick={() => handleDelete(sub.id, sub.image_url)}
                         className="p-2.5 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 transition-colors"
                         title="حذف نهائي من قاعدة البيانات"
                       >

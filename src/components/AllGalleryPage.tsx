@@ -1,62 +1,71 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Camera, 
+  ArrowRight, 
+  Search, 
   Trash2, 
+  Plus, 
   X, 
-  ChevronRight, 
-  ChevronLeft, 
-  Clock, 
+  Filter, 
+  Sparkles, 
+  ImagePlus, 
   CheckCircle2, 
+  Calendar, 
   Eye, 
-  Lock,
-  Plus,
-  Sparkles,
-  ArrowLeft,
-  Calendar,
-  Layers,
-  ImagePlus
+  ChevronRight, 
+  ChevronLeft,
+  GraduationCap,
+  Clock,
+  Download
 } from 'lucide-react';
 import { GallerySubmission, GalleryCategory } from '../types/gallery';
 import { 
   fetchPublicApprovedPhotos, 
   fetchMySubmissions, 
   submitPhotoForReview, 
-  deletePhotoSubmission,
-  subscribeToGalleryChanges,
-  getUserToken
+  deletePhotoSubmission, 
+  getUserToken, 
+  subscribeToGalleryChanges 
 } from '../services/galleryService';
 import { DeleteConfirmModal } from './DeleteConfirmModal';
+import { Footer } from './Footer';
 
-interface UserGalleryProps {
+interface AllGalleryPageProps {
+  onBackToHome: () => void;
   onOpenAdmin?: () => void;
-  onViewAllClick?: () => void;
 }
 
-const PREVIEW_LIMIT = 6;
+const ITEMS_PER_PAGE = 24;
 
-export const UserGallery: React.FC<UserGalleryProps> = ({ onOpenAdmin, onViewAllClick }) => {
+export const AllGalleryPage: React.FC<AllGalleryPageProps> = ({ onBackToHome, onOpenAdmin }) => {
   const [approvedPhotos, setApprovedPhotos] = useState<GallerySubmission[]>([]);
   const [myPhotos, setMyPhotos] = useState<GallerySubmission[]>([]);
-  const [lightboxPhoto, setLightboxPhoto] = useState<GallerySubmission | null>(null);
+  const [activeTab, setActiveTab] = useState<'approved' | 'mySubmissions'>('approved');
+  const [selectedCategory, setSelectedCategory] = useState<string>('الكل');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
-  
-  // Upload modal state
-  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
-  const [studentName, setStudentName] = useState('');
-  const [studentMajor, setStudentMajor] = useState('نظم المعلومات الإدارية');
-  const [uploadCategory, setUploadCategory] = useState<GalleryCategory>('فعاليات الكلية');
-  const [photoDescription, setPhotoDescription] = useState('');
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const [isUploading, setIsUploading] = useState(false);
-  const [uploadSuccess, setUploadSuccess] = useState(false);
-  const [uploadError, setUploadError] = useState<string | null>(null);
+
+  // Selected Photo for Lightbox Modal
+  const [lightboxPhoto, setLightboxPhoto] = useState<GallerySubmission | null>(null);
 
   // Delete State
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; url?: string } | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const { uploaderId, submissionToken } = getUserToken();
+  // Add Photo Modal State
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [studentName, setStudentName] = useState('');
+  const [studentMajor, setStudentMajor] = useState('نظم المعلومات الإدارية');
+  const [uploadCategory, setUploadCategory] = useState<GalleryCategory>('فعاليات الكلية');
+  const [description, setDescription] = useState('');
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadSuccess, setUploadSuccess] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+
+  const { uploaderId, submissionToken } = useMemo(() => getUserToken(), []);
 
   const loadData = async () => {
     try {
@@ -67,35 +76,72 @@ export const UserGallery: React.FC<UserGalleryProps> = ({ onOpenAdmin, onViewAll
       setApprovedPhotos(approved);
       setMyPhotos(mine);
     } catch (e) {
-      console.error('Failed to load gallery photos', e);
+      console.error('Failed to load gallery in page:', e);
     } finally {
       setIsLoading(false);
     }
   };
 
   useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
     loadData();
 
-    const interval = setInterval(loadData, 6000);
-    const unsubscribe = subscribeToGalleryChanges(loadData);
+    const unsubscribe = subscribeToGalleryChanges(() => {
+      loadData();
+    });
 
+    const interval = setInterval(loadData, 6000);
     return () => {
-      clearInterval(interval);
       unsubscribe();
+      clearInterval(interval);
     };
   }, []);
+
+  const categories = ['الكل', 'فعاليات الكلية', 'أجواء وطنية', 'لحظات وطنية'];
+
+  const displayedList = activeTab === 'approved' ? approvedPhotos : myPhotos;
+
+  const filteredPhotos = useMemo(() => {
+    return displayedList.filter((item) => {
+      // Category Filter
+      if (selectedCategory !== 'الكل') {
+        if (item.category !== selectedCategory) return false;
+      }
+
+      // Search Query
+      if (!searchQuery.trim()) return true;
+      const q = searchQuery.toLowerCase();
+      return (
+        (item.student_name && item.student_name.toLowerCase().includes(q)) ||
+        (item.major && item.major.toLowerCase().includes(q)) ||
+        (item.description && item.description.toLowerCase().includes(q)) ||
+        (item.category && item.category.toLowerCase().includes(q))
+      );
+    });
+  }, [displayedList, selectedCategory, searchQuery]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredPhotos.length / ITEMS_PER_PAGE));
+  const paginatedPhotos = useMemo(() => {
+    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filteredPhotos.slice(start, start + ITEMS_PER_PAGE);
+  }, [filteredPhotos, currentPage]);
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      setUploadError('يرجى اختيار ملف صورة صالح (JPEG, PNG, WebP).');
+      return;
+    }
 
     const reader = new FileReader();
     reader.onload = (event) => {
       const img = new Image();
       img.onload = () => {
         const canvas = document.createElement('canvas');
-        const MAX_WIDTH = 1200;
-        const MAX_HEIGHT = 1200;
+        const MAX_WIDTH = 1400;
+        const MAX_HEIGHT = 1400;
         let width = img.width;
         let height = img.height;
 
@@ -139,7 +185,7 @@ export const UserGallery: React.FC<UserGalleryProps> = ({ onOpenAdmin, onViewAll
         imageUrl: selectedImage,
         studentName: studentName.trim() || undefined,
         major: studentMajor,
-        description: photoDescription.trim() || undefined,
+        description: description.trim() || undefined,
         category: uploadCategory
       });
 
@@ -150,9 +196,9 @@ export const UserGallery: React.FC<UserGalleryProps> = ({ onOpenAdmin, onViewAll
         setUploadSuccess(false);
         setIsUploadModalOpen(false);
         setSelectedImage(null);
-        setPhotoDescription('');
+        setDescription('');
         setStudentName('');
-      }, 1500);
+      }, 1600);
     } catch (err: any) {
       console.error('Upload failed:', err);
       setUploadError('فشل حفظ الصورة، يرجى المحاولة مرة ثانية.');
@@ -178,80 +224,168 @@ export const UserGallery: React.FC<UserGalleryProps> = ({ onOpenAdmin, onViewAll
     }
   };
 
-  const previewPhotos = approvedPhotos.slice(0, PREVIEW_LIMIT);
-
   return (
-    <section className="relative w-full py-28 bg-[#002411] text-white overflow-hidden z-20" id="gallery">
+    <div className="min-h-screen bg-[#002B15] text-white font-arabic selection:bg-saudi-600 selection:text-white flex flex-col justify-between">
       
-      {/* Glow background */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-saudi-600/15 rounded-full blur-[140px] pointer-events-none" />
+      {/* Sticky Header */}
+      <header className="sticky top-0 z-50 bg-[#002411]/90 backdrop-blur-xl border-b border-white/10 px-6 py-4">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <button
+            onClick={onBackToHome}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 hover:bg-white/20 text-white text-sm font-bold transition-colors border border-white/10"
+          >
+            <ArrowRight className="w-4 h-4" />
+            <span>العودة للرئيسية</span>
+          </button>
 
-      <div className="max-w-7xl mx-auto px-6 relative z-10">
+          <div className="flex items-center gap-3">
+            <img src="/logo.png" alt="الشعار" className="w-8 h-8 object-contain" />
+            <span className="font-black text-gold text-lg tracking-wider">معرض اللحظات الوطنية</span>
+          </div>
+
+          <button
+            onClick={() => setIsUploadModalOpen(true)}
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-gold hover:bg-gold-light text-saudi-900 font-bold text-sm shadow-md transition-all hover:scale-105"
+          >
+            <Plus className="w-4 h-4" />
+            <span className="hidden sm:inline">أضيفي صورتكِ</span>
+          </button>
+        </div>
+      </header>
+
+      {/* Main Container */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-12 flex-1 w-full">
         
-        {/* Section Header */}
-        <div className="flex flex-col lg:flex-row items-start lg:items-end justify-between gap-6 mb-14">
-          <div>
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-gold/30 text-gold text-xs sm:text-sm font-bold mb-4 shadow-sm">
-              <Camera className="w-4 h-4 text-gold" />
-              <span>{approvedPhotos.length} صورة معتمدة لطالبات الكلية</span>
-            </div>
-            
-            <h2 className="text-3xl sm:text-5xl font-black text-white leading-tight mb-3">
-              شارك لحظتك... <span className="text-gold">واجعلها جزءاً من الحكاية</span>
-            </h2>
-            
-            <p className="text-saudi-100 text-base sm:text-lg max-w-2xl font-medium leading-relaxed">
-              معرض تفاعلي يوثق احتفالات ومشاعر وإبداعات طالبات كلية الأعمال والاقتصاد باليوم الوطني 96.
-            </p>
+        {/* Hero Section */}
+        <div className="text-center max-w-3xl mx-auto mb-12">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-sm border border-gold/30 text-gold-light text-sm font-bold mb-4 shadow-sm">
+            <Camera className="w-4 h-4 text-gold" />
+            <span>{approvedPhotos.length} صورة معتمدة من طالبات الكلية</span>
           </div>
-
-          <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
-            {approvedPhotos.length > 0 && onViewAllClick && (
-              <button
-                onClick={onViewAllClick}
-                className="inline-flex items-center gap-2 px-6 py-3.5 rounded-full bg-white/10 hover:bg-white/20 text-white border border-gold/30 font-bold text-sm shadow-md transition-all"
-              >
-                <Layers className="w-4 h-4 text-gold" />
-                <span>استعراض جميع الصور ({approvedPhotos.length})</span>
-              </button>
-            )}
-
-            <button
-              onClick={() => setIsUploadModalOpen(true)}
-              className="inline-flex items-center gap-2 px-7 py-3.5 rounded-full bg-gold hover:bg-gold-light text-saudi-900 font-black text-sm shadow-lg hover:shadow-xl transition-all hover:scale-105"
-            >
-              <Plus className="w-4 h-4" />
-              <span>أضيفي صورتكِ</span>
-            </button>
-
-            {onOpenAdmin && (
-              <button
-                onClick={onOpenAdmin}
-                className="p-3.5 rounded-full bg-white/5 hover:bg-white/10 text-white/60 hover:text-gold border border-white/10 transition-colors"
-                title="لوحة مراجعة واعتماد الصور (للمشرفين)"
-              >
-                <Lock className="w-4 h-4" />
-              </button>
-            )}
-          </div>
+          <h1 className="text-3xl sm:text-5xl font-black text-white mb-4">
+            حكايات وصور <span className="text-gold">طالبات الكلية</span>
+          </h1>
+          <p className="text-base sm:text-lg text-saudi-100 font-medium leading-relaxed">
+            معرض توثيقي تفاعلي يخلد فعاليات ولحظات طالبات كلية الأعمال والاقتصاد بمناسبة اليوم الوطني 96.
+          </p>
         </div>
 
-        {/* Content: Loading / Empty / Preview Grid */}
-        {isLoading ? (
-          <div className="py-20 text-center">
-            <div className="w-10 h-10 border-4 border-gold border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-            <p className="text-saudi-200 text-sm font-bold">جاري تحميل صور المعرض...</p>
+        {/* Search, Tabs, and Filter Controls */}
+        <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-6 mb-12 shadow-2xl">
+          
+          {/* Top Row: Search and Tabs */}
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-6">
+            
+            {/* Live Search */}
+            <div className="relative w-full md:flex-1">
+              <Search className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gold" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setCurrentPage(1);
+                }}
+                placeholder="ابحثي باسم الطالبة، التخصص، نوع المشاركة، أو الوصف..."
+                className="w-full pl-4 pr-12 py-3 bg-white/10 border border-white/15 rounded-2xl text-white placeholder:text-saudi-200/60 font-medium focus:outline-none focus:border-gold transition-all text-sm sm:text-base"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="absolute left-4 top-1/2 -translate-y-1/2 text-white/50 hover:text-white p-1 rounded-full"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+
+            {/* Public vs My Uploads Switch */}
+            <div className="flex bg-white/10 p-1.5 rounded-full border border-white/10 shrink-0 w-full md:w-auto">
+              <button
+                onClick={() => {
+                  setActiveTab('approved');
+                  setCurrentPage(1);
+                }}
+                className={`flex-1 sm:flex-none px-5 py-2 rounded-full text-xs sm:text-sm font-bold transition-all ${
+                  activeTab === 'approved'
+                    ? 'bg-gold text-saudi-900 shadow-md'
+                    : 'text-white/70 hover:text-white'
+                }`}
+              >
+                المعرض العام ({approvedPhotos.length})
+              </button>
+              <button
+                onClick={() => {
+                  setActiveTab('mySubmissions');
+                  setCurrentPage(1);
+                }}
+                className={`flex-1 sm:flex-none px-5 py-2 rounded-full text-xs sm:text-sm font-bold transition-all ${
+                  activeTab === 'mySubmissions'
+                    ? 'bg-gold text-saudi-900 shadow-md'
+                    : 'text-white/70 hover:text-white'
+                }`}
+              >
+                مشاركاتي ({myPhotos.length})
+              </button>
+            </div>
+
           </div>
-        ) : approvedPhotos.length === 0 ? (
+
+          {/* Bottom Row: Category Filter Pills */}
+          <div className="flex flex-wrap items-center gap-2 pt-4 border-t border-white/10">
+            <span className="text-xs font-bold text-gold uppercase tracking-wider ml-2 flex items-center gap-1">
+              <Filter className="w-3.5 h-3.5" /> التصنيف:
+            </span>
+            {categories.map((cat) => (
+              <button
+                key={cat}
+                onClick={() => {
+                  setSelectedCategory(cat);
+                  setCurrentPage(1);
+                }}
+                className={`px-4 py-1.5 rounded-full text-xs sm:text-sm font-bold transition-all ${
+                  selectedCategory === cat
+                    ? 'bg-gold text-saudi-900 shadow-md scale-105'
+                    : 'bg-white/10 text-white/80 hover:bg-white/20 hover:text-white border border-white/5'
+                }`}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
+
+        </div>
+
+        {/* Content Section: Loading / Empty / Grid */}
+        {isLoading ? (
+          <div className="py-24 text-center">
+            <div className="w-12 h-12 border-4 border-gold border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+            <p className="text-saudi-200 font-bold">جاري تحميل صور المعرض التفاعلي...</p>
+          </div>
+        ) : filteredPhotos.length === 0 ? (
           <div className="text-center py-20 px-6 rounded-[2.5rem] bg-white/5 border border-white/10 backdrop-blur-md max-w-2xl mx-auto flex flex-col items-center">
-            <div className="w-16 h-16 rounded-full bg-gold/10 border border-gold/30 flex items-center justify-center text-gold mb-5 shadow-inner">
+            <div className="w-16 h-16 rounded-full bg-gold/10 border border-gold/30 flex items-center justify-center text-gold mb-6 shadow-inner">
               <Sparkles className="w-8 h-8" />
             </div>
-            <h3 className="text-2xl sm:text-3xl font-black text-white mb-2">هنا تُخلد حكايات ولحظات طالبات الكلية ✨</h3>
-            <p className="text-base text-saudi-200 font-medium mb-8">كوني أول من يشارك لحظته وصورته في المعرض الوطني.</p>
+            {activeTab === 'mySubmissions' ? (
+              <>
+                <h3 className="text-2xl sm:text-3xl font-black text-white mb-2">لم تقومي برفع أي صور بعد</h3>
+                <p className="text-base sm:text-lg text-saudi-200 font-bold mb-8">شاركي صوركِ وفعالياتكِ ليتم اعتمادها وتخليدها بالمعرض.</p>
+              </>
+            ) : approvedPhotos.length === 0 ? (
+              <>
+                <h3 className="text-2xl sm:text-3xl font-black text-white mb-2">هنا تُخلد حكايات ولحظات طالبات الكلية ✨</h3>
+                <p className="text-base sm:text-lg text-saudi-200 font-bold mb-8">كوني أول من يشارك لحظته وصورته في المعرض الوطني.</p>
+              </>
+            ) : (
+              <>
+                <h3 className="text-2xl font-black text-white mb-2">لم يتم العثور على صور مطابقة</h3>
+                <p className="text-sm sm:text-base text-saudi-200 font-medium mb-6">جربي تعديل خيارات البحث أو تصفية التصنيف.</p>
+              </>
+            )}
             <button
               onClick={() => setIsUploadModalOpen(true)}
-              className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full bg-gold hover:bg-gold-light text-saudi-900 font-black text-base shadow-lg hover:shadow-xl transition-all hover:scale-105"
+              className="inline-flex items-center gap-2.5 px-8 py-3.5 rounded-full bg-gold hover:bg-gold-light text-saudi-900 font-black text-base shadow-lg hover:shadow-xl transition-all hover:scale-105"
             >
               <Plus className="w-5 h-5" />
               <span>أضيفي صورتكِ الآن</span>
@@ -259,9 +393,10 @@ export const UserGallery: React.FC<UserGalleryProps> = ({ onOpenAdmin, onViewAll
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+            {/* Photos Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
               <AnimatePresence mode="popLayout">
-                {previewPhotos.map((item, idx) => {
+                {paginatedPhotos.map((item, idx) => {
                   const isOwner = item.submission_token === submissionToken || item.uploader_id === uploaderId;
                   const formattedDate = new Date(item.created_at).toLocaleDateString('ar-SA', {
                     month: 'short',
@@ -274,11 +409,12 @@ export const UserGallery: React.FC<UserGalleryProps> = ({ onOpenAdmin, onViewAll
                       key={item.id}
                       layout
                       initial={{ opacity: 0, scale: 0.94 }}
-                      whileInView={{ opacity: 1, scale: 1 }}
-                      viewport={{ once: true }}
-                      transition={{ duration: 0.35, delay: (idx % 6) * 0.05 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.9 }}
+                      transition={{ duration: 0.35, delay: (idx % 12) * 0.03 }}
                       className="group relative flex flex-col bg-white/10 backdrop-blur-xl border border-white/15 hover:border-gold/50 rounded-[2rem] overflow-hidden shadow-xl transition-all duration-300 text-right"
                     >
+                      {/* Photo Thumbnail Container */}
                       <div 
                         className="relative aspect-square w-full overflow-hidden bg-black/40 cursor-pointer"
                         onClick={() => setLightboxPhoto(item)}
@@ -290,6 +426,7 @@ export const UserGallery: React.FC<UserGalleryProps> = ({ onOpenAdmin, onViewAll
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                         />
                         
+                        {/* Overlay Gradient */}
                         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-between p-4">
                           <div className="flex items-center justify-between">
                             <span className="px-3 py-1 rounded-full bg-saudi-900/80 backdrop-blur-md text-gold text-xs font-bold border border-gold/30">
@@ -305,11 +442,33 @@ export const UserGallery: React.FC<UserGalleryProps> = ({ onOpenAdmin, onViewAll
                             <span>{formattedDate}</span>
                           </div>
                         </div>
+
+                        {/* Status Badge if in My Uploads */}
+                        {activeTab === 'mySubmissions' && (
+                          <div className="absolute top-3 right-3 z-10">
+                            {item.status === 'approved' && (
+                              <span className="px-3 py-1 rounded-full bg-green-500/90 text-white text-xs font-bold shadow-md">
+                                معتمدة ✓
+                              </span>
+                            )}
+                            {item.status === 'pending' && (
+                              <span className="px-3 py-1 rounded-full bg-amber-500/90 text-saudi-900 text-xs font-bold shadow-md flex items-center gap-1">
+                                <Clock className="w-3 h-3" /> قيد المراجعة
+                              </span>
+                            )}
+                            {item.status === 'rejected' && (
+                              <span className="px-3 py-1 rounded-full bg-red-500/90 text-white text-xs font-bold shadow-md">
+                                مرفوضة
+                              </span>
+                            )}
+                          </div>
+                        )}
                       </div>
 
+                      {/* Card Details Body */}
                       <div className="p-5 flex-1 flex flex-col justify-between">
                         <div>
-                          <div className="flex items-center justify-between mb-1.5">
+                          <div className="flex items-center justify-between mb-2">
                             <h3 className="font-black text-base text-white group-hover:text-gold transition-colors">
                               {item.student_name || 'طالبة الكلية'}
                             </h3>
@@ -324,12 +483,14 @@ export const UserGallery: React.FC<UserGalleryProps> = ({ onOpenAdmin, onViewAll
                             )}
                           </div>
 
-                          <span className="inline-block text-xs text-saudi-200 font-bold px-2.5 py-0.5 rounded-md bg-white/5 border border-white/10 mb-2">
-                            {item.major || 'كلية الأعمال والاقتصاد'}
-                          </span>
+                          <div className="flex items-center gap-2 mb-3">
+                            <span className="text-xs text-saudi-200 font-bold px-2.5 py-0.5 rounded-md bg-white/5 border border-white/10">
+                              {item.major || 'كلية الأعمال والاقتصاد'}
+                            </span>
+                          </div>
 
                           {item.description && (
-                            <p className="text-xs text-saudi-100 font-medium leading-relaxed line-clamp-2">
+                            <p className="text-xs text-saudi-100 font-medium leading-relaxed line-clamp-2 mb-2">
                               {item.description}
                             </p>
                           )}
@@ -347,22 +508,55 @@ export const UserGallery: React.FC<UserGalleryProps> = ({ onOpenAdmin, onViewAll
               </AnimatePresence>
             </div>
 
-            {/* Bottom CTA Button */}
-            {approvedPhotos.length > PREVIEW_LIMIT && onViewAllClick && (
-              <div className="mt-14 text-center">
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="mt-14 flex items-center justify-center gap-3">
                 <button
-                  onClick={onViewAllClick}
-                  className="inline-flex items-center gap-3 px-8 py-4 rounded-full bg-gold hover:bg-gold-light text-saudi-900 font-black text-base shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all"
+                  onClick={() => {
+                    setCurrentPage(prev => Math.max(1, prev - 1));
+                    window.scrollTo({ top: 300, behavior: 'smooth' });
+                  }}
+                  disabled={currentPage === 1}
+                  className="p-3 rounded-full bg-white/10 text-white hover:bg-white/20 border border-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
                 >
-                  <span>استعراض جميع الصور ({approvedPhotos.length})</span>
-                  <ArrowLeft className="w-5 h-5 text-saudi-900" />
+                  <ChevronRight className="w-5 h-5" />
+                </button>
+
+                <div className="flex items-center gap-2">
+                  {Array.from({ length: totalPages }).map((_, i) => (
+                    <button
+                      key={i}
+                      onClick={() => {
+                        setCurrentPage(i + 1);
+                        window.scrollTo({ top: 300, behavior: 'smooth' });
+                      }}
+                      className={`w-10 h-10 rounded-full font-bold text-sm transition-all ${
+                        currentPage === i + 1
+                          ? 'bg-gold text-saudi-900 shadow-md scale-105'
+                          : 'bg-white/10 text-white hover:bg-white/20 border border-white/5'
+                      }`}
+                    >
+                      {i + 1}
+                    </button>
+                  ))}
+                </div>
+
+                <button
+                  onClick={() => {
+                    setCurrentPage(prev => Math.min(totalPages, prev + 1));
+                    window.scrollTo({ top: 300, behavior: 'smooth' });
+                  }}
+                  disabled={currentPage === totalPages}
+                  className="p-3 rounded-full bg-white/10 text-white hover:bg-white/20 border border-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                >
+                  <ChevronLeft className="w-5 h-5" />
                 </button>
               </div>
             )}
           </>
         )}
 
-      </div>
+      </main>
 
       {/* Upload Photo Modal */}
       <AnimatePresence>
@@ -455,6 +649,7 @@ export const UserGallery: React.FC<UserGalleryProps> = ({ onOpenAdmin, onViewAll
                     </select>
                   </div>
 
+                  {/* Image Picker */}
                   <div>
                     <label className="block text-xs font-bold text-gray-700 mb-1">الصورة *</label>
                     {selectedImage ? (
@@ -482,8 +677,8 @@ export const UserGallery: React.FC<UserGalleryProps> = ({ onOpenAdmin, onViewAll
                     <label className="block text-xs font-bold text-gray-700 mb-1">وصف الصورة (اختياري)</label>
                     <textarea
                       rows={2}
-                      value={photoDescription}
-                      onChange={(e) => setPhotoDescription(e.target.value)}
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
                       placeholder="كلمة أو وصف قصير يوثق اللحظة..."
                       className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-saudi-600 resize-none"
                     />
@@ -569,6 +764,9 @@ export const UserGallery: React.FC<UserGalleryProps> = ({ onOpenAdmin, onViewAll
         onCancel={() => setDeleteTarget(null)}
       />
 
-    </section>
+      {/* Global Luxury Footer */}
+      <Footer />
+
+    </div>
   );
 };

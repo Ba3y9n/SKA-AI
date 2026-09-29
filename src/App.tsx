@@ -12,6 +12,7 @@ import { Header } from './components/Header';
 import { AdminGalleryReview } from './components/AdminGalleryReview';
 import { AllAspirationsPage } from './components/AllAspirationsPage';
 import { AllAchievementsPage } from './components/AllAchievementsPage';
+import { AllGalleryPage } from './components/AllGalleryPage';
 import { useGeminiChat } from './hooks/useGeminiChat';
 import { fetchAmbitions, subscribeToAmbitions } from './services/apiService';
 import { Ambition } from './types/ambition';
@@ -36,6 +37,7 @@ const App: React.FC = () => {
   const [isAdminView, setIsAdminView] = useState(false);
   const [isAspirationsView, setIsAspirationsView] = useState(false);
   const [isAchievementsView, setIsAchievementsView] = useState(false);
+  const [isGalleryView, setIsGalleryView] = useState(false);
   const [isAmbitionModalOpen, setIsAmbitionModalOpen] = useState(false);
   const [ambitions, setAmbitions] = useState<Ambition[]>([]);
 
@@ -66,18 +68,27 @@ const App: React.FC = () => {
         setIsAdminView(true);
         setIsAspirationsView(false);
         setIsAchievementsView(false);
+        setIsGalleryView(false);
       } else if (path === '/aspirations' || hash === '#aspirations' || hash === '#/aspirations' || hash === '#all-ambitions') {
         setIsAspirationsView(true);
         setIsAdminView(false);
         setIsAchievementsView(false);
+        setIsGalleryView(false);
       } else if (path === '/achievements' || hash === '#achievements' || hash === '#/achievements' || hash === '#all-achievements') {
         setIsAchievementsView(true);
+        setIsAdminView(false);
+        setIsAspirationsView(false);
+        setIsGalleryView(false);
+      } else if (path === '/gallery' || hash === '#gallery' || hash === '#/gallery' || hash === '#all-gallery') {
+        setIsGalleryView(true);
+        setIsAchievementsView(false);
         setIsAdminView(false);
         setIsAspirationsView(false);
       } else {
         setIsAdminView(false);
         setIsAspirationsView(false);
         setIsAchievementsView(false);
+        setIsGalleryView(false);
       }
     };
 
@@ -95,6 +106,7 @@ const App: React.FC = () => {
     setIsAdminView(true);
     setIsAspirationsView(false);
     setIsAchievementsView(false);
+    setIsGalleryView(false);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -103,12 +115,23 @@ const App: React.FC = () => {
     setIsAspirationsView(true);
     setIsAdminView(false);
     setIsAchievementsView(false);
+    setIsGalleryView(false);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const navigateToAchievements = () => {
     window.history.pushState(null, '', '/achievements');
     setIsAchievementsView(true);
+    setIsAspirationsView(false);
+    setIsAdminView(false);
+    setIsGalleryView(false);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const navigateToGallery = () => {
+    window.history.pushState(null, '', '/gallery');
+    setIsGalleryView(true);
+    setIsAchievementsView(false);
     setIsAspirationsView(false);
     setIsAdminView(false);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -119,6 +142,7 @@ const App: React.FC = () => {
     setIsAdminView(false);
     setIsAspirationsView(false);
     setIsAchievementsView(false);
+    setIsGalleryView(false);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -185,6 +209,11 @@ const App: React.FC = () => {
     return <AllAchievementsPage onBackToHome={navigateToHome} />;
   }
 
+  // If in Gallery view, render AllGalleryPage directly
+  if (isGalleryView) {
+    return <AllGalleryPage onBackToHome={navigateToHome} onOpenAdmin={navigateToAdmin} />;
+  }
+
   return (
     <div className="relative w-full bg-saudi-100 text-saudi-700 font-arabic selection:bg-saudi-600 selection:text-white overflow-hidden">
       
@@ -226,7 +255,7 @@ const App: React.FC = () => {
 
       {/* 6. Interactive Gallery ("شارك لحظتك… واجعلها جزءًا من الحكاية") */}
       <SectionReveal>
-        <UserGallery onOpenAdmin={navigateToAdmin} />
+        <UserGallery onOpenAdmin={navigateToAdmin} onViewAllClick={navigateToGallery} />
       </SectionReveal>
 
       {/* 7. Future Ambitions Wall ("جدار المستقبل - من هنا يبدأ أثر الجيل القادم") */}

@@ -1,5 +1,5 @@
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
-import { GallerySubmission, GallerySubmissionStatus } from '../types/gallery';
+import { GallerySubmission, GallerySubmissionStatus, GalleryCategory } from '../types/gallery';
 
 const DEPARTMENT_ITEM_TAG = 'CBE_GALLERY_ITEM';
 const DEPARTMENT_MOD_TAG = 'CBE_GALLERY_MODERATION';
@@ -42,17 +42,33 @@ async function getReconciledSubmissions(): Promise<GallerySubmission[]> {
 
     data.forEach((row: any) => {
       try {
-        const payload = JSON.parse(row.text);
+        const payload = typeof row.text === 'string' ? JSON.parse(row.text) : row.text;
+        if (!payload) return;
 
         // 1. Raw gallery item
         if (row.department === DEPARTMENT_ITEM_TAG && payload.kind === 'CBE_GALLERY') {
+          const imgUrl = (payload.image_url || '').trim();
+          // Filter any demo mock photos
+          if (!imgUrl || imgUrl.includes('images.unsplash.com')) {
+            return;
+          }
+
+          let normalizedCategory: GalleryCategory = 'فعاليات الكلية';
+          if (payload.category === 'أجواء وطنية' || payload.category === 'لحظات وطنية' || payload.category === 'فعاليات الكلية') {
+            normalizedCategory = payload.category;
+          } else if (payload.category === 'أجواء الكلية' || payload.category === 'فعاليات') {
+            normalizedCategory = 'فعاليات الكلية';
+          }
+
           itemsMap.set(row.id, {
             id: row.id,
-            image_url: payload.image_url,
-            uploader_id: payload.uploader_id,
-            submission_token: payload.submission_token,
+            image_url: imgUrl,
+            uploader_id: payload.uploader_id || 'anonymous',
+            submission_token: payload.submission_token || '',
+            student_name: payload.student_name || payload.name || 'طالبة الكلية',
+            major: payload.major || row.major || 'كلية الأعمال والاقتصاد',
             description: payload.description,
-            category: payload.category || 'أجواء الكلية',
+            category: normalizedCategory,
             status: (payload.status as GallerySubmissionStatus) || 'pending',
             created_at: payload.created_at || row.created_at,
             reviewed_at: payload.reviewed_at,
@@ -102,11 +118,11 @@ export async function fetchPublicApprovedPhotos(): Promise<GallerySubmission[]> 
   return all.filter(item => item.status === 'approved');
 }
 
-// 2. Fetch User's Own Submissions (using persistent submission_token)
+// 2. Fetch User's Own Submissions (using persistent submission_token & uploader_id)
 export async function fetchMySubmissions(): Promise<GallerySubmission[]> {
-  const { submissionToken } = getUserToken();
+  const { submissionToken, uploaderId } = getUserToken();
   const all = await getReconciledSubmissions();
-  return all.filter(item => item.submission_token === submissionToken);
+  return all.filter(item => item.submission_token === submissionToken || item.uploader_id === uploaderId);
 }
 
 // 3. Admin: Fetch All Submissions for Supervisor Review
@@ -117,8 +133,10 @@ export async function fetchAllAdminSubmissions(): Promise<GallerySubmission[]> {
 // 4. Submit Photo For Review (Cross-Device Database Save)
 export async function submitPhotoForReview(params: {
   imageUrl: string;
+  studentName?: string;
+  major?: string;
   description?: string;
-  category: 'فعاليات' | 'أجواء الكلية' | 'لحظات وطنية';
+  category: GalleryCategory;
 }): Promise<GallerySubmission> {
   const { uploaderId, submissionToken } = getUserToken();
   const createdAt = new Date().toISOString();
@@ -128,6 +146,8 @@ export async function submitPhotoForReview(params: {
     image_url: params.imageUrl,
     uploader_id: uploaderId,
     submission_token: submissionToken,
+    student_name: params.studentName?.trim() || 'طالبة الكلية',
+    major: params.major?.trim() || 'كلية الأعمال والاقتصاد',
     description: params.description?.trim() || undefined,
     category: params.category,
     status: 'pending',
@@ -144,7 +164,8 @@ export async function submitPhotoForReview(params: {
       {
         text: JSON.stringify(payload),
         department: DEPARTMENT_ITEM_TAG,
-        major: 'pending',
+        major: params.major || 'pending',
+        status: 'approved',
         is_approved: true,
       },
     ])
@@ -161,6 +182,8 @@ export async function submitPhotoForReview(params: {
     image_url: payload.image_url,
     uploader_id: payload.uploader_id,
     submission_token: payload.submission_token,
+    student_name: payload.student_name,
+    major: payload.major,
     description: payload.description,
     category: payload.category,
     status: 'pending',
@@ -194,6 +217,7 @@ export async function updatePhotoStatus(
           text: JSON.stringify(modPayload),
           department: DEPARTMENT_MOD_TAG,
           major: newStatus,
+          status: 'approved',
           is_approved: true
         }
       ]);
@@ -213,6 +237,7 @@ export async function updatePhotoStatus(
 // 6. Delete Submission (Permanent Database & Storage Delete)
 export async function deletePhotoSubmission(
   id: string,
+  imageUrl?: string,
   isAdmin: boolean = false
 ): Promise<{ success: boolean; message: string }> {
   if (!isSupabaseConfigured() || !supabase) {
@@ -220,6 +245,10 @@ export async function deletePhotoSubmission(
   }
 
   try {
+    // 1. Direct row delete
+    await supabase.from('ambitions').delete().eq('id', id);
+
+    // 2. Insert deletion tombstone for real-time multi-device sync
     const modPayload = {
       kind: 'CBE_GALLERY_MODERATION',
       target_id: id,
@@ -228,23 +257,35 @@ export async function deletePhotoSubmission(
       timestamp: new Date().toISOString()
     };
 
-    const { error } = await supabase
+    await supabase
       .from('ambitions')
       .insert([
         {
           text: JSON.stringify(modPayload),
           department: DEPARTMENT_MOD_TAG,
           major: 'deleted',
+          status: 'approved',
           is_approved: true
         }
       ]);
 
-    if (error) {
-      console.error('Supabase delete insert error:', error);
-      return { success: false, message: 'فشل حذف الصورة من قاعدة البيانات.' };
+    // 3. If image URL is stored in Supabase storage, remove it
+    if (imageUrl && imageUrl.includes('/storage/v1/object/public/')) {
+      try {
+        const parts = imageUrl.split('/storage/v1/object/public/');
+        if (parts[1]) {
+          const [bucket, ...pathParts] = parts[1].split('/');
+          const filePath = pathParts.join('/');
+          if (bucket && filePath) {
+            await supabase.storage.from(bucket).remove([filePath]);
+          }
+        }
+      } catch (storageErr) {
+        console.warn('Storage delete exception:', storageErr);
+      }
     }
 
-    return { success: true, message: 'تم حذف الصورة بنجاح من قاعدة البيانات.' };
+    return { success: true, message: 'تم حذف الصورة بنجاح من قاعدة البيانات والتخزين.' };
   } catch (err: any) {
     console.error('Delete exception:', err);
     return { success: false, message: err.message || 'حدث خطأ أثناء الحذف.' };
