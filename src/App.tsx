@@ -53,6 +53,7 @@ const App: React.FC = () => {
     sendMessage,
     handleToggleListening,
     replayMessageVoice,
+    testVoice,
     stopSpeaking
   } = useGeminiChat();
 
@@ -247,6 +248,7 @@ const App: React.FC = () => {
           onToggleListening={handleToggleListening}
           onSendMessage={(text) => sendMessage(text, false)}
           onReplayVoice={(text) => replayMessageVoice(text)}
+          onTestVoice={testVoice}
         />
       </SectionReveal>
 

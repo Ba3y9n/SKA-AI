@@ -208,6 +208,21 @@ export function useGeminiChat() {
     [playAudio]
   );
 
+  const testVoice = useCallback(() => {
+    audioPlayer.stop();
+    setErrorMessage(null);
+    setAudioNotice(null);
+    setCharacterState('SPEAKING');
+    audioPlayer.testRewaaVoice(
+      () => setCharacterState('SPEAKING'),
+      () => setCharacterState('IDLE'),
+      () => {
+        setCharacterState('IDLE');
+        setAudioNotice('تعذر تشغيل الصوت تلقائياً، يرجى النقر على زر السماح بالصوت.');
+      }
+    );
+  }, []);
+
   return {
     messages,
     characterState,
@@ -222,6 +237,7 @@ export function useGeminiChat() {
     sendMessage,
     handleToggleListening,
     replayMessageVoice,
+    testVoice,
     stopSpeaking: () => audioPlayer.stop(),
     clearError: () => setErrorMessage(null),
   };

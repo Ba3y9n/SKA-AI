@@ -17,6 +17,7 @@ interface RewaaSectionProps {
   onToggleListening: () => void;
   onSendMessage: (text: string) => void;
   onReplayVoice?: (text: string) => void;
+  onTestVoice?: () => void;
 }
 
 export const RewaaSection: React.FC<RewaaSectionProps> = ({
@@ -31,6 +32,7 @@ export const RewaaSection: React.FC<RewaaSectionProps> = ({
   onToggleListening,
   onSendMessage,
   onReplayVoice,
+  onTestVoice,
 }) => {
   const [inputText, setInputText] = useState('');
   const [isBlinking, setIsBlinking] = useState(false);
@@ -221,6 +223,23 @@ export const RewaaSection: React.FC<RewaaSectionProps> = ({
               <span>
                 {isListening ? 'إيقاف الاستماع' : 'تحدثي معي'}
               </span>
+            </button>
+
+            {/* Direct Voice Speaker Test Button */}
+            <button
+              onClick={() => {
+                audioPlayer.initAudioContext();
+                if (onTestVoice) {
+                  onTestVoice();
+                } else {
+                  audioPlayer.testRewaaVoice();
+                }
+              }}
+              title="اختبار خروج صوت رِواء من سماعات الجهاز مباشرة"
+              className="inline-flex items-center gap-2 px-5 py-4 min-h-[48px] rounded-full bg-white hover:bg-saudi-50 text-saudi-700 border border-saudi-200 font-bold text-sm transition-all shadow-sm hover:shadow hover:border-saudi-400"
+            >
+              <Volume1 className="w-4 h-4 text-saudi-600" />
+              <span>🔊 تجربة صوت رِواء</span>
             </button>
 
             {/* Voice Audio Toggle */}
