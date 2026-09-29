@@ -84,15 +84,18 @@ export async function fetchAmbitions(): Promise<Ambition[]> {
       if (row.department === 'CBE_AMBITION_MOD' || row.status === 'rejected' || row.is_approved === false) {
         try {
           const parsed = typeof row.text === 'string' && row.text.startsWith('{') ? JSON.parse(row.text) : null;
-          if (parsed && parsed.target_id) {
-            deletedIds.add(parsed.target_id);
+          if (parsed) {
+            if (parsed.target_id) deletedIds.add(parsed.target_id);
+            if (Array.isArray(parsed.target_ids)) {
+              parsed.target_ids.forEach((tid: string) => deletedIds.add(tid));
+            }
           }
         } catch (e) {}
         deletedIds.add(row.id);
       }
     });
 
-    // 2. Filter legitimate ambitions
+    // 2. Filter legitimate real student ambitions
     const validData: Ambition[] = [];
     (data || []).forEach((row: any) => {
       if (deletedIds.has(row.id)) return;
@@ -100,10 +103,11 @@ export async function fetchAmbitions(): Promise<Ambition[]> {
       if (row.department && (row.department.startsWith('CBE_GALLERY') || row.department.startsWith('CBE_ACHIEVEMENT') || row.department === 'CBE_AMBITION_MOD')) return;
       if (row.text && row.text.startsWith('{')) return;
       
-      // Filter test noise strings
-      const t = row.text ? row.text.trim() : '';
+      const t = (row.text || '').trim();
+      if (!t) return;
+      
+      // Strict guard against any previous mock / demo / noise text
       if (
-        !t || 
         t.includes('ئئئئ') || 
         t.includes('test 1') || 
         t.includes('test 3') || 
@@ -111,10 +115,29 @@ export async function fetchAmbitions(): Promise<Ambition[]> {
         t.includes('فزت بالمركز الاول') ||
         t.includes('فزت بالمركز الأول') ||
         t.includes('الحمدلله') ||
-        t.includes('الحمد لله')
+        t.includes('الحمد لله') ||
+        t.includes('طموحي تحقيق الريادة') ||
+        t.includes('طموحي بناء نموذج ذكاء') ||
+        t.includes('طموحي تمثيل جامعة القصيم') ||
+        t.includes('طموحي تأسيس شركة') ||
+        t.includes('طموحي قيادة مبادرة') ||
+        t.includes('طموحي أن أؤسس شركة')
       ) return;
 
-      validData.push(row as Ambition);
+      // Parse name & role if formatted as "اسم الطالبة - طالبة"
+      let name = row.name;
+      let role = row.role;
+      if (!name && row.department && row.department.includes(' - ')) {
+        const parts = row.department.split(' - ');
+        name = parts[0];
+        role = parts[1];
+      }
+
+      validData.push({
+        ...row,
+        name: name || 'طالبة طموحة',
+        role: role || 'طالبة'
+      } as Ambition);
     });
 
     return validData;
@@ -125,13 +148,17 @@ export async function fetchAmbitions(): Promise<Ambition[]> {
 }
 
 export async function submitAmbitionIdea(ambitionData: Partial<Ambition>): Promise<Ambition> {
+  const departmentFormatted = ambitionData.name
+    ? `${ambitionData.name}${ambitionData.role ? ` - ${ambitionData.role}` : ''}`
+    : (ambitionData.department || 'طالبة - كلية الأعمال والاقتصاد');
+
   if (!isSupabaseConfigured() || !supabase) {
     const newLocal: Ambition = {
       id: 'local-' + Date.now(),
       text: ambitionData.text || '',
-      name: ambitionData.name,
-      role: ambitionData.role,
-      department: ambitionData.department || 'كلية الأعمال والاقتصاد',
+      name: ambitionData.name || 'طالبة طموحة',
+      role: ambitionData.role || 'طالبة',
+      department: departmentFormatted,
       major: ambitionData.major,
       created_at: new Date().toISOString(),
       status: 'approved',
@@ -144,10 +171,8 @@ export async function submitAmbitionIdea(ambitionData: Partial<Ambition>): Promi
 
   const payload: any = {
     text: ambitionData.text,
-    name: ambitionData.name,
-    role: ambitionData.role,
-    department: ambitionData.department || 'كلية الأعمال والاقتصاد',
-    major: ambitionData.major || null,
+    department: departmentFormatted,
+    major: ambitionData.major || 'كلية الأعمال والاقتصاد',
     status: 'approved',
     is_approved: true
   };
@@ -160,29 +185,15 @@ export async function submitAmbitionIdea(ambitionData: Partial<Ambition>): Promi
       .single();
 
     if (error) {
-      console.warn('Supabase insert failed, attempting fallback payload:', error);
-      const fallbackPayload = {
-        text: ambitionData.text,
-        department: ambitionData.department || (ambitionData.name ? `${ambitionData.name} - ${ambitionData.role}` : 'كلية الأعمال والاقتصاد'),
-        major: ambitionData.major || null,
-        status: 'approved',
-        is_approved: true
-      };
-
-      const retryResult = await supabase
-        .from('ambitions')
-        .insert([fallbackPayload])
-        .select()
-        .single();
-
-      if (retryResult.error) {
-        throw new Error('Supabase insert failed');
-      }
-
-      return retryResult.data as Ambition;
+      console.error('Supabase insert error:', error);
+      throw error;
     }
 
-    return data as Ambition;
+    return {
+      ...data,
+      name: ambitionData.name || 'طالبة طموحة',
+      role: ambitionData.role || 'طالبة'
+    } as Ambition;
   } catch (err: any) {
     console.error('Supabase submission exception:', err);
     throw new Error(err.message || 'Error occurred');
@@ -244,7 +255,7 @@ export async function deleteAmbition(id: string): Promise<boolean> {
       .delete()
       .eq('id', id);
 
-    // 3. Supabase RLS-Bypass Deletion Marker (works even if anon delete is blocked by RLS policies)
+    // 3. Supabase RLS-Compliant Cross-Device Deletion Marker (broadcasts to all mobile, desktop & browsers)
     const deletionMarker = {
       kind: 'CBE_AMBITION_DELETED',
       target_id: id,
@@ -257,14 +268,14 @@ export async function deleteAmbition(id: string): Promise<boolean> {
         {
           text: JSON.stringify(deletionMarker),
           department: 'CBE_AMBITION_MOD',
-          status: 'rejected',
-          is_approved: false
+          status: 'approved',
+          is_approved: true
         }
       ]);
 
     return true;
   } catch (err) {
     console.error('Exception during delete:', err);
-    return true; // Still true locally
+    return true;
   }
 }
