@@ -45,6 +45,7 @@ const App: React.FC = () => {
     messages,
     characterState,
     errorMessage,
+    audioNotice,
     isListening,
     transcript,
     isAutoVoiceEnabled,
@@ -240,6 +241,7 @@ const App: React.FC = () => {
           isListening={isListening}
           transcript={transcript}
           errorMessage={errorMessage}
+          audioNotice={audioNotice}
           isAutoVoiceEnabled={isAutoVoiceEnabled}
           onToggleVoice={() => setIsAutoVoiceEnabled(!isAutoVoiceEnabled)}
           onToggleListening={handleToggleListening}

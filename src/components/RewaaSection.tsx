@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mic, MicOff, Send, Volume2, VolumeX, Sparkles, RotateCcw, Bot } from 'lucide-react';
+import { Mic, MicOff, Send, Volume2, VolumeX, Sparkles, RotateCcw, Bot, Volume1 } from 'lucide-react';
 import { ChatMessage } from '../types/chat';
 import { CharacterState } from '../types/character';
 import { audioPlayer } from '../services/audioPlayer';
@@ -11,6 +11,7 @@ interface RewaaSectionProps {
   isListening: boolean;
   transcript: string;
   errorMessage: string | null;
+  audioNotice?: string | null;
   isAutoVoiceEnabled: boolean;
   onToggleVoice: () => void;
   onToggleListening: () => void;
@@ -24,6 +25,7 @@ export const RewaaSection: React.FC<RewaaSectionProps> = ({
   isListening,
   transcript,
   errorMessage,
+  audioNotice,
   isAutoVoiceEnabled,
   onToggleVoice,
   onToggleListening,
@@ -67,7 +69,6 @@ export const RewaaSection: React.FC<RewaaSectionProps> = ({
     'وش إنجازات طالبات الكلية؟',
   ];
 
-  // Helper function for message timestamps
   const getMessageTime = () => {
     const now = new Date();
     return now.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
@@ -85,7 +86,7 @@ export const RewaaSection: React.FC<RewaaSectionProps> = ({
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-saudi-50 border border-saudi-200/60 text-saudi-700 text-sm font-bold shadow-sm mb-3">
             <Bot className="w-4 h-4 text-gold-dark" />
-            <span>المساعد الذكي • Gemini 3.7 Flash</span>
+            <span>المساعد الذكي الصوتي • Gemini 3.7 Flash</span>
           </div>
           <h2 className="text-3xl sm:text-5xl font-black text-saudi-700 mt-2 mb-2 tracking-tight">
             أهلًا بك، أنا رِواء
@@ -129,10 +130,10 @@ export const RewaaSection: React.FC<RewaaSectionProps> = ({
               {characterState === 'SPEAKING' && (
                 <motion.div 
                   initial={{ scale: 0.95, opacity: 0 }}
-                  animate={{ scale: [1, 1.06, 1], opacity: [0.5, 0.95, 0.5] }}
+                  animate={{ scale: [1, 1.08, 1], opacity: [0.6, 1, 0.6] }}
                   exit={{ scale: 0.95, opacity: 0 }}
-                  transition={{ duration: 1.3, repeat: Infinity, ease: "easeInOut" }}
-                  className="absolute inset-0 rounded-full border-2 border-saudi-500 shadow-[0_0_40px_rgba(0,108,79,0.35)] pointer-events-none"
+                  transition={{ duration: 1.1, repeat: Infinity, ease: "easeInOut" }}
+                  className="absolute inset-0 rounded-full border-3 border-saudi-500 shadow-[0_0_45px_rgba(0,108,79,0.4)] pointer-events-none"
                 />
               )}
             </AnimatePresence>
@@ -143,7 +144,7 @@ export const RewaaSection: React.FC<RewaaSectionProps> = ({
                 characterState === 'THINKING'
                   ? { y: [0, -5, 0], rotate: [-1, 1, -1], transition: { repeat: Infinity, duration: 2, ease: "easeInOut" } }
                   : characterState === 'SPEAKING'
-                  ? { scale: [1, 1.02, 1], y: [0, -2, 0], transition: { repeat: Infinity, duration: 1.2, ease: "easeInOut" } }
+                  ? { scale: [1, 1.03, 1], y: [0, -3, 0], transition: { repeat: Infinity, duration: 0.9, ease: "easeInOut" } }
                   : { y: [0, -4, 0], rotate: [-0.5, 0.5, -0.5], transition: { repeat: Infinity, duration: 4.5, ease: "easeInOut" } }
               }
               className="w-full h-full flex items-center justify-center p-2 relative z-10 select-none"
@@ -167,32 +168,47 @@ export const RewaaSection: React.FC<RewaaSectionProps> = ({
 
           </div>
 
-          {/* Interactive State Badge */}
-          <div className="mt-5 flex items-center justify-center">
-            <span className={`inline-flex items-center gap-2 px-5 py-2 rounded-full text-xs sm:text-sm font-bold transition-all shadow-sm ${
+          {/* Interactive State Badge with Sound Waves */}
+          <div className="mt-5 flex items-center justify-center gap-2">
+            <span className={`inline-flex items-center gap-2.5 px-6 py-2 rounded-full text-xs sm:text-sm font-black transition-all shadow-sm ${
               characterState === 'LISTENING'
                 ? 'bg-gold/20 text-gold-dark border border-gold/40 animate-pulse'
                 : characterState === 'THINKING'
                 ? 'bg-saudi-100 text-saudi-700 border border-saudi-200 animate-pulse'
                 : characterState === 'SPEAKING'
-                ? 'bg-saudi-600 text-white shadow-md'
+                ? 'bg-saudi-600 text-white shadow-lg scale-105'
                 : 'bg-white text-saudi-700 border border-saudi-200/60'
             }`}>
-              <span className={`w-2 h-2 rounded-full ${
+              <span className={`w-2.5 h-2.5 rounded-full ${
                 characterState === 'LISTENING' ? 'bg-gold animate-ping' : characterState === 'SPEAKING' ? 'bg-white' : characterState === 'THINKING' ? 'bg-saudi-600' : 'bg-green-500'
               }`} />
-              {characterState === 'LISTENING' && 'رِواء تستمع...'}
-              {characterState === 'THINKING' && 'رِواء تفكر...'}
-              {characterState === 'SPEAKING' && 'رِواء تتحدث...'}
-              {characterState === 'IDLE' && 'تحدثي معي'}
-              {characterState === 'ERROR' && 'حدث انقطاع بسيط'}
+              
+              {/* Voice wave animation when speaking */}
+              {characterState === 'SPEAKING' && (
+                <span className="flex items-center gap-0.5 h-3">
+                  <span className="w-0.5 h-3 bg-white rounded-full animate-bounce [animation-delay:0.1s]" />
+                  <span className="w-0.5 h-2 bg-white rounded-full animate-bounce [animation-delay:0.3s]" />
+                  <span className="w-0.5 h-3.5 bg-white rounded-full animate-bounce [animation-delay:0.2s]" />
+                </span>
+              )}
+
+              <span>
+                {characterState === 'LISTENING' && 'رِواء تستمع...'}
+                {characterState === 'THINKING' && 'رِواء تفكر...'}
+                {characterState === 'SPEAKING' && 'رِواء تتحدث...'}
+                {characterState === 'IDLE' && 'رِواء جاهزة للاستماع'}
+                {characterState === 'ERROR' && 'حدث انقطاع بسيط'}
+              </span>
             </span>
           </div>
 
           {/* Primary Voice Action Buttons */}
-          <div className="flex items-center gap-3 mt-5">
+          <div className="flex flex-wrap items-center justify-center gap-3 mt-5">
             <button
-              onClick={onToggleListening}
+              onClick={() => {
+                audioPlayer.initAudioContext();
+                onToggleListening();
+              }}
               className={`group relative inline-flex items-center gap-3 px-8 py-4 rounded-full font-black text-base sm:text-lg transition-all duration-300 shadow-lg min-h-[48px] ${
                 isListening 
                   ? 'bg-red-500 text-white hover:bg-red-600 shadow-[0_0_25px_rgba(239,68,68,0.4)] scale-105' 
@@ -209,7 +225,10 @@ export const RewaaSection: React.FC<RewaaSectionProps> = ({
 
             {/* Voice Audio Toggle */}
             <button
-              onClick={onToggleVoice}
+              onClick={() => {
+                audioPlayer.initAudioContext();
+                onToggleVoice();
+              }}
               title={isAutoVoiceEnabled ? 'كتم الصوت التلقائي' : 'تفعيل الرد الصوتي'}
               className={`p-4 min-h-[48px] min-w-[48px] rounded-full border transition-all shadow-sm flex items-center justify-center ${
                 isAutoVoiceEnabled 
@@ -232,6 +251,23 @@ export const RewaaSection: React.FC<RewaaSectionProps> = ({
             </motion.div>
           )}
 
+          {/* Autoplay Browser Notice Banner */}
+          {audioNotice && (
+            <div className="mt-3 px-5 py-2.5 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-xs sm:text-sm font-bold text-center flex flex-col sm:flex-row items-center justify-between gap-3 max-w-md shadow-sm">
+              <span>لتفعيل صوت رِواء، اضغطي على زر السماح بالصوت.</span>
+              <button
+                onClick={() => {
+                  audioPlayer.unlockAudio();
+                  const lastRewaa = [...messages].reverse().find(m => m.sender === 'rewaa');
+                  if (lastRewaa && onReplayVoice) onReplayVoice(lastRewaa.text);
+                }}
+                className="px-3.5 py-1.5 bg-saudi-600 hover:bg-saudi-700 text-white rounded-xl text-xs font-bold transition-colors shrink-0"
+              >
+                السماح بالصوت 🔊
+              </button>
+            </div>
+          )}
+
         </div>
 
         {/* Modern In-Section Conversation Container */}
@@ -245,7 +281,7 @@ export const RewaaSection: React.FC<RewaaSectionProps> = ({
               </div>
               <div>
                 <h4 className="text-sm font-black text-saudi-700">محادثة رِواء المباشرة</h4>
-                <p className="text-[11px] font-bold text-gray-400">Gemini 3.7 Flash</p>
+                <p className="text-[11px] font-bold text-gray-400">صوت تفاعلي • Gemini 3.7 Flash</p>
               </div>
             </div>
             <span className="text-xs font-bold text-saudi-600 bg-saudi-50 px-3 py-1 rounded-full border border-saudi-200/50">
@@ -298,11 +334,14 @@ export const RewaaSection: React.FC<RewaaSectionProps> = ({
                     
                     {!isUser && onReplayVoice && (
                       <button 
-                        onClick={() => onReplayVoice(msg.text)}
-                        className="mt-2 inline-flex items-center gap-1.5 text-[11px] font-bold text-saudi-100 hover:text-white transition-colors pt-1 border-t border-saudi-500/60 w-full"
+                        onClick={() => {
+                          audioPlayer.initAudioContext();
+                          onReplayVoice(msg.text);
+                        }}
+                        className="mt-2.5 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/15 hover:bg-white/25 text-white text-xs font-bold transition-all shadow-sm w-fit"
                       >
-                        <RotateCcw className="w-3 h-3" />
-                        <span>استماع مجددًا</span>
+                        <Volume2 className="w-3.5 h-3.5 text-gold-light" />
+                        <span>🔊 تشغيل صوت رِواء</span>
                       </button>
                     )}
                   </div>
@@ -335,7 +374,7 @@ export const RewaaSection: React.FC<RewaaSectionProps> = ({
                   <span className="w-2 h-2 rounded-full bg-saudi-600 animate-bounce" />
                   <span className="w-2 h-2 rounded-full bg-saudi-600 animate-bounce [animation-delay:0.2s]" />
                   <span className="w-2 h-2 rounded-full bg-saudi-600 animate-bounce [animation-delay:0.4s]" />
-                  <span>رِواء تكتب...</span>
+                  <span>رِواء تفكر في الإجابة...</span>
                 </div>
               </motion.div>
             )}
@@ -363,7 +402,10 @@ export const RewaaSection: React.FC<RewaaSectionProps> = ({
           <form onSubmit={handleFormSubmit} className="p-3 sm:p-4 bg-white border-t border-gray-100 flex items-center gap-2">
             <button
               type="button"
-              onClick={onToggleListening}
+              onClick={() => {
+                audioPlayer.initAudioContext();
+                onToggleListening();
+              }}
               className={`p-3 rounded-2xl transition-all shadow-sm shrink-0 ${
                 isListening 
                   ? 'bg-red-500 text-white animate-pulse' 
