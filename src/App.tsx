@@ -10,6 +10,7 @@ import { Footer } from './components/Footer';
 import { AmbitionModal } from './components/AmbitionModal';
 import { Header } from './components/Header';
 import { AdminGalleryReview } from './components/AdminGalleryReview';
+import { AllAspirationsPage } from './components/AllAspirationsPage';
 import { useGeminiChat } from './hooks/useGeminiChat';
 import { fetchAmbitions, subscribeToAmbitions } from './services/apiService';
 import { Ambition } from './types/ambition';
@@ -32,6 +33,7 @@ const SectionReveal: React.FC<{ children: React.ReactNode; delay?: number }> = (
 
 const App: React.FC = () => {
   const [isAdminView, setIsAdminView] = useState(false);
+  const [isAspirationsView, setIsAspirationsView] = useState(false);
   const [isAmbitionModalOpen, setIsAmbitionModalOpen] = useState(false);
   const [ambitions, setAmbitions] = useState<Ambition[]>([]);
 
@@ -53,15 +55,20 @@ const App: React.FC = () => {
     return () => { stopSpeaking(); };
   }, [stopSpeaking]);
 
-  // Check URL pathname or hash for admin route
+  // Check URL pathname or hash for routes
   useEffect(() => {
     const checkRoute = () => {
       const path = window.location.pathname;
       const hash = window.location.hash;
       if (path === '/admin/gallery' || hash === '#admin/gallery' || hash === '#/admin/gallery') {
         setIsAdminView(true);
+        setIsAspirationsView(false);
+      } else if (path === '/aspirations' || hash === '#aspirations' || hash === '#/aspirations' || hash === '#all-ambitions') {
+        setIsAspirationsView(true);
+        setIsAdminView(false);
       } else {
         setIsAdminView(false);
+        setIsAspirationsView(false);
       }
     };
 
@@ -77,12 +84,21 @@ const App: React.FC = () => {
   const navigateToAdmin = () => {
     window.history.pushState(null, '', '/admin/gallery');
     setIsAdminView(true);
+    setIsAspirationsView(false);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const navigateToAspirations = () => {
+    window.history.pushState(null, '', '/aspirations');
+    setIsAspirationsView(true);
+    setIsAdminView(false);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const navigateToHome = () => {
     window.history.pushState(null, '', '/');
     setIsAdminView(false);
+    setIsAspirationsView(false);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -121,6 +137,27 @@ const App: React.FC = () => {
   // If in Admin view, render AdminGalleryReview directly
   if (isAdminView) {
     return <AdminGalleryReview onBackToSite={navigateToHome} />;
+  }
+
+  // If in Aspirations view, render AllAspirationsPage directly
+  if (isAspirationsView) {
+    return (
+      <>
+        <AllAspirationsPage 
+          ambitions={ambitions}
+          onBackToHome={navigateToHome}
+          onAddClick={() => setIsAmbitionModalOpen(true)}
+          onDelete={(id) => setAmbitions(prev => prev.filter(a => a.id !== id))}
+        />
+        <AmbitionModal
+          isOpen={isAmbitionModalOpen}
+          onClose={() => setIsAmbitionModalOpen(false)}
+          onSuccess={(newAmbition) => {
+            setAmbitions(prev => [newAmbition, ...prev]);
+          }}
+        />
+      </>
+    );
   }
 
   return (
@@ -173,6 +210,7 @@ const App: React.FC = () => {
           ambitions={ambitions} 
           onAddClick={() => setIsAmbitionModalOpen(true)} 
           onDelete={(id) => setAmbitions(prev => prev.filter(a => a.id !== id))}
+          onViewAllClick={navigateToAspirations}
         />
       </SectionReveal>
 
