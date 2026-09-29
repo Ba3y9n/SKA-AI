@@ -152,68 +152,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
     }
 
-    let audioBase64: string | null = null;
-    try {
-      const cleanText = reply
-        .replace(/[*_#`~[\]()><{}|\\]/g, ' ')
-        .replace(/https?:\/\/\S+/g, 'رابط')
-        .replace(/[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, '')
-        .replace(/\s+/g, ' ')
-        .trim();
-
-      if (cleanText) {
-        const sentences = cleanText.split(/([.!؟?\n،]+)/).filter(Boolean);
-        const chunks: string[] = [];
-        let current = '';
-
-        for (const s of sentences) {
-          if ((current + s).length < 130) {
-            current += s;
-          } else {
-            if (current.trim()) chunks.push(current.trim());
-            current = s;
-          }
-        }
-        if (current.trim()) chunks.push(current.trim());
-
-        // Fetch all chunks in parallel preserving order
-        const fetchPromises = chunks.map(async (chunk, idx) => {
-          const ttsUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(chunk)}&tl=ar&client=tw-ob`;
-          const audioRes = await fetch(ttsUrl, {
-            headers: {
-              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
-              'Referer': 'https://translate.google.com/'
-            },
-            signal: AbortSignal.timeout(8000)
-          });
-          if (audioRes.ok) {
-            const ab = await audioRes.arrayBuffer();
-            if (ab.byteLength > 0) {
-              return { idx, buf: Buffer.from(ab) };
-            }
-          }
-          return { idx, buf: null };
-        });
-
-        const results = await Promise.all(fetchPromises);
-        results.sort((a, b) => a.idx - b.idx);
-
-        const validBuffers = results
-          .map(r => r.buf)
-          .filter((buf): buf is Buffer => buf !== null && buf.length > 0);
-
-        if (validBuffers.length > 0) {
-          audioBase64 = Buffer.concat(validBuffers).toString('base64');
-        }
-      }
-    } catch (ttsErr) {
-      console.warn('TTS error in Vercel function:', ttsErr);
-    }
-
     return res.status(200).json({
       reply,
-      audioBase64,
-      mimeType: 'audio/mpeg',
+      audioBase64: null,
       model: usedModel,
       timestamp: new Date().toISOString(),
     });

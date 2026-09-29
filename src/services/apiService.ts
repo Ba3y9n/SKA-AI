@@ -40,20 +40,27 @@ export async function sendChatMessage(
     text: m.text,
   }));
 
-  const res = await fetch('/api/chat', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ message, history: formattedHistory, userContext }),
-    signal: AbortSignal.timeout(18000),
-  });
+  try {
+    const res = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message, history: formattedHistory, userContext }),
+      signal: AbortSignal.timeout(30000),
+    });
 
-  const data = await res.json();
+    const data = await res.json();
 
-  if (!res.ok) {
-    throw new Error(data.error || 'حدث خطأ أثناء التواصل مع رِواء');
+    if (!res.ok) {
+      throw new Error(data.error || 'حدث خطأ أثناء التواصل مع رِواء');
+    }
+
+    return data;
+  } catch (err: any) {
+    if (err.name === 'TimeoutError' || (err.message && err.message.toLowerCase().includes('timed out'))) {
+      throw new Error('استغرقت الاستجابة وقتاً أطول من المتوقع، يرجى إعادة المحاولة.');
+    }
+    throw err;
   }
-
-  return data;
 }
 
 export async function fetchAmbitions(): Promise<Ambition[]> {

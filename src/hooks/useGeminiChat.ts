@@ -126,10 +126,13 @@ export function useGeminiChat() {
           setCharacterState('IDLE');
         }
       } catch (err: any) {
-        console.error('AUDIO_PLAYBACK_ERROR', err);
+        console.error('CHAT_ERROR', err);
+        setCharacterState('IDLE');
         let errorText = err.message || 'عذراً، حدث خطأ أثناء معالجة السؤال.';
         if (errorText.includes('429') || errorText.includes('quota') || errorText.includes('Too Many Requests')) {
           errorText = 'هناك ضغط مؤقت على الخدمة، يرجى إعادة المحاولة بعد ثوانٍ بسيطة.';
+        } else if (errorText.includes('timed out') || errorText.includes('timeout') || errorText.includes('signal')) {
+          errorText = 'استغرقت الإجابة وقتاً أطول، يرجى إعادة المحاولة.';
         }
         setErrorMessage(errorText);
 
@@ -140,11 +143,6 @@ export function useGeminiChat() {
           timestamp: new Date(),
         };
         setMessages((prev) => [...prev, errorChatMessage]);
-
-        // Revert to IDLE after timeout
-        setTimeout(() => {
-          setCharacterState((curr) => (curr === 'ERROR' ? 'IDLE' : curr));
-        }, 5000);
       }
     },
     [isAutoVoiceEnabled, playAudio]
