@@ -9,7 +9,7 @@ export interface DatabaseAchievement extends PersonAchievement {
   isUserAdded: boolean;
 }
 
-// Get or create persistent user token
+// Get or create persistent unique user token per device/browser
 export function getAchievementUserToken(): string {
   let token = localStorage.getItem('rewaa_user_token');
   if (!token) {
@@ -19,7 +19,7 @@ export function getAchievementUserToken(): string {
   return token;
 }
 
-// Fetch all user-added achievements from Supabase
+// Fetch all achievements from Supabase database strictly
 export async function fetchDatabaseAchievements(): Promise<DatabaseAchievement[]> {
   if (!isSupabaseConfigured() || !supabase) {
     const saved = localStorage.getItem('user_achievements');
@@ -31,7 +31,7 @@ export async function fetchDatabaseAchievements(): Promise<DatabaseAchievement[]
       .from('ambitions')
       .select('*')
       .in('department', [DEPARTMENT_ACHIEVEMENT_TAG, DEPARTMENT_ACHIEVEMENT_MOD])
-      .order('created_at', { ascending: true });
+      .order('created_at', { ascending: false });
 
     if (error || !data) {
       console.warn('Supabase fetch achievements error, fallback to local storage:', error);
@@ -42,40 +42,78 @@ export async function fetchDatabaseAchievements(): Promise<DatabaseAchievement[]
     const itemsMap = new Map<string, DatabaseAchievement>();
     const deletedIds = new Set<string>();
 
+    // 1. First pass: Collect all deletion tombstones
     data.forEach((row: any) => {
       try {
-        const payload = JSON.parse(row.text);
-        if (row.department === DEPARTMENT_ACHIEVEMENT_TAG && payload.kind === 'CBE_ACHIEVEMENT') {
-          itemsMap.set(row.id, {
-            id: row.id,
-            nameAr: payload.nameAr,
-            nameEn: payload.nameEn || '',
-            classification: payload.classification || 'طالبة',
-            major: payload.major || 'كلية الأعمال والاقتصاد',
-            achievementTitle: payload.achievementTitle || payload.type || 'إنجاز أكاديمي',
-            year: payload.year || new Date().getFullYear().toString(),
-            description: payload.description,
-            linkedIn: payload.linkedIn,
-            officialSource: payload.officialSource,
-            userToken: payload.userToken,
-            imageUrl: payload.imageUrl,
-            isUserAdded: true,
-            source: {
-              sourceType: 'user',
-              sourceName: 'مشاركة طالبة موثقة',
-              verified: true,
-              dateVerified: payload.createdAt || row.created_at
-            },
-            type: payload.type || 'إنجاز متميز'
-          });
+        if (row.department === DEPARTMENT_ACHIEVEMENT_MOD) {
+          const payload = typeof row.text === 'string' ? JSON.parse(row.text) : row.text;
+          if (payload && payload.kind === 'CBE_ACHIEVEMENT_MOD' && payload.action === 'deleted') {
+            if (payload.target_id) deletedIds.add(payload.target_id);
+            if (Array.isArray(payload.target_ids)) payload.target_ids.forEach((id: string) => deletedIds.add(id));
+          }
+          deletedIds.add(row.id);
+        }
+      } catch (e) {}
+    });
+
+    // 2. Second pass: Collect valid real achievements
+    data.forEach((row: any) => {
+      if (deletedIds.has(row.id)) return;
+      if (row.department !== DEPARTMENT_ACHIEVEMENT_TAG) return;
+
+      try {
+        const payload = typeof row.text === 'string' ? JSON.parse(row.text) : row.text;
+        if (!payload || payload.kind !== 'CBE_ACHIEVEMENT') return;
+
+        // Strict guard against demo / test data
+        const name = (payload.nameAr || '').trim();
+        const title = (payload.achievementTitle || '').trim();
+        const desc = (payload.description || '').trim();
+
+        if (
+          name.startsWith('طالبة 1') ||
+          name.startsWith('طالبة 2') ||
+          name.startsWith('طالبة 3') ||
+          name.startsWith('طالبة 4') ||
+          name.startsWith('طالبة 5') ||
+          name === 'د. أمل' ||
+          title.startsWith('إنجاز 1') ||
+          title.startsWith('إنجاز 2') ||
+          title.startsWith('إنجاز 3') ||
+          title.startsWith('إنجاز 4') ||
+          title.startsWith('إنجاز 5') ||
+          title === 'إنجاز محاسبي 1' ||
+          title === 'إنجاز مالي 2' ||
+          title === 'بحث علمي 3' ||
+          title === 'مشروع تقني 4' ||
+          title === 'مبادرة اقتصادية 5' ||
+          desc.includes('تفاصيل الإنجاز الخاص بـ')
+        ) {
+          return;
         }
 
-        if (row.department === DEPARTMENT_ACHIEVEMENT_MOD && payload.kind === 'CBE_ACHIEVEMENT_MOD') {
-          if (payload.action === 'deleted' && payload.target_id) {
-            deletedIds.add(payload.target_id);
-            itemsMap.delete(payload.target_id);
-          }
-        }
+        itemsMap.set(row.id, {
+          id: row.id,
+          nameAr: payload.nameAr || 'طالبة الكلية',
+          nameEn: payload.nameEn || '',
+          classification: payload.classification || 'طالبة',
+          major: payload.major || row.major || 'كلية الأعمال والاقتصاد',
+          achievementTitle: payload.achievementTitle || payload.type || 'إنجاز متميز',
+          year: payload.year || new Date(row.created_at || Date.now()).getFullYear().toString(),
+          description: payload.description || '',
+          linkedIn: payload.linkedIn || undefined,
+          officialSource: payload.officialSource || undefined,
+          userToken: payload.userToken,
+          imageUrl: payload.imageUrl,
+          isUserAdded: true,
+          source: {
+            sourceType: 'user',
+            sourceName: 'مشاركة موثقة بكلية الأعمال والاقتصاد',
+            verified: true,
+            dateVerified: payload.createdAt || row.created_at
+          },
+          type: payload.type || 'إنجاز متميز'
+        });
       } catch (e) {
         // ignore malformed row
       }
@@ -88,7 +126,7 @@ export async function fetchDatabaseAchievements(): Promise<DatabaseAchievement[]
       }
     });
 
-    return result.reverse();
+    return result;
   } catch (err) {
     console.error('Exception in fetchDatabaseAchievements:', err);
     const saved = localStorage.getItem('user_achievements');
@@ -176,7 +214,7 @@ export async function deleteDatabaseAchievement(id: string): Promise<boolean> {
     // 1. Direct row delete
     await supabase.from('ambitions').delete().eq('id', id);
 
-    // 2. Insert deletion tombstone for real-time multi-device sync
+    // 2. Insert deletion tombstone with approved status for real-time cross-device sync
     const modPayload = {
       kind: 'CBE_ACHIEVEMENT_MOD',
       target_id: id,
@@ -188,6 +226,7 @@ export async function deleteDatabaseAchievement(id: string): Promise<boolean> {
       {
         text: JSON.stringify(modPayload),
         department: DEPARTMENT_ACHIEVEMENT_MOD,
+        status: 'approved',
         is_approved: true
       }
     ]);

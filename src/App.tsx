@@ -11,6 +11,7 @@ import { AmbitionModal } from './components/AmbitionModal';
 import { Header } from './components/Header';
 import { AdminGalleryReview } from './components/AdminGalleryReview';
 import { AllAspirationsPage } from './components/AllAspirationsPage';
+import { AllAchievementsPage } from './components/AllAchievementsPage';
 import { useGeminiChat } from './hooks/useGeminiChat';
 import { fetchAmbitions, subscribeToAmbitions } from './services/apiService';
 import { Ambition } from './types/ambition';
@@ -34,6 +35,7 @@ const SectionReveal: React.FC<{ children: React.ReactNode; delay?: number }> = (
 const App: React.FC = () => {
   const [isAdminView, setIsAdminView] = useState(false);
   const [isAspirationsView, setIsAspirationsView] = useState(false);
+  const [isAchievementsView, setIsAchievementsView] = useState(false);
   const [isAmbitionModalOpen, setIsAmbitionModalOpen] = useState(false);
   const [ambitions, setAmbitions] = useState<Ambition[]>([]);
 
@@ -63,12 +65,19 @@ const App: React.FC = () => {
       if (path === '/admin/gallery' || hash === '#admin/gallery' || hash === '#/admin/gallery') {
         setIsAdminView(true);
         setIsAspirationsView(false);
+        setIsAchievementsView(false);
       } else if (path === '/aspirations' || hash === '#aspirations' || hash === '#/aspirations' || hash === '#all-ambitions') {
         setIsAspirationsView(true);
         setIsAdminView(false);
+        setIsAchievementsView(false);
+      } else if (path === '/achievements' || hash === '#achievements' || hash === '#/achievements' || hash === '#all-achievements') {
+        setIsAchievementsView(true);
+        setIsAdminView(false);
+        setIsAspirationsView(false);
       } else {
         setIsAdminView(false);
         setIsAspirationsView(false);
+        setIsAchievementsView(false);
       }
     };
 
@@ -85,12 +94,22 @@ const App: React.FC = () => {
     window.history.pushState(null, '', '/admin/gallery');
     setIsAdminView(true);
     setIsAspirationsView(false);
+    setIsAchievementsView(false);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const navigateToAspirations = () => {
     window.history.pushState(null, '', '/aspirations');
     setIsAspirationsView(true);
+    setIsAdminView(false);
+    setIsAchievementsView(false);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const navigateToAchievements = () => {
+    window.history.pushState(null, '', '/achievements');
+    setIsAchievementsView(true);
+    setIsAspirationsView(false);
     setIsAdminView(false);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -99,6 +118,7 @@ const App: React.FC = () => {
     window.history.pushState(null, '', '/');
     setIsAdminView(false);
     setIsAspirationsView(false);
+    setIsAchievementsView(false);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -160,6 +180,11 @@ const App: React.FC = () => {
     );
   }
 
+  // If in Achievements view, render AllAchievementsPage directly
+  if (isAchievementsView) {
+    return <AllAchievementsPage onBackToHome={navigateToHome} />;
+  }
+
   return (
     <div className="relative w-full bg-saudi-100 text-saudi-700 font-arabic selection:bg-saudi-600 selection:text-white overflow-hidden">
       
@@ -216,7 +241,7 @@ const App: React.FC = () => {
 
       {/* 8. College Students & Faculty Achievements ("أصوات تحكي أثرًا لا يُنسى") */}
       <SectionReveal>
-        <AchievementsTimeline />
+        <AchievementsTimeline onViewAllClick={navigateToAchievements} />
       </SectionReveal>
 
       {/* 9. Final Luxury Footer */}
