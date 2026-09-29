@@ -14,9 +14,12 @@ class AudioPlayerService {
   constructor() {
     if (typeof window !== 'undefined') {
       try {
-        // Create pre-allocated reusable audio element
+        // Create pre-allocated reusable audio element optimized for iPhone Safari & Desktop
         this.reusableAudio = new Audio();
         this.reusableAudio.preload = 'auto';
+        this.reusableAudio.setAttribute('playsinline', 'true');
+        this.reusableAudio.setAttribute('webkit-playsinline', 'true');
+        (this.reusableAudio as any).crossOrigin = 'anonymous';
       } catch (e) {}
 
       // Global user interaction listener to proactively unlock AudioContext & reusable Audio

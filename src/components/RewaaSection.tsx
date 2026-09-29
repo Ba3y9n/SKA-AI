@@ -441,7 +441,7 @@ export const RewaaSection: React.FC<RewaaSectionProps> = ({
               onChange={(e) => setInputText(e.target.value)}
               placeholder="اكتبي رسالتكِ لرِواء..."
               disabled={characterState === 'THINKING'}
-              className="flex-1 bg-gray-50 border border-gray-200 rounded-2xl px-4 py-3 text-sm sm:text-base text-gray-900 focus:border-saudi-600 focus:bg-white outline-none transition-all placeholder:text-gray-400"
+              className="flex-1 bg-gray-50 border border-gray-200 rounded-2xl px-4 py-3 text-base text-gray-900 focus:border-saudi-600 focus:bg-white outline-none transition-all placeholder:text-gray-400 min-h-[48px]"
             />
 
             <button
